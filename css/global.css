@@ -1,0 +1,120 @@
+/* 全局設定：Apple風格簡潔字體 + 無邊界設計 */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Arial", sans-serif;
+    background-color: #f5f5f7;
+}
+
+/* 通用 panel 外觀樣式 */
+.panel {
+    position: fixed;
+    resize: both;
+    overflow: auto;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+}
+
+.panel-header {
+    background: #f2f2f2;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #ddd;
+}
+
+.panel-title {
+    font-weight: 600;
+    font-size: 16px;
+    flex: 1;
+    color: #333;
+}
+
+.mode-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    background: #888;
+    color: white;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background 0.3s ease;
+}
+.mode-btn:hover {
+    background: #444;
+}
+
+.panel-content {
+    flex: 1;
+    overflow: visible;
+    padding: 12px;
+    box-sizing: border-box;
+}
+
+/* 面板尺寸定義 */
+.panel-medium {
+    top: 0;
+    left: 0;
+    width: 20vw;
+    height: 100vh;
+}
+#resultPanel.panel-medium {
+    left: 20vw;
+    width: 40vw;
+}
+.panel-fullscreen {
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    resize: none;
+}
+
+.panel-minimized {
+    width: 48px !important;
+    height: 48px !important;
+    background: transparent;
+    border: none;
+}
+.panel-minimized .panel-content,
+.panel-minimized .mode-btn:not(#panelRestoreBtn):not(#resultRestoreBtn),
+.panel-minimized .panel-title {
+    display: none;
+}
+
+.toggle-btn {
+    position: fixed;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#panelRestoreBtn {
+    top: 10px;
+    left: 10px;
+    background: #007aff;
+}
+#resultRestoreBtn {
+    top: 10px;
+    right: 10px;
+    background: #34c759;
+}

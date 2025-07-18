@@ -1,0 +1,398 @@
+/* === #inputpanel 輸入面板 專屬樣式 === */
+
+/* 模式選擇與特徵選項區 */
+.mode-feature-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+    align-items: stretch;
+}
+
+.mode-box,
+.feature-box {
+    border: 1px solid #ddd;
+    background: #fafafa;
+    border-radius: 10px;
+    padding: 12px;
+    box-sizing: border-box;
+}
+
+.mode-box {
+    flex: 2.2;
+}
+.feature-box {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.mode-label {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.mode-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.mode-title {
+    font-weight: bold;
+    font-size: 16px;
+    color: #111;
+}
+
+.mode-desc {
+    font-size: 13px;
+    color: #888;
+    margin-left: -24px;
+}
+
+/* Checkbox 組群 */
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+.checkbox-group label {
+    display: flex;
+    font-size: 16px;
+    font-weight: bold;
+    align-items: center;
+    gap: 6px;
+    /*font-weight: 500;*/
+    /*font-size: 14px;*/
+}
+
+/* 🔹 輸入組塊樣式 */
+.input-section {
+    margin-top: 12px;      /* 與上方區塊的距離 */
+    margin-bottom: 10px;   /* 與下方保持呼吸感 */
+    padding: 12px 0;
+}
+
+/* 🔹 中古音分類輸入區塊（左右並排） */
+.input-row {
+    display: flex;
+    gap: 10px;
+}
+
+.input-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.input-col label {
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.input-col textarea {
+    height: 60px;
+}
+
+
+/* 通用輸入區塊排版 */
+.input-section {
+    margin-top: 4px;      /* ✅ 往上靠緊一點 */
+    margin-bottom: 8px;   /* 下方略有空隙即可 */
+    padding: 4px 0;       /* 減少上下 padding */
+}
+
+.panel-subtitle {
+    margin: 6px 0 8px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: #444;
+}
+
+.panel-header {
+    background: #f2f2f2;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px; /* ✅ 讓按鈕間有空隙 */
+    border-bottom: 1px solid #ddd;
+}
+
+
+/* 地點區排版 */
+.location-row {
+    display: flex;
+    gap: 10px;
+}
+.location-input,
+.region-input {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+textarea {
+    width: 100%;
+    height: 60px;
+    box-sizing: border-box;
+    font-family: monospace;
+    font-size: 13px;
+    margin-top: 4px;
+    padding: 6px 10px;
+    resize: none;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
+}
+
+label {
+    font-size: 13px;
+    color: #333;
+    margin-bottom: 2px;
+}
+
+
+.suggest-line {
+    padding: 8px 12px;
+    cursor: pointer !important;
+    transition: background-color 0.15s ease;
+}
+
+.suggest-line:hover {
+    background-color: #e6f2ff !important;
+}
+
+
+
+.success {
+    font-weight: bold;
+    color: #007aff;
+}
+
+
+
+
+/* fancy run 按鈕 */
+.center-btn {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.fancy-run-btn {
+    font-size: 18px;
+    font-weight: bold;
+    padding: 14px 28px;
+    color: white;
+    background: linear-gradient(135deg, #6e00ff, #00c3ff);
+    border: none;
+    border-radius: 30px;
+    box-shadow: 0 0 12px rgba(0, 195, 255, 0.6), 0 0 30px rgba(110, 0, 255, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    letter-spacing: 1px;
+    position: relative;
+    overflow: hidden;
+}
+.fancy-run-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(0, 195, 255, 0.8), 0 0 50px rgba(110, 0, 255, 0.5);
+}
+
+/* 測試後端連線 */
+.debug-row {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+    margin-top: 16px;
+}
+.vertical-btn {
+    background-color: #666;
+    color: white;
+    font-size: 12px;
+    border-radius: 4px;
+    width: 40px;
+    padding: 6px 0;
+    line-height: 1.2;
+    text-align: center;
+    white-space: pre-wrap;
+    cursor: pointer;
+    border: none;
+}
+.vertical-btn:hover {
+    background-color: #444;
+}
+
+#debug-log {
+    flex: 1;
+    padding: 8px;
+    background: #fcfcfc;
+    border: 1px dashed #999;
+    font-size: 12px;
+    white-space: pre-wrap;
+    overflow-y: auto;
+    border-radius: 6px;
+}
+
+/* 音典分區下拉 */
+.text-btn {
+    background: transparent;
+    border: none;
+    font-size: 13px;
+    cursor: pointer;
+    color: #1976d2;
+    padding: 2px 4px;
+    margin-bottom: 4px;
+}
+.text-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.partition-list {
+    list-style: none;
+    margin: 0;
+    padding: 4px 0;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    min-width: 120px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.partition-list li {
+    padding: 6px 12px;
+    cursor: pointer;
+}
+.partition-list li:hover {
+    background: #f0f0f0;
+}
+
+/* 音典分區下拉整體容器（第一層） */
+.partition-popup {
+    background: #ffffff;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 各層級容器最小寬度 */
+.partition-popup.partition-lvl1,
+.partition-popup.partition-lvl2,
+.partition-popup.partition-lvl3 {
+    min-width: 140px;
+}
+
+/* 列表項目 */
+.partition-popup div {
+    padding: 6px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+.partition-popup div:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+/* 第三級內容捲動區樣式 */
+.partition-popup.partition-lvl3 {
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+/* 美化 scrollbar（Chrome/Firefox） */
+.partition-popup.partition-lvl3::-webkit-scrollbar {
+    width: 6px;
+}
+.partition-popup.partition-lvl3::-webkit-scrollbar-thumb {
+    background: #bbb;
+    border-radius: 3px;
+}
+.partition-popup.partition-lvl3::-webkit-scrollbar-track {
+    background: #f5f5f7;
+}
+.partition-popup.partition-lvl3 {
+    scrollbar-width: thin;
+    scrollbar-color: #bbb #f5f5f7;
+}
+
+.group-row {
+    display: flex;
+    gap: 16px;
+    margin-top: 10px;
+}
+
+.group-row > div {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.group-row label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.group-row textarea {
+    height: 60px;
+    resize: none;
+    font-family: monospace;
+    font-size: 13px;
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+    background: #fff;
+}
+
+.center-btn {
+    text-align: center;
+    margin-top: 10px;     /* 與上方距離適中 */
+    margin-bottom: 28px;  /* 與下方拉開距離（視覺呼吸） */
+}
+
+.input-section:empty {
+    display: none;
+}
+
+.partition-list:empty {
+    display: none;
+}
+
+.partition-popup:empty {
+    display: none;
+}
+
+/* 即時提示面板 */
+.inline-suggestion {
+    position: absolute !important;
+    display: none;
+    background: #ffffff !important;
+    border: 1px solid #ccc !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    padding: 8px 12px;
+    border-radius: 6px;
+    white-space: pre-line;  /* 支援多行 */
+    font-size: 14px;
+    color: #333;
+    max-width: 320px;
+    z-index: 99999 !important;
+    pointer-events:auto !important;
+}
+
+.inline-suggestion .success {
+    color: #007aff; /* iOS 藍色 ✔️ */
+    font-weight: bold;
+}
+
+.inline-suggestion .error {
+    color: #ff3b30; /* Apple 紅錯誤 */
+    font-weight: bold;
+}

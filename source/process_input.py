@@ -57,8 +57,30 @@ def match_locations(user_input):
 
     print(f"[DEBUG] 使用者輸入：{user_input}")
 
-    converted, _ = s2t_pro(user_input, level=2)
-    possible_inputs = {user_input, converted}
+    def generate_strict_candidates(mapping, input_len):
+        # 每個位置逐字取候選值組合（不產生交叉混用）
+        combinations = [[]]
+        for _, candidates in mapping:
+            new_combos = []
+            for combo in combinations:
+                for c in candidates:
+                    new_combos.append(combo + [c])
+            combinations = new_combos
+        # 合併成詞，保證長度一致
+        return {''.join(chars) for chars in combinations if len(chars) == input_len}
+
+    # 使用 s2t_pro 轉換
+    converted_str, mapping = s2t_pro(user_input, level=2)
+    input_len = len(user_input)
+
+    # 安全構造詞組候選集
+    converted_candidates = generate_strict_candidates(mapping, input_len)
+
+    # possible_inputs 包含：
+    # - 原輸入
+    # - 轉換字詞（保證不交叉）
+    # - clean_str（第一候選組合）
+    possible_inputs = set([user_input, converted_str]) | converted_candidates
 
     conn = sqlite3.connect(QUERY_DB_PATH)
     cursor = conn.cursor()
@@ -476,8 +498,8 @@ def read_partition_hierarchy(parent_regions=None, db_path=QUERY_DB_PATH):
 
     return result
 
-# results = read_partition_hierarchy("嶺南")
-# # results = match_locations_batch("東莞")
+# results = match_locations_batch("台云")
+# # # results = match_locations_batch("東莞")
 # print(results)
 # print(results[1])
 # print(results[2])

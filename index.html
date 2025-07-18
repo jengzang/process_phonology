@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8" />
+    <title>不羈🙌🏻地理語言學工具</title>
+
+    <!-- CSS 引入 -->
+    <link rel="stylesheet" href="css/global.css" />
+    <link rel="stylesheet" href="css/inputpanel.css" />
+    <link rel="stylesheet" href="css/resultpanel.css" />
+</head>
+
+<body>
+<!-- 全局彈出層 -->
+<div id="popupLayer"></div>
+<!-- 地點匹配建議提示框 -->
+<div id="inlineSuggestion" class="inline-suggestion"></div>
+
+
+<!-- 輸入面板：從 #panel 改為 #inputpanel -->
+<div id="inputpanel" class="panel panel-medium">
+    <div class="panel-header" id="dragHandle">
+        <span class="panel-title">🔍 設置參數</span>
+        <button id="minimizeBtn" class="mode-btn">_</button>
+        <button id="maximizeBtn" class="mode-btn">⛶</button>
+    </div>
+
+    <div id="panelContent" class="panel-content">
+        <h4 class="panel-subtitle">選擇分析模式</h4>
+        <div class="mode-feature-row">
+            <div class="mode-box">
+                <label class="mode-label">
+                    <input type="radio" name="mode" value="s2p" checked />
+                    <div class="mode-text">
+                        <div class="mode-title">中古➡️讀音</div>
+                        <div class="mode-desc">根據中古地位整理讀音</div>
+                    </div>
+                </label>
+                <label class="mode-label">
+                    <input type="radio" name="mode" value="p2s" />
+                    <div class="mode-text">
+                        <div class="mode-title">讀音➡️中古</div>
+                        <div class="mode-desc">根據讀音整理中古地位</div>
+                    </div>
+                </label>
+            </div>
+
+            <div class="feature-box">
+                <div class="checkbox-group" id="features-group">
+                    <label><input type="checkbox" value="聲母" /> 聲母</label>
+                    <label><input type="checkbox" value="韻母" checked /> 韻母</label>
+                    <label><input type="checkbox" value="聲調" /> 聲調</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- 地點與分區 -->
+        <div class="input-section">
+            <h4 class="panel-subtitle">輸入或選擇方言點</h4>
+            <div class="location-row">
+                <div class="location-input">
+                    <label for="locations">地點</label>
+                    <textarea id="locations">東莞莞城 雲浮富林</textarea>
+                </div>
+
+                <div class="region-input">
+                    <button id="partitionBtn" class="text-btn">音典分區 ▼</button>
+                    <textarea id="regions">嶺南 嶺東</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- 中古音輸入 -->
+        <div class="input-section">
+            <div id="status_inputs_group">
+                <h4 class="panel-subtitle">輸入待查中古音地位</h4>
+                <textarea id="status_inputs">通开一</textarea>
+            </div>
+        </div>
+
+        <div class="input-section">
+            <div id="group_inputs_group" style="display: none;">
+                <h4 class="panel-subtitle">輸入分類與待查音節（可選）</h4>
+                <div class="group-row">
+                    <div>
+                        <label for="group_inputs">按中古音分類</label>
+                        <textarea id="group_inputs">攝</textarea>
+                    </div>
+                    <div>
+                        <label for="pho_values">待查音節</label>
+                        <textarea id="pho_values">l m an 陰平</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 操作與 debug -->
+        <div class="input-section">
+            <div class="center-btn">
+                <button class="fancy-run-btn" onclick="runAnalysis()">🚀 單擊運行</button>
+            </div>
+
+            <div class="debug-row">
+                <button id="testBackendBtn" class="vertical-btn">測試後端連線</button>
+                <pre id="debug-log"></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- inputpanel 面板復原按鈕 -->
+<button id="panelRestoreBtn" class="toggle-btn">🗗</button>
+
+<!-- 結果面板 -->
+<div id="resultPanel" class="panel panel-medium">
+    <div class="panel-header" id="resultDragHandle">
+        <span class="panel-title">📊 分析結果</span>
+        <button id="resultMinimizeBtn" class="mode-btn">🗕</button>
+        <button id="resultMaximizeBtn" class="mode-btn">⛶</button>
+    </div>
+    <div id="resultPanelContent" class="panel-content">
+        <div id="resultOutput"></div>
+    </div>
+</div>
+
+<!-- 結果面板復原按鈕 -->
+<button id="resultRestoreBtn" class="toggle-btn">🗗</button>
+
+<!-- JS 檔案引入 -->
+<script src="js/main.js"></script>
+<script src="js/inputpanel.js"></script>
+<script src="js/resultpanel.js"></script>
+</body>
+</html>

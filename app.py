@@ -1,8 +1,10 @@
+import re
+
 import pandas as pd
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from main import run_phonology_analysis
-from source.process_input import read_partition_hierarchy
+from source.process_input import read_partition_hierarchy, match_locations_batch
 
 app = Flask(__name__)
 CORS(app)  # 啟用所有 route CORS 支援
@@ -64,6 +66,42 @@ def api_get_partitions():
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route("/batch_match", methods=["POST"])
+def batch_match():
+    data = request.get_json()
+    input_string = data.get("input_string", "").strip()
+    if not input_string:
+        return jsonify([])
+
+    results = match_locations_batch(input_string)
+    responses = []
+
+    for idx, res in enumerate(results):
+        part = re.split(r"[ ,;/，；、]+", input_string)[idx].strip()
+        success = bool(res[1])
+        if success:
+            responses.append({
+                "success": True,
+                "message": f"✅ 第{idx+1}個“{part}”匹配成功",
+                "items": []
+            })
+        else:
+            merged = set()
+            for i in [0, 3, 5, 7]:
+                val = res[i]
+                if isinstance(val, list):
+                    merged.update(val)
+                else:
+                    merged.add(val)
+            responses.append({
+                "success": False,
+                "message": f"第{idx+1}個“{part}”未匹配",
+                "items": list(merged)
+            })
+
+    return jsonify(responses)
+
 
 
 if __name__ == "__main__":

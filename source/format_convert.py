@@ -613,3 +613,8 @@ def process_縣志(file, level=1, output_path=None):
         print(f"[簡體] 共發現 {len(simplified_rows)} 筆簡體詞彙，寫入：{simp_path}")
 
     print(f"📊 行數統計：總行數 {total}, 跳過 {skipped} 行, 標註簡體 {simplified_count} 條")
+
+
+test = ['台','高']
+result = s2t_pro(test,level=2)
+print(result)
