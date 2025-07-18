@@ -2,6 +2,7 @@ import sqlite3
 import pandas as pd
 
 from source.config import DIALECTS_DB_PATH, CHARACTERS_DB_PATH
+from source.process_input import split_pho_input, match_locations_batch, query_dialect_abbreviations
 
 """
 整體流程總結：
@@ -20,6 +21,7 @@ from source.config import DIALECTS_DB_PATH, CHARACTERS_DB_PATH
 
 4. 返回的資料可以用來分析語音特徵在不同地點的分布狀況與音系特點
 """
+
 
 def query_dialect_features(locations, features, db_path=DIALECTS_DB_PATH, table="dialects"):
     """
@@ -79,29 +81,29 @@ def query_dialect_features(locations, features, db_path=DIALECTS_DB_PATH, table=
 
 
 def analyze_characters_from_db(
-    char_list,
-    feature_type,
-    feature_value,
-    loc,
-    sub_df,
-    char_db_path=CHARACTERS_DB_PATH,
-    group_fields=None
+        char_list,
+        feature_type,
+        feature_value,
+        loc,
+        sub_df,
+        char_db_path=CHARACTERS_DB_PATH,
+        group_fields=None
 ):
     """
     根據漢字名單，從 characters.db 中查出相關音系特徵資料，並根據指定的 group_fields 欄位分組統計。
 
     分組後每組返回：
-    - 分組值（如：山合三仙上）
-    - 該組對應的字
-    - 字數與佔比
-    - 多地位詳情（簡潔格式：卷: 山合三仙上,見(系)見(組)見(聲)）
+    - 該組對應的字（已去重）
+    - 字數與佔比（以去重後字數為準）
+    - 多地位詳情（保留原始重複資料，用於展示）
+    - 分組值（欄位對應值，例如 {'調': '平', '清濁': '全濁'}）
 
     若 group_fields 為空，根據特徵類型自動選擇預設欄位：
         聲母 ➜ 聲
         韻母 ➜ 韻
         聲調 ➜ 清濁 + 調
     """
-    # ✅ 預設分組欄位（僅在 group_fields 未傳入時才用）
+
     default_grouping = {
         "聲母": ["聲"],
         "韻母": ["韻"],
@@ -113,44 +115,39 @@ def analyze_characters_from_db(
         if not group_fields:
             raise ValueError(f"❌ 未定義的 feature_type：{feature_type}")
 
-    # 連接並查詢 characters.db
     conn = sqlite3.connect(char_db_path)
     placeholders = ','.join(['?'] * len(char_list))
     query = f"SELECT * FROM characters WHERE 漢字 IN ({placeholders})"
     df = pd.read_sql_query(query, conn, params=char_list)
     conn.close()
 
-    # 確保欄位齊全
     for col in ["攝", "呼", "等", "韻", "調", "系", "組", "聲", "多地位標記"]:
         if col not in df.columns:
             df[col] = None
 
-    total_chars = len(sub_df["漢字"].unique())
+    total_chars = len(set(sub_df["漢字"]))
     grouped_result = []
 
-    # 依據 group_fields 分組（先去除有缺漏的）
     df = df.dropna(subset=group_fields)
     grouped = df.groupby(group_fields)
 
     for group_keys, group_df in grouped:
-        # 統一為列表
-        if isinstance(group_keys, str):
-            group_keys = [group_keys]
-        # print(f"[DEBUG] 分組欄位: {group_fields} → 分組值: {group_keys}")
+        if isinstance(group_keys, (list, tuple)):
+            group_values = dict(zip(group_fields, group_keys))
+        else:
+            group_values = dict(zip(group_fields, [group_keys]))
 
-        group_label = "-".join(str(k) for k in group_keys)
-        feature_chars = group_df["漢字"].unique().tolist()
-        count = len(feature_chars)
+        unique_chars = group_df["漢字"].unique().tolist()
+        count = len(unique_chars)
 
-        # 多地位簡化格式
         poly_details = []
         poly_df = group_df[group_df["多地位標記"] == "1"]
         for hz in poly_df["漢字"].unique():
-            sub = group_df[group_df["漢字"] == hz]
+            sub = poly_df[poly_df["漢字"] == hz]
             summary = []
             for _, row in sub.iterrows():
                 parts = f"{row['攝']}{row['呼']}{row['等']}{row['韻']}{row['調']}"
-                meta = f"{row['系']}(系){row['組']}(組){row['聲']}(聲)"
+                meta = f"{row['系']}(系){row['組']}(組){row['聲']}(母)"
                 summary.append(f"{parts},{meta}")
             poly_details.append(f"{hz}: {' | '.join(summary)}")
 
@@ -158,34 +155,27 @@ def analyze_characters_from_db(
             "地點": loc,
             "特徵類別": feature_type,
             "特徵值": feature_value,
-            "分組值": group_label,
-            "分組欄位": group_fields,
+            "分組值": group_values,
             "字數": count,
             "佔比": round(count / total_chars, 4) if total_chars else 0,
-            "對應字": feature_chars,
+            "對應字": unique_chars,
             "多地位詳情": "; ".join(poly_details)
         })
 
     return grouped_result
 
 
-def pho2sta(locations, features, status_inputs,
+def pho2sta(locations, regions, features, status_inputs,
+            pho_values=None,
             dialect_db_path=DIALECTS_DB_PATH,
             character_db_path=CHARACTERS_DB_PATH):
     """
-       主控函數。
-
-       功能：
-       - 從 dialects 資料庫中查詢指定地點和特徵的漢字（透過 query_dialect_features）
-       - 根據用戶指定的分組欄位 status_inputs，控制每個特徵的 group_fields
-       - 呼叫 analyze_characters_from_db 完成統計與分組
-
-       備註：
-       - 若用戶輸入不合法（不在 HIERARCHY_COLUMNS 中），會使用 analyze_characters_from_db 預設欄位
-       - 支援多地點、每個特徵值在每個地點分開統計
-       """
+       新增參數 pho_values：若非空，僅處理在其中的 feature_value，否則處理全部。
+       若 pho_values 沒有任何值在資料中出現，則 fallback 輸出所有。
+    """
 
     HIERARCHY_COLUMNS = ["攝", "呼", "等", "韻", "入", "調", "清濁", "系", "組", "聲"]
+    pho_values = split_pho_input(pho_values or [])
 
     grouping_columns_map = {}
     for idx, feature in enumerate(features):
@@ -198,13 +188,33 @@ def pho2sta(locations, features, status_inputs,
             print(f"[DEBUG] 特徵 {feature} 使用分組欄位：{user_columns}")
             grouping_columns_map[feature] = user_columns
 
-    results = []
-    dialect_output = query_dialect_features(locations, features, db_path=dialect_db_path)
+    locations_new = query_dialect_abbreviations(regions, locations)
+    # 驗證地點
+    match_results = match_locations_batch(" ".join(locations_new))
+    if not any(res[1] == 1 for res in match_results):
+        print("🛑 沒有任何地點完全匹配，終止分析。")
+        return []
 
-    for loc in locations:
+    unique_abbrs = list({abbr for res in match_results for abbr in res[0]})
+    print(f"\n📍 完全匹配地點簡稱：{unique_abbrs}")
+
+    results = []
+    dialect_output = query_dialect_features(unique_abbrs, features, db_path=dialect_db_path)
+
+    for loc in unique_abbrs:
         for feature in features:
             group_fields = grouping_columns_map.get(feature)
-            for feature_value, data in dialect_output[feature].items():
+
+            feature_items = dialect_output[feature].items()
+
+            # 若 pho_values 非空，先過濾出存在的
+            if pho_values:
+                filtered_items = [(fv, d) for fv, d in feature_items if fv in pho_values]
+                # 若沒有任何一個 match，就 fallback 為全部
+                if filtered_items:
+                    feature_items = filtered_items
+
+            for feature_value, data in feature_items:
                 sub_df = data["sub_df"]
                 loc_chars = sub_df[sub_df["簡稱"] == loc]["漢字"].unique().tolist()
                 if not loc_chars:
@@ -217,7 +227,7 @@ def pho2sta(locations, features, status_inputs,
                     loc=loc,
                     sub_df=sub_df[sub_df["簡稱"] == loc],
                     char_db_path=character_db_path,
-                    group_fields=group_fields
+                    group_fields=group_fields,
                 )
 
                 results.extend(result if isinstance(result, list) else [result])
@@ -225,11 +235,13 @@ def pho2sta(locations, features, status_inputs,
     return results
 
 
-locations = ['東莞莞城', '雲浮富林']
-features = ['聲母', '韻母', '聲調']
-status_inputs = ['組聲', '韻等', '清濁調']  # ✅ 用戶指定分組欄位，合法或不合法皆支援
+if __name__ == "__testp2s__":
+    locations = ['东莞莞城 順德大良', '雲浮富林']
+    features = ['聲母', '韻母', '聲調']
+    group_inputs = ['組聲', '攝等', '清濁調']  # ✅ 用戶指定分組欄位
+    pho_value = ['l', 'm', 'an']
+    regions = ['封綏', '儋州']
+    results = pho2sta(locations, regions, features, group_inputs, pho_value)
 
-results = pho2sta(locations, features, status_inputs)
-
-for row in results:
-    print(row)
+    for row in results:
+        print(row)

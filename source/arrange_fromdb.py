@@ -1,7 +1,7 @@
 import sqlite3
 import pandas as pd
 import re
-from process_input import auto_convert_batch, match_locations_batch
+from source.process_input import auto_convert_batch, match_locations_batch, query_dialect_abbreviations
 from source.config import CHARACTERS_DB_PATH, DIALECTS_DB_PATH
 
 """
@@ -110,14 +110,13 @@ def query_by_status(char_list, locations, features, db_path=DIALECTS_DB_PATH, ta
 
     功能包含：
     - 從 dialects.db 中找出指定地點與漢字的資料
-    - 計算每種語音特徵值（如 b, p, m...）的字數、比例
-    - 處理「多音字」的詳細音節資訊
+    - 計算每種語音特徵值（如 b, p, m...）的字數、比例（去重後）
+    - 處理「多音字」的詳細音節資訊（保留所有對應的發音）
+    - 輸出欄位包含：分組值（特徵=值）
 
     回傳：
     - 每筆統計結果以字典方式輸出，最終轉為 DataFrame
     """
-
-    # 連接資料庫
     print(f"📦 連接資料庫：{db_path}")
     conn = sqlite3.connect(db_path)
     df = pd.read_sql_query(f"SELECT * FROM {table}", conn)
@@ -140,6 +139,7 @@ def query_by_status(char_list, locations, features, db_path=DIALECTS_DB_PATH, ta
                 "地點": loc,
                 "特徵類別": "無",
                 "特徵值": "無",
+                "分組值": {},
                 "字數": 0,
                 "佔比": 0.0,
                 "對應字": [],
@@ -147,19 +147,19 @@ def query_by_status(char_list, locations, features, db_path=DIALECTS_DB_PATH, ta
             })
             continue
 
-        total_chars = len(loc_chars_df)
+        total_chars = len(loc_chars_df["漢字"].unique())
 
         for feature in features:
             print(f"   🔎 特徵欄位：{feature}")
-            feature_counts = loc_chars_df[feature].value_counts()
+            feature_groups = loc_chars_df.groupby(feature)
 
-            for fval, count in feature_counts.items():
-                sub_df = loc_chars_df[loc_chars_df[feature] == fval]
-                feature_chars = sub_df["漢字"].tolist()
+            for fval, sub_df in feature_groups:
+                all_chars = sub_df["漢字"].tolist()
+                unique_chars = list(set(all_chars))
+                count = len(unique_chars)
 
-                print(f"     ▶︎ {feature} = {fval}，字數：{count}，字例：{feature_chars[:5]}...")
+                print(f"     ▶︎ {feature} = {fval}，字數：{count}，字例：{unique_chars[:5]}...")
 
-                # 多音字查詢
                 poly_df = sub_df[sub_df.get("多音字") == "1"]
                 poly_details = []
 
@@ -172,14 +172,16 @@ def query_by_status(char_list, locations, features, db_path=DIALECTS_DB_PATH, ta
                     "地點": loc,
                     "特徵類別": feature,
                     "特徵值": fval,
+                    "分組值": {feature: fval},
                     "字數": count,
-                    "佔比": round(count / total_chars, 4),
-                    "對應字": feature_chars,
+                    "佔比": round(count / total_chars, 4) if total_chars else 0.0,
+                    "對應字": unique_chars,
                     "多音字詳情": "; ".join(poly_details) if poly_details else ""
                 })
 
     print("\n✅ 分析完成！")
     return pd.DataFrame(results)
+
 
 
 def run_status(
@@ -252,9 +254,10 @@ def run_status(
 
 
 def sta2pho(
-        test_inputs,
-        raw_locations,
+        locations,
+        regions,
         features,
+        test_inputs,
         db_path_char=CHARACTERS_DB_PATH,
         db_path_dialect=DIALECTS_DB_PATH
 ):
@@ -270,21 +273,59 @@ def sta2pho(
             "統計結果": DataFrame # 每地點+特徵的統計
         }
     """
-
+    locations_new = query_dialect_abbreviations(regions, locations)
     # 驗證地點
-    match_results = match_locations_batch(" ".join(raw_locations))
-    if not all(res[1] == 1 for res in match_results):
-        print("🛑 地點中有未完全匹配的項目，終止分析。")
+    match_results = match_locations_batch(" ".join(locations_new))
+    if not any(res[1] == 1 for res in match_results):
+        print("🛑 沒有任何地點完全匹配，終止分析。")
         return []
 
     unique_abbrs = list({abbr for res in match_results for abbr in res[0]})
     print(f"\n📍 完全匹配地點簡稱：{unique_abbrs}")
 
+    # ➕ 若 test_inputs 為空，自動根據 features 推導測試條件
+    if not test_inputs:
+        print("ℹ️ test_inputs 為空，自動推導條件字串...")
+        conn = sqlite3.connect(db_path_char)
+        df_char = pd.read_sql_query("SELECT * FROM characters", conn)
+        conn.close()
+
+        auto_inputs = []
+        auto_features = []
+
+        for feat in features:
+            if feat == "聲母":
+                unique_vals = sorted(df_char["聲"].dropna().unique())
+                auto_inputs.extend([f"{v}母" for v in unique_vals])
+                auto_features.extend(["聲母"] * len(unique_vals))
+
+            elif feat == "韻母":
+                unique_vals = sorted(df_char["攝"].dropna().unique())
+                auto_inputs.extend([f"{v}攝" for v in unique_vals])
+                auto_features.extend(["韻母"] * len(unique_vals))
+
+            elif feat == "聲調":
+                clean_vals = sorted(df_char["清濁"].dropna().unique())
+                tone_vals = sorted(df_char["調"].dropna().unique())
+
+                for cv in clean_vals:
+                    for tv in tone_vals:
+                        auto_inputs.append(f"{cv}{tv}")
+                        auto_features.append("聲調")
+
+            else:
+                print(f"⚠️ 未支援的特徵類型：{feat}，略過")
+
+        test_inputs = auto_inputs
+        features = auto_features
+
+        print(f"🔧 產生輸入條件 {len(test_inputs)} 筆 ➤ 前5項：{test_inputs[:5]}")
+
     all_results = []
 
-    for user_input in test_inputs:
+    for user_input, feature in zip(test_inputs, features):
         print("\n" + "═" * 60)
-        print(f"📘 分析輸入：{user_input}")
+        print(f"📘 分析輸入：{user_input} 對應特徵：{feature}")
 
         summary = run_status([user_input], db_path=db_path_char)
 
@@ -299,17 +340,12 @@ def sta2pho(
 
             all_chars = list(set(chars))
 
-            print(f"\n🔧 開始分析『{user_input}』的特徵分布...\n")
-            df = query_by_status(all_chars, unique_abbrs, features, db_path=db_path_dialect)
+            print(f"\n🔧 開始分析『{user_input}』的特徵分布 ({feature})...\n")
+            df = query_by_status(all_chars, unique_abbrs, [feature], db_path=db_path_dialect)
 
-            all_results.append({
-                "輸入條件": path_input,
-                "對應字": all_chars,
-                "多地位字": multi,
-                "統計結果": df
-            })
-
+            all_results.append(df)
     return all_results
+
 
 
 # 這函數沒啥用
@@ -332,25 +368,25 @@ def extract_unique_values(db_path=CHARACTERS_DB_PATH, table="characters"):
     return unique_values
 
 
-if __name__ == "__main__":
+if __name__ == "__tests2p__":
     pd.set_option('display.max_rows', None)
     pd.set_option('display.max_columns', None)
     pd.set_option('display.max_colwidth', None)
     pd.set_option('display.width', 0)
 
     status_inputs = [
-        "知組三",
+        "知組三 端",
         "通开三",
     ]
-    locations = ['東莞莞城', '雲浮富林']
-    features = ['聲母', '韻母']
+    # status_inputs = [
+    # ]
+    locations = ['东莞莞城', '雲浮富林']
+    features = ['聲母', '韻母', '聲調']
+    regions = ['封綏', '儋州']
+    # features = ['聲調']
 
-    all_summaries = sta2pho(status_inputs, locations, features)
+    results = sta2pho(locations, regions, features, status_inputs)
+    # print(all_summaries)
 
-    for result in all_summaries:
-        print("\n" + "📘" * 30)
-        print(f"📘 條件：{result['輸入條件']}")
-        print(f"🔡 對應字：{result['對應字']}")
-        print(f"⚠️ 多地位字：{result['多地位字'] if result['多地位字'] else '無'}")
-        print("\n📊 分析結果：")
-        print(result["統計結果"])
+    for row in results:
+        print(row)

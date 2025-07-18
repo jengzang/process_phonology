@@ -1,9 +1,12 @@
+import os
 import re
 import sqlite3
+from collections import defaultdict
+
 from pypinyin import lazy_pinyin
 import Levenshtein
 
-from format_convert import s2t_pro
+from source.format_convert import s2t_pro
 from typing import Tuple, Union, List
 
 from source.config import QUERY_DB_PATH
@@ -60,9 +63,13 @@ def match_locations(user_input):
     conn = sqlite3.connect(QUERY_DB_PATH)
     cursor = conn.cursor()
 
+    # 撈出所有存儲標記 = 1 的合法簡稱
+    cursor.execute("SELECT 簡稱 FROM dialects WHERE 存儲標記 = 1")
+    valid_abbrs_set = set(row[0] for row in cursor.fetchall())
+
     matched_abbrs = set()
     for term in possible_inputs:
-        cursor.execute("SELECT 簡稱 FROM dialects WHERE 簡稱 = ?", (term,))
+        cursor.execute("SELECT 簡稱 FROM dialects WHERE 簡稱 = ? AND 存儲標記 = 1", (term,))
         exact = cursor.fetchall()
         matched_abbrs.update([row[0] for row in exact])
         print(f"[DEBUG] 完全匹配【{term}】：{exact}")
@@ -72,7 +79,7 @@ def match_locations(user_input):
 
     fuzzy_abbrs = set()
     for term in possible_inputs:
-        cursor.execute("SELECT 簡稱 FROM dialects WHERE 簡稱 LIKE ?", (term + "%",))
+        cursor.execute("SELECT 簡稱 FROM dialects WHERE 簡稱 LIKE ? AND 存儲標記 = 1", (term + "%",))
         fuzzy = cursor.fetchall()
         fuzzy_abbrs.update([row[0] for row in fuzzy])
         print(f"[DEBUG] 模糊簡稱匹配【{term}】：{fuzzy}")
@@ -83,7 +90,7 @@ def match_locations(user_input):
     all_abbr_names = []
 
     for col in ["鎮", "行政村", "自然村"]:
-        cursor.execute(f"SELECT {col}, 簡稱 FROM dialects")
+        cursor.execute(f"SELECT {col}, 簡稱 FROM dialects WHERE 存儲標記 = 1")
         rows = cursor.fetchall()
         for name, abbr in rows:
             all_geo_names.append(name)
@@ -93,39 +100,37 @@ def match_locations(user_input):
                     geo_matches.add(name)
                     geo_abbr_map[name] = abbr
 
-    # 收集全部簡稱，準備做相似與音近比對
-    cursor.execute("SELECT 簡稱 FROM dialects")
-    all_abbrs = [row[0] for row in cursor.fetchall()]
+    # 加上所有簡稱（用於相似與拼音匹配）
+    all_names = all_geo_names + list(valid_abbrs_set)
+    all_abbrs = all_abbr_names + list(valid_abbrs_set)
 
     fuzzy_geo_matches = set()
     fuzzy_geo_abbrs = set()
     sound_like_matches = set()
     sound_like_abbrs = set()
 
-    for name, abbr in zip(all_geo_names + all_abbrs, all_abbr_names + all_abbrs):
-        if not name or not abbr:
-            continue  # 跳過空值
+    for name, abbr in zip(all_names, all_abbrs):
+        if not name or not abbr or abbr not in valid_abbrs_set:
+            continue
 
-        # Levenshtein 相似比對
         if is_similar(user_input, name):
             print(f"[DEBUG] 相似匹配: '{user_input}' ≈ '{name}' (abbr: {abbr})")
             fuzzy_geo_matches.add(name)
             fuzzy_geo_abbrs.add(abbr)
 
-        # 拼音比對
         if is_pinyin_similar(user_input, name):
             print(f"[DEBUG] 拼音匹配: '{user_input}' ≈ '{name}' (abbr: {abbr})")
             sound_like_matches.add(name)
             sound_like_abbrs.add(abbr)
 
     return (
-        list(fuzzy_abbrs),  # 簡稱完全或前綴匹配結果
-        0,  # 是否完全匹配
-        list(geo_matches),  # 鎮/行政村/自然村 中的模糊匹配
-        [geo_abbr_map[n] for n in geo_matches],  # 地名對應的簡稱
-        list(fuzzy_geo_matches),  # Levenshtein 相似匹配（簡稱 + 地名）
+        list(fuzzy_abbrs),
+        0,
+        list(geo_matches),
+        [geo_abbr_map[n] for n in geo_matches if geo_abbr_map[n] in valid_abbrs_set],
+        list(fuzzy_geo_matches),
         list(fuzzy_geo_abbrs),
-        list(sound_like_matches),  # 拼音相近匹配（簡稱 + 地名）
+        list(sound_like_matches),
         list(sound_like_abbrs),
     )
 
@@ -314,7 +319,165 @@ def auto_convert_batch(input_string: str) -> List[Union[Tuple[str, int], Tuple[b
     return results
 
 
-# results = match_locations_batch("动坑")
+def split_pho_input(input_value: Union[str, List[str]]) -> List[str]:
+    """
+    將輸入字串或字串列表，依照常見分隔符（空格、逗號、分號、句號）拆分為項目列表。
+
+    參數：
+        input_value: str 或 List[str]
+
+    回傳：
+        List[str]
+    """
+    # 支援的分隔符：空格、, 、； 、. 、tab、中文頓號、全形逗號
+    delimiters = r"[ ,;.;、，；\t]+"
+
+    # 確保轉為列表統一處理
+    if isinstance(input_value, str):
+        input_value = [input_value]
+
+    result = []
+    for item in input_value:
+        item = item.strip()
+        if item:
+            parts = re.split(delimiters, item)
+            parts = [p for p in parts if p]  # 過濾空字串
+            result.extend(parts)
+
+    return result
+
+
+def query_dialect_abbreviations(
+        region_input=None,
+        location_sequence=None,
+        db_path=QUERY_DB_PATH,
+        debug=False
+):
+    """
+    查詢 dialects 表的簡稱欄位，支持完全匹配和元素模糊匹配。
+
+    參數：
+    - region_input: 字串或列表。可為完整音典分區字串（如 '華北-河北-東北'）或單個元素（如 '河北'）或元素列表
+    - location_sequence: 地點字串，如 '河北/歷史音；東北'
+    - debug: 是否輸出調試資訊
+
+    返回：
+    - 簡稱列表（排序去重）
+    """
+
+    if not os.path.exists(db_path):
+        raise FileNotFoundError(f"資料庫不存在: {db_path}")
+
+    if debug:
+        print("=== 查詢開始 ===")
+        print(f"region_input: {region_input}")
+        print(f"location_sequence: {location_sequence}")
+
+    # 處理 region_input 為列表
+    if isinstance(region_input, str):
+        region_list = [region_input.strip()]
+    elif isinstance(region_input, list):
+        region_list = [r.strip() for r in region_input if isinstance(r, str)]
+    else:
+        region_list = []
+
+    if isinstance(location_sequence, str):
+        location_list = [location_sequence.strip()]
+    elif isinstance(location_sequence, list):
+        location_list = [item.strip() for item in location_sequence if isinstance(item, str)]
+    else:
+        location_list = []
+
+    combined_elements = list(set(region_list))
+
+    if debug:
+        print(f"合併後元素: {combined_elements}")
+
+    result = []
+    seen = set()
+
+    with sqlite3.connect(db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT 音典分區, 簡稱 FROM dialects")
+        all_rows = cursor.fetchall()
+
+        for item in region_list:
+            found_exact = False
+            for partition_str, abbr in all_rows:
+                if item == partition_str:
+                    if abbr not in seen:
+                        result.append(abbr)
+                        seen.add(abbr)
+                    found_exact = True
+            if not found_exact:
+                for partition_str, abbr in all_rows:
+                    if item in partition_str.split("-"):
+                        if abbr not in seen:
+                            result.append(abbr)
+                            seen.add(abbr)
+
+    # 最終結果：保留匹配順序，直接拼接原始地點
+    final_result = result + location_list
+
+    if debug:
+        print(f"=== 最終結果（保留資料庫順序 + 地點）: {final_result} ===")
+
+    return final_result
+
+def read_partition_hierarchy(parent_regions=None, db_path=QUERY_DB_PATH):
+    """
+    傳入 parent_region，返回它下層的分區：
+    - 一級 → 回傳其二級列表
+    - 二級 → 回傳其三級列表（僅該一級下）
+    - 其他 → []
+    """
+    if not os.path.exists(db_path):
+        raise FileNotFoundError(f"資料庫不存在: {db_path}")
+
+    hierarchy = defaultdict(lambda: defaultdict(list))
+
+    with sqlite3.connect(db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT 音典分區 FROM dialects")
+        rows = cursor.fetchall()
+
+        for (partition_str,) in rows:
+            parts = partition_str.strip().split("-")
+            if len(parts) == 1:
+                if parts[0] not in hierarchy:
+                    hierarchy[parts[0]] = {}
+            elif len(parts) == 2:
+                if parts[1] not in hierarchy[parts[0]]:
+                    hierarchy[parts[0]][parts[1]] = []
+            elif len(parts) >= 3:
+                if parts[2] not in hierarchy[parts[0]][parts[1]]:
+                    hierarchy[parts[0]][parts[1]].append(parts[2])
+
+    # 處理 parent_regions 輸入
+    if isinstance(parent_regions, str):
+        parent_regions = [parent_regions]
+    elif not parent_regions:
+        return dict(hierarchy)  # 無輸入時返回整體結構
+
+    # 對每個 parent_region 查詢其下層
+    result = {}
+    for region in parent_regions:
+        if region in hierarchy:
+            result[region] = sorted(hierarchy[region].keys())
+        else:
+            found = False
+            for level1, level2_dict in hierarchy.items():
+                if region in level2_dict:
+                    result[region] = sorted(hierarchy[level1][region])
+                    found = True
+                    break
+            if not found:
+                result[region] = []
+
+    return result
+
+# results = read_partition_hierarchy("嶺南")
+# # results = match_locations_batch("東莞")
 # print(results)
 # print(results[1])
 # print(results[2])

@@ -1,0 +1,382 @@
+/* 全域樣式 */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+}
+
+/* Panel 共通設定 */
+.panel {
+    position: fixed;
+    resize: both;
+    overflow: auto;
+    background: #f9f9f9;
+    border: 1px solid #aaa;
+    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+}
+
+/* Panel 標題列 */
+.panel-header {
+    background: #ddd;
+    padding: 10px;
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+/* 標題文字 */
+.panel-title {
+    font-weight: bold;
+    flex: 1;
+}
+
+/* 功能按鈕樣式（最小化/最大化） */
+.mode-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 18px;
+    border: none;
+    cursor: pointer;
+    background: #555;
+    color: white;
+    border-radius: 4px;
+    display: flex;             /* ✅ 開啟 Flexbox */
+    align-items: center;       /* ✅ 垂直置中 */
+    justify-content: center;   /* ✅ 水平置中 */
+    padding: 0;                /* ✅ 移除預設 padding 避免偏移 */
+}
+.mode-btn:hover {
+    background: #222;
+}
+
+/* 內容區塊 */
+.panel-content {
+    flex: unset;         /* ✅ 不讓它強佔空間 */
+    overflow: visible;   /* ✅ 不強制捲動區域 */
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+/* 中等尺寸 */
+.panel-medium {
+    top: 0;
+    left: 0;
+    width: 20vw;
+    height: 100vh;
+    resize: both;
+}
+#resultPanel.panel-medium {
+    left: 20vw;
+    width: 40vw;
+}
+
+/* 全螢幕模式 */
+.panel-fullscreen {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    resize: none;
+}
+
+/* 最小化樣式：焦點只剩按鈕 */
+.panel-minimized {
+    width: 48px !important;
+    height: 48px !important;
+    background: transparent;
+    border: none;
+}
+.panel-minimized .panel-content,
+.panel-minimized .mode-btn:not(#panelRestoreBtn):not(#resultRestoreBtn),
+.panel-minimized .panel-title {
+    display: none;
+}
+
+/* 復原按鈕 */
+.toggle-btn {
+    position: fixed;
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;             /* ✅ 開啟 Flexbox */
+    align-items: center;       /* ✅ 垂直置中 */
+    justify-content: center;   /* ✅ 水平置中 */
+    padding: 0;                /* ✅ 移除預設 padding 避免偏移 */
+}
+#panelRestoreBtn {
+    top: 10px;
+    left: 10px;
+    background: #1976d2;
+}
+#resultRestoreBtn {
+    top: 10px;
+    right: 10px;
+    background: #388e3c;
+}
+
+/* 輸入欄位樣式 */
+.mode-box, .feature-box {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+.mode-label {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.mode-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.mode-title {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.mode-desc {
+    font-size: 12px;
+    color: #777;
+    margin-left: -24px; /* ✅ 這樣就會對齊左邊按鈕 */
+}
+
+.mode-feature-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 10px;
+    align-items: stretch; /* ✅ 保證兩側上下對齊 */
+}
+
+.mode-box, .feature-box {
+    border: 1px solid #ccc;
+    padding: 10px;
+    /*flex: 1;               !* ✅ 兩者平均寬度 *!*/
+    box-sizing: border-box;
+}
+.mode-box { flex: 2; }
+.feature-box {
+    flex: 1;
+    display: flex;
+    justify-content: center;     /* 水平置中 checkbox-group */
+    align-items: center;         /* 垂直置中 checkbox-group */
+}
+
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;         /* 水平置中 label */
+    gap: 15px;
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 16px;
+    font-weight: bold;           /* ✅ 加粗文字 */
+    margin: 0;               /* ✅ 移除預設 margin */
+    line-height: 1.2;        /* ✅ 緊縮文字行高 */
+}
+
+label { margin-top: 10px; font-size: 14px; }
+textarea {
+    width: 100%;
+    height: 60px;
+    box-sizing: border-box;
+    font-family: monospace;
+    margin-top: 5px;
+    resize: none;
+}
+button {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 10px;
+    border: none;
+    background: #1976d2;
+    color: white;
+    cursor: pointer;
+}
+button:hover {
+    background: #0d47a1;
+}
+
+.vertical-btn {
+    background-color: #888; /* 淺灰 */
+    color: white;
+    border: none;
+    padding: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    white-space: pre-wrap;    /* ✅ 允許換行 */
+    line-height: 1.4;
+    word-break: break-all;    /* ✅ 每兩個字斷開用 */
+    width: 36px;              /* ✅ 強制限制寬度，使其每2字斷行 */
+    height: 100%;
+    text-align: center;
+    border-radius: 4px;
+}
+
+.vertical-btn:hover {
+    background-color: #555; /* 深灰 hover */
+}
+
+
+/* 結果輸出樣式 */
+#resultOutput {
+    white-space: pre-wrap;
+    font-family: monospace;
+    border: 1px solid #ccc;
+    background: #fffef6;
+    padding: 10px;
+    max-height: 100%;
+    overflow: auto;
+}
+
+/* Debug 區域 */
+.debug-row {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    padding: 10px 16px;
+    margin-top: 20px;
+}
+
+#debug-log {
+    flex: 1; /* ✅ 讓它撐滿剩下寬度，高度自動與按鈕一致 */
+    padding: 10px;
+    border: 1px dashed #999;
+    background: #fefefe;
+    font-size: 13px;
+    white-space: pre-wrap;
+    overflow-y: auto;
+    box-sizing: border-box;
+    margin: 0;
+}
+
+.fancy-run-btn {
+    font-size: 18px;
+    font-weight: bold;
+    padding: 14px 28px;
+    color: #fff;
+    background: linear-gradient(135deg, #6e00ff, #00c3ff);
+    border: none;
+    border-radius: 30px;
+    box-shadow: 0 0 12px rgba(0, 195, 255, 0.6), 0 0 30px rgba(110, 0, 255, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    letter-spacing: 1px;
+    position: relative;
+    overflow: hidden;
+}
+
+.fancy-run-btn::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.2) 10%, transparent 10.01%);
+    background-size: 10px 10px;
+    animation: sparkle 1s linear infinite;
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.fancy-run-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(0, 195, 255, 0.8), 0 0 50px rgba(110, 0, 255, 0.5);
+}
+
+@keyframes sparkle {
+    from {
+        background-position: 0 0;
+    }
+    to {
+        background-position: 100% 100%;
+    }
+}
+
+.text-btn {
+    background: transparent;
+    border: none;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 2px 4px;
+    color: inherit;
+}
+.text-btn:hover {
+    background: rgba(0,0,0,0.05);
+}
+
+.partition-list {
+    list-style: none;
+    margin: 0;
+    padding: 4px 0;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    min-width: 120px;
+    z-index: 1000;
+}
+
+.partition-list li {
+    padding: 6px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.partition-list li:hover {
+    background: #f0f0f0;
+}
+
+/* 分區層級樣式 */
+.partition-lvl1 { font-size: 16px; }
+.partition-lvl2 { font-size: 14px; }
+.partition-lvl3 { font-size: 12px; }
+
+.partition-popup {
+    min-width: 120px;
+    background: #fff;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    display: block;
+}
+
+.partition-lvl3 {
+    font-size: 12px;
+    max-height: 260px;
+    overflow-y: auto;
+    scrollbar-width: thin;         /* Firefox */
+    scrollbar-color: #bbb #eee;
+}
+
+.partition-lvl3::-webkit-scrollbar {
+    width: 8px;
+}
+.partition-lvl3::-webkit-scrollbar-thumb {
+    background-color: #bbb;
+    border-radius: 4px;
+}
+.partition-lvl3::-webkit-scrollbar-track {
+    background-color: #eee;
+}
+
+

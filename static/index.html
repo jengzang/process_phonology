@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8" />
+    <title>不羈🙌🏻地理語言學工具</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<!-- 全局彈出層插槽 -->
+<div id="popupLayer" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 99999;"></div>
+
+<body>
+
+<!-- 主面板（輸入功能） -->
+<div id="panel" class="panel panel-medium">
+    <div class="panel-header" id="dragHandle">
+        <span class="panel-title">🔍 設置參數</span>
+        <button id="minimizeBtn" class="mode-btn">_</button>
+        <button id="maximizeBtn" class="mode-btn">⛶</button>
+    </div>
+    <div id="panelContent" class="panel-content">
+        <h4 style="margin-top: 4px;margin-bottom: 4px; text-align: center;">選擇分析模式</h4>
+        <div class="mode-feature-row">
+        <!-- 模式選擇 -->
+            <div class="mode-box">
+                <label class="mode-label">
+                    <input type="radio" name="mode" value="s2p" checked />
+                    <div class="mode-text">
+                        <div class="mode-title">中古➡️讀音</div>
+                        <div class="mode-desc">根據中古音地位整理讀音</div>
+                    </div>
+                </label>
+                <label class="mode-label">
+                    <input type="radio" name="mode" value="p2s" />
+                    <div class="mode-text">
+                        <div class="mode-title">讀音➡️中古</div>
+                        <div class="mode-desc">根據讀音整理中古音地位</div>
+                    </div>
+                </label>
+            </div>
+            <!-- 特徵選擇 -->
+            <div class="feature-box">
+                <div class="checkbox-group" id="features-group">
+                    <label><input type="checkbox" value="聲母" /> 聲母</label>
+                    <label><input type="checkbox" value="韻母" checked /> 韻母</label>
+                    <label><input type="checkbox" value="聲調" /> 聲調</label>
+                </div>
+            </div>
+        </div>
+        <!-- 地點輸入 -->
+        <div style="padding: 3px 10px 0;">
+            <h4 style="margin-top: 2px;margin-bottom: 10px;text-align: center;">輸入或選擇方言點</h4>
+            <div style="display: flex; gap: 10px;">
+                <!-- 左側：地點 -->
+                <div style="flex: 2;">
+                    <label id="locationLabel">地點</label>
+                    <textarea id="locations" style="width: 100%;">東莞莞城 雲浮富林</textarea>
+                </div>
+
+                <!-- 右側：音典分區 -->
+                <div style="flex: 1; position: relative; padding-top: 0.3em;">
+                    <!-- 使用絕對定位來對齊 label -->
+                    <button id="partitionBtn" class="text-btn"
+                            style="position: absolute; top: 0; left: 0; transform: translateY(-15px);">
+                        音典分區 ▼
+                    </button>
+
+                    <!-- 下拉列表 -->
+                    <ul id="level1List" class="partition-list" style="display:none;"></ul>
+                    <ul id="level2List" class="partition-list" style="display:none; position:absolute;"></ul>
+                    <ul id="level3List" class="partition-list" style="display:none; position:absolute;"></ul>
+
+                    <!-- Regions textarea -->
+                    <textarea id="regions" style="width: 100%; margin-top: 24px;">嶺南 嶺東</textarea>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+
+    <div style="padding: 5px 20px 0;">
+        <div id="status_inputs_group">
+            <h4 style="margin: 4px 0 10px; text-align: center;">輸入待查中古音地位</h4>
+<!--            <label>待查中古地位</label>-->
+            <textarea id="status_inputs">通开一</textarea>
+        </div>
+    </div>
+
+    <!-- 中古音分組區塊（預設隱藏） -->
+    <div style="padding: 3px 16px 0;">
+        <div id="group_inputs_group" style="display: none; padding: 10px 0 0;">
+            <h4 style="margin: 4px 0 10px; text-align: center;">輸入分類與待查音節（可選）</h4>
+            <div style="display: flex; gap: 10px;">
+                <div style="flex: 1;">
+                    <label>按中古音分類</label>
+                    <textarea id="group_inputs">攝</textarea>
+                </div>
+                <div style="flex: 1;">
+                    <label>待查音節</label>
+                    <textarea id="pho_values">l m an 陰平</textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+        <!-- 操作按鈕與輸出 -->
+    <div style="padding: 3px 16px 0;">
+        <!-- 居中按鈕 -->
+        <div style="text-align: center; margin-top: 20px;">
+            <button class="fancy-run-btn" onclick="runAnalysis()">🚀 單擊運行</button>
+        </div>
+
+
+        <!-- 分隔空間 -->
+        <div style="height: 30px;"></div>
+
+        <!-- 操作按鈕與 debug log -->
+        <div class="debug-row">
+            <button id="testBackendBtn" class="vertical-btn">測試後端連線</button>
+            <pre id="debug-log"></pre>
+        </div>
+    </div>
+</div>
+
+<!-- 主面板「復原」按鈕（最小化後使用） -->
+<button id="panelRestoreBtn" class="toggle-btn" style="display:none;">🗗</button>
+
+<!-- 結果面板（JSON 輸出） -->
+<div id="resultPanel" class="panel panel-medium">
+    <div class="panel-header" id="resultDragHandle">
+        <span class="panel-title">📊 分析結果</span>
+        <button id="resultMinimizeBtn" class="mode-btn">🗕</button>
+        <button id="resultMaximizeBtn" class="mode-btn">⛶</button>
+    </div>
+    <div id="resultPanelContent" class="panel-content">
+        <div id="resultOutput"></div>
+    </div>
+</div>
+
+<!-- 結果面板「復原」按鈕 -->
+<button id="resultRestoreBtn" class="toggle-btn" style="display:none;">🗗</button>
+
+<!-- 主 JS 腳本 -->
+<script src="script.js"></script>
+</body>
+</html>

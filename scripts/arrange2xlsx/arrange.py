@@ -11,10 +11,11 @@ import pandas as pd
 import os
 from openpyxl import Workbook
 from openpyxl.comments import Comment
-from gets import get_consonants_from_tsv, get_vowels_from_tsv, get_tones_from_tsv
 from collections import defaultdict
 
+from gets import get_consonants_from_tsv, get_vowels_from_tsv, get_tones_from_tsv
 from matching_from_xlsx import choose_tsv_files
+
 
 # 聲韻模糊映射：鍵為原聲韻，值為歸類用的主聲韻
 MERGE_MAP = {}
@@ -176,9 +177,11 @@ def process(tsv_paths, excel_path, category_column):
                 'p', 'pʰ', 't', 'tʰ', 'k', 'kʰ', 'f', 'ʋ', 'ɸ', 'h',
                 'x', 'l', 'n', 'm', 'ŋ', 'ɲ', 'ȵ', 'j', 'z', 's', 'ʃ',
                 'ʂ', 'ɕ', 'θ', 'ɬ', 'b', 'd', 'g', 'ʒ', 'ʑ', 'ʐ'
-                'ʦ', 'ʧ', 'ʨ', 'tʂ', 'tɹ', 'tr', 'tθ', 'dz', 'dʑ', 'dʐ', 'dʒ'
+                                                             'ʦ', 'ʧ', 'ʨ', 'tʂ', 'tɹ', 'tr', 'tθ', 'dz', 'dʑ', 'dʐ',
+                'dʒ'
                 'ʦʰ', 'ʧʰ', 'ʨʰ', 'tʂʰ', 'tɹʰ', 'trʰ', 'tθʰ', 'dzʰ', 'dʑʰ', 'dʐʰ', 'dʒʰ'
-                'ʔ', 'a', 'ia', 'ua', 'ᴀ', 'ɑ', 'æ', 'ɐ', 'iɐ', 'uɐ',
+                                                                                   'ʔ', 'a', 'ia', 'ua', 'ᴀ', 'ɑ', 'æ',
+                'ɐ', 'iɐ', 'uɐ',
                 'ə', 'iə', 'uə', 'ᴇ', 'ɛ', 'œ', 'iɛ', 'uɛ', 'ɜ', 'ɞ', 'ʌ',
                 'ɔ', 'iɔ', 'uɔ', 'o', 'io', 'uo', 'ɤ', 'ɵ', 'ɘ',
                 'ø', 'iø', 'e', 'ie', 'ʊ', 'u', 'ɯ', 'y', 'i', 'ɿ', 'ʮ',

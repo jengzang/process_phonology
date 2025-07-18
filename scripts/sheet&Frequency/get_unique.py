@@ -7,10 +7,10 @@ from collections import defaultdict
 from gets import get_consonants_from_tsv, get_vowels_from_tsv
 from matching_from_xlsx import choose_tsv_files
 
-
 EXCEL_PATH = "unique_consonants.xlsx"
 CATEGORY_COLUMN = "声韵"
 SOURCE_COLUMN = "來源文件"
+
 
 def process(tsv_paths: list, excel_output_path: str, category_column: str = "声韵"):
     consonant_sources = defaultdict(set)
