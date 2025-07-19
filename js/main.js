@@ -73,47 +73,55 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 // 🌐 共用封裝 fetch，統一紀錄前後端交換資料
-window.fetchWithLog = function (url, options = {}) {
-    console.log("🔍 檢查 debugLog 是否 null？", document.getElementById("debug-log"));
+window.fetchWithLog = async function(url, options) {
     const debugLog = document.getElementById("debug-log");
-    const log = (msg, json = null) => {
+    const log = (msg, data = null) => {
         const now = new Date().toISOString().split("T")[1].slice(0, 8);
         debugLog.textContent += `[${now}] ${msg}\n`;
-        if (json) debugLog.textContent += JSON.stringify(json, null, 2) + "\n";
+        if (data !== null) {
+            try {
+                debugLog.textContent += JSON.stringify(data, null, 2) + "\n";
+            } catch {
+                debugLog.textContent += String(data) + "\n";
+            }
+        }
         debugLog.scrollTop = debugLog.scrollHeight;
     };
 
-    log("🌐 發送請求：" + url, options.body ? safeJson(options.body) : null);
+    log(`🌐 發送請求：${url}`);
+    try {
+        const payload = options.body ? JSON.parse(options.body) : {};
+        log("📤 傳送資料", payload);
+    } catch (e) {
+        log("⚠️ Payload JSON 解析錯誤", e.message);
+        log("🔍 堆疊資訊", e.stack);
+    }
 
-    return fetch(url, options).then(async res => {
-        log("📡 回應狀態：" + res.status);
-        const contentType = res.headers.get("content-type");
-        let body;
-        try {
-            body = contentType && contentType.includes("application/json")
-                ? await res.json()
-                : await res.text();
-            log("📥 回應內容：", body);
-        } catch (err) {
-            log("❌ 回應解析失敗：" + err.message);
-        }
-        return new Response(JSON.stringify(body), {
-            status: res.status,
-            headers: res.headers
-        });
-    }).catch(err => {
-        log("❌ 請求錯誤：" + err.message);
-        throw err;
-    });
+    const start = performance.now();
 
-    function safeJson(str) {
+    try {
+        const res = await fetch(url, options);
+        const end = performance.now();
+        log(`📡 回應狀態：${res.status} (${(end - start).toFixed(2)} ms)`);
+
         try {
-            return JSON.parse(str);
-        } catch {
-            return str;
+            const json = await res.clone().json();
+            log("📥 回應內容", json);
+        } catch (jsonErr) {
+            const text = await res.clone().text();
+            log("⚠️ 回應不是 JSON", text);
+            log("🔍 JSON 解析堆疊", jsonErr.stack);
         }
+
+        return res;
+    } catch (networkErr) {
+        log("❌ 網路請求錯誤", networkErr.message);
+        log("🔍 錯誤堆疊", networkErr.stack);
+        throw networkErr;
     }
 };
+
+
 
 
 document.addEventListener("DOMContentLoaded", () => {

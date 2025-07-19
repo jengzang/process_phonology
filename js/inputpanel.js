@@ -1,7 +1,7 @@
 
 function parseInputField(id) {
     const v = document.getElementById(id).value.trim();
-    if (!v) return null;
+    if (!v) return [];
     try {
         return JSON.parse(v);
     } catch {
@@ -69,7 +69,20 @@ document.getElementById("testBackendBtn").addEventListener("click", async () => 
     const log = document.getElementById("debug-log");
     log.textContent = "⌛ 後端連線測試中...";
     try {
-        const res = await fetch("http://127.0.0.1:5000/api/phonology", { method: "OPTIONS" });
+        const res = await fetch("http://127.0.0.1:5000/api/phonology", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                mode: "s2p",
+                locations: [],
+                regions: [],
+                features: [],
+                status_inputs: "",
+                group_inputs: "",
+                pho_values: ""
+            })
+        });
+
         log.style.color = res.ok ? "green" : "orange";
         log.textContent = res.ok ? "✅ OK" : `❌ ${res.status}`;
     } catch (e) {
@@ -260,6 +273,10 @@ inputEl.addEventListener("keyup", () => {
         return;
     }
 
+    if (!query) {
+        suggestion.style.display = "none";
+        return;
+    }
     fetch("http://127.0.0.1:5000/batch_match", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

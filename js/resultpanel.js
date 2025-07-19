@@ -44,47 +44,50 @@ async function analysis_from_db() {
 
     try {
         const fetchStart = performance.now();
-        setLoadingMessage("📡 數據讀取中… 請稍候");
-
-        const response = await fetch("http://localhost:5000/api/phonology", {
+        setLoadingMessage("📡 數據讀取中…");
+        const res = await window.fetchWithLog("http://127.0.0.1:5000/api/phonology", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         });
 
         const fetchEnd = performance.now();
         console.log(`📥 數據下載耗時（含等待連線）：${(fetchEnd - fetchStart).toFixed(2)} ms`);
 
-        const parseStart = performance.now();
-        setLoadingMessage("📦 正在解析資料…");
-        const result = await response.json();
-        const parseEnd = performance.now();
-        console.log(`🧩 JSON 解析耗時：${(parseEnd - parseStart).toFixed(2)} ms`);
+        const jsonStart = performance.now();
+        const result = await res.json();
+        const jsonEnd = performance.now();
+        console.log(`🧩 JSON 解析耗時：${(jsonEnd - jsonStart).toFixed(2)} ms`);
 
-        if (result.success) {
-            if (Array.isArray(result.results) && Array.isArray(result.results[0])) {
-                setLoadingMessage("📊 表格整理中…");
-
-                const renderStart = performance.now();
-                renderResults(result.results[0]);
-                const renderEnd = performance.now();
-
-                console.log(`🖥️ 表格渲染耗時：${(renderEnd - renderStart).toFixed(2)} ms`);
-            } else {
-                console.error("❌ 分析結果格式錯誤", result.results);
-                alert("格式錯誤：無法顯示結果！");
-            }
-        } else {
-            alert("後端錯誤：" + result.error);
+        if (!res.ok || !result.success || !Array.isArray(result.results)) {
+            console.error("❌ 回傳錯誤", result);
+            alert("後端錯誤或格式異常！");
+            clearLoadingMessage();
+            return;
         }
+
+        const data = result.results.flat(); // 🧹 合併多層
+        if (!Array.isArray(data) || data.length === 0) {
+            alert("⚠️ 沒有有效的結果可渲染");
+            clearLoadingMessage();
+            return;
+        }
+
+        setLoadingMessage("📊 表格整理中…");
+        const renderStart = performance.now();
+        renderResults(data);
+        const renderEnd = performance.now();
+        console.log(`🖥️ 表格渲染耗時：${(renderEnd - renderStart).toFixed(2)} ms`);
+
+        clearLoadingMessage();
+
     } catch (error) {
         console.error("分析失敗", error);
-        alert("請求後端錯誤：" + error.message);
+        alert("❌ 請求後端錯誤：" + error.message);
+        clearLoadingMessage();
     }
-
 }
+
 
 
 const custom_order = [

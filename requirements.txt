@@ -13,3 +13,7 @@ Levenshtein~=0.27.1
 pypinyin~=0.53.0
 xlrd~=2.0.1
 hanziconv~=0.3.2
+future~=1.0.0
+uvicorn~=0.35.0
+fastapi~=0.116.1
+pydantic~=2.11.7

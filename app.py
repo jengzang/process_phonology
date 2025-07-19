@@ -1,32 +1,45 @@
+from typing import List, Optional, Union
+
+import uvicorn
+from pydantic import BaseModel, Field
+import asyncio
+import pandas as pd
 import re
 
-import pandas as pd
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+from fastapi import FastAPI, Query
+from fastapi.middleware.cors import CORSMiddleware
+
 from main import run_phonology_analysis
 from source.process_input import read_partition_hierarchy, match_locations_batch
 
-app = Flask(__name__)
-CORS(app)  # 啟用所有 route CORS 支援
+app = FastAPI()
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
+class AnalysisPayload(BaseModel):
+    mode: str
+    locations: List[str] = Field(default_factory=list)
+    regions: List[str] = Field(default_factory=list)
+    features: List[str] = Field(default_factory=list)
+    status_inputs: Union[str, List[str], None] = None
+    group_inputs: Union[str, List[str], None] = None
+    pho_values: Union[str, List[str], None] = None
 
-@app.route("/api/phonology", methods=["POST"])
-def api_run_phonology_analysis():
+@app.post("/api/phonology")
+async def api_run_phonology_analysis(payload: AnalysisPayload):
     try:
-        data = request.get_json()
+        # 轉換 tuple型別為純 Python list
+        locations = payload.locations
+        regions = payload.regions
+        features = payload.features
 
-        # 擷取所有輸入參數
-        mode = data.get("mode")
-        locations = data.get("locations", [])
-        regions = data.get("regions", [])
-        features = data.get("features", [])
-        status_inputs = data.get("status_inputs", None)
-        group_inputs = data.get("group_inputs", None)
-        pho_values = data.get("pho_values", None)
+        status_inputs = payload.status_inputs
+        group_inputs = payload.group_inputs
+        pho_values = payload.pho_values
 
-        # 執行分析函數（你提供的版本）
-        results = run_phonology_analysis(
-            mode=mode,
+        # 使用 asyncio.to_thread 轉同步分析邏輯
+        analysis_result = await asyncio.to_thread(
+            run_phonology_analysis,
+            mode=payload.mode,
             locations=locations,
             regions=regions,
             features=features,
@@ -35,44 +48,39 @@ def api_run_phonology_analysis():
             pho_values=pho_values
         )
 
-        # 將 List[pd.DataFrame] 轉換成 JSON
         json_results = []
-        for df in results:
+        for df in analysis_result:
             if isinstance(df, pd.DataFrame):
                 json_results.append(df.to_dict(orient="records"))
             elif isinstance(df, dict):
-                json_results.append(df)  # 允許 dict 直接進去
+                json_results.append(df)
             else:
                 json_results.append({"warning": "未知類型結果", "type": str(type(df))})
 
-        return jsonify({
-            "success": True,
-            "results": json_results
-        })
+        return {"success": True, "results": json_results}
 
     except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 400
+        return {"success": False, "error": str(e)}
 
 
-# ✅ 新增這個 API 路由
-@app.route("/api/partitions", methods=["GET"])
-def api_get_partitions():
+@app.get("/api/partitions")
+async def api_get_partitions(parent: Optional[str] = Query(None)):
     try:
-        parent = request.args.get("parent")
         result = read_partition_hierarchy(parent)
-        return jsonify(result)
+        return result
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return {"error": str(e)}
 
-@app.route("/batch_match", methods=["POST"])
-def batch_match():
-    data = request.get_json()
-    input_string = data.get("input_string", "").strip()
+
+class MatchRequest(BaseModel):
+    input_string: str
+
+
+@app.post("/batch_match")
+async def batch_match(data: MatchRequest):
+    input_string = data.input_string.strip()
     if not input_string:
-        return jsonify([])
+        return []
 
     results = match_locations_batch(input_string)
     responses = []
@@ -100,10 +108,7 @@ def batch_match():
                 "items": list(merged)
             })
 
-    return jsonify(responses)
-
-
+    return responses
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
-
+    uvicorn.run("app:app", host="127.0.0.1", port=5000, reload=True)
