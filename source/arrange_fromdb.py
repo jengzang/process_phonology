@@ -104,7 +104,7 @@ def query_characters_by_path(path_string, db_path=CHARACTERS_DB_PATH, table="cha
     return characters, multi_chars
 
 
-def query_by_status(char_list, locations, features, db_path=DIALECTS_DB_PATH, table="dialects"):
+def query_by_status(char_list, locations, features, user_input, db_path=DIALECTS_DB_PATH, table="dialects"):
     """
     📌 根據提供的漢字名單，查詢其在不同地點與語音特徵（如聲母/韻母）下的分佈情況。
 
@@ -150,7 +150,7 @@ def query_by_status(char_list, locations, features, db_path=DIALECTS_DB_PATH, ta
         total_chars = len(loc_chars_df["漢字"].unique())
 
         for feature in features:
-            print(f"   🔎 特徵欄位：{feature}")
+            # print(f"   🔎 特徵欄位：{feature}")
             feature_groups = loc_chars_df.groupby(feature)
 
             for fval, sub_df in feature_groups:
@@ -158,21 +158,21 @@ def query_by_status(char_list, locations, features, db_path=DIALECTS_DB_PATH, ta
                 unique_chars = list(set(all_chars))
                 count = len(unique_chars)
 
-                print(f"     ▶︎ {feature} = {fval}，字數：{count}，字例：{unique_chars[:5]}...")
+                # print(f"     ▶︎ {feature} = {fval}，字數：{count}，字例：{unique_chars[:5]}...")
 
                 poly_df = sub_df[sub_df.get("多音字") == "1"]
                 poly_details = []
 
                 for hz in poly_df["漢字"].unique():
                     all_pron = df[(df["漢字"] == hz) & (df["簡稱"] == loc)]["音節"].unique().tolist()
-                    print(f"       ⤷ 多音字：{hz}，音節：{all_pron}")
-                    poly_details.append(f"{hz}:{';'.join(all_pron)}")
+                    # print(f"       ⤷ 多音字：{hz}，音節：{all_pron}")
+                    poly_details.append(f"{hz}:{'|'.join(all_pron)}")
 
                 results.append({
                     "地點": loc,
                     "特徵類別": feature,
-                    "特徵值": fval,
-                    "分組值": {feature: fval},
+                    "特徵值": user_input,
+                    "分組值": {user_input: fval},  # 將 user_input 加入分組值
                     "字數": count,
                     "佔比": round(count / total_chars, 4) if total_chars else 0.0,
                     "對應字": unique_chars,
@@ -321,29 +321,56 @@ def sta2pho(
 
         print(f"🔧 產生輸入條件 {len(test_inputs)} 筆 ➤ 前5項：{test_inputs[:5]}")
 
-    all_results = []
 
-    for user_input, feature in zip(test_inputs, features):
-        print("\n" + "═" * 60)
-        print(f"📘 分析輸入：{user_input} 對應特徵：{feature}")
+    if len(features) == 1:
+        # 如果只有一個 feature，將所有 test_inputs 與該唯一 feature 對應
+        all_results = []
+        for user_input in test_inputs:
+            print("\n" + "═" * 60)
+            print(f"📘 分析輸入：{user_input} 對應特徵：{features[0]}")
 
-        summary = run_status([user_input], db_path=db_path_char)
+            summary = run_status([user_input], db_path=db_path_char)
 
-        for path_input, chars, multi in summary:
-            print(f"\n📘 輸入原文：{path_input}")
-            if chars is False:
-                print("🛑 查詢失敗或無法解析")
-                continue
+            for path_input, chars, multi in summary:
+                print(f"\n📘 輸入原文：{path_input}")
+                if chars is False:
+                    print("🛑 查詢失敗或無法解析")
+                    continue
 
-            print(f"🔡 查得字數：{len(chars)} ➤ {chars}")
-            print(f"⚠️ 多地位：{multi if multi else '無'}")
+                # print(f"🔡 查得字數：{len(chars)} ➤ {chars}")
+                # print(f"⚠️ 多地位：{multi if multi else '無'}")
 
-            all_chars = list(set(chars))
+                all_chars = list(set(chars))
 
-            print(f"\n🔧 開始分析『{user_input}』的特徵分布 ({feature})...\n")
-            df = query_by_status(all_chars, unique_abbrs, [feature], db_path=db_path_dialect)
+                print(f"\n🔧 開始分析『{user_input}』的特徵分布 ({features[0]})...\n")
+                df = query_by_status(all_chars, unique_abbrs, [features[0]], user_input, db_path=db_path_dialect)
 
-            all_results.append(df)
+                all_results.append(df)
+    else:
+        # 如果 features 有多個元素，正常的 zip 對應
+        all_results = []
+        for user_input, feature in zip(test_inputs, features):
+            # print("\n" + "═" * 60)
+            print(f"📘 分析輸入：{user_input} 對應特徵：{feature}")
+
+            summary = run_status([user_input], db_path=db_path_char)
+
+            for path_input, chars, multi in summary:
+                print(f"\n📘 輸入原文：{path_input}")
+                if chars is False:
+                    print("🛑 查詢失敗或無法解析")
+                    continue
+
+                print(f"🔡 查得字數：{len(chars)} ➤ {chars}")
+                print(f"⚠️ 多地位：{multi if multi else '無'}")
+
+                all_chars = list(set(chars))
+
+                print(f"\n🔧 開始分析『{user_input}』的特徵分布 ({feature})...\n")
+                df = query_by_status(all_chars, unique_abbrs, [feature], user_input, db_path=db_path_dialect)
+
+                all_results.append(df)
+
     return all_results
 
 
@@ -368,25 +395,25 @@ def extract_unique_values(db_path=CHARACTERS_DB_PATH, table="characters"):
     return unique_values
 
 
-if __name__ == "__tests2p__":
-    pd.set_option('display.max_rows', None)
-    pd.set_option('display.max_columns', None)
-    pd.set_option('display.max_colwidth', None)
-    pd.set_option('display.width', 0)
-
-    status_inputs = [
-        "知組三 端",
-        "通开三",
-    ]
-    # status_inputs = [
-    # ]
-    locations = ['东莞莞城', '雲浮富林']
-    features = ['聲母', '韻母', '聲調']
-    regions = ['封綏', '儋州']
-    # features = ['聲調']
-
-    results = sta2pho(locations, regions, features, status_inputs)
-    # print(all_summaries)
-
-    for row in results:
-        print(row)
+# if __name__ == "__main__":
+#     pd.set_option('display.max_rows', None)
+#     pd.set_option('display.max_columns', None)
+#     pd.set_option('display.max_colwidth', None)
+#     pd.set_option('display.width', 0)
+#
+#     status_inputs = [
+#         "知組三 端",
+#         "通开三",
+#     ]
+#     # status_inputs = [
+#     # ]
+#     locations = ['东莞莞城', '雲浮富林']
+#     # features = ['聲母', '韻母', '聲調']
+#     regions = ['封綏', '儋州']
+#     features = ['韻母']
+#
+#     results = sta2pho(locations, regions, features, status_inputs)
+#     # print(all_summaries)
+#
+#     for row in results:
+#         print(row)

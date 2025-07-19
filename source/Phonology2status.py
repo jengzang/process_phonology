@@ -132,18 +132,42 @@ def analyze_characters_from_db(
     grouped = df.groupby(group_fields)
 
     for group_keys, group_df in grouped:
-        if isinstance(group_keys, (list, tuple)):
-            group_values = dict(zip(group_fields, group_keys))
-        else:
-            group_values = dict(zip(group_fields, [group_keys]))
+        # 特定欄位需要後綴
+        suffix_map = {
+            "系": "(系)",
+            "組": "(組)",
+            "聲": "(母)",
+            "攝": "(攝)",
+            "韻": "(韻)"
+        }
 
+        # 構建分組 key 和 value
+        group_key_label = "-".join(group_fields)
+
+        # 使用 group_df 中第一筆資料取得欄位值（若需要用到 row，可取樣一筆）
+        _, sample_row = next(group_df.iterrows())
+
+        # 建構 value（加後綴）
+        value_parts = []
+        for field, val in zip(group_fields, group_keys):
+            suffix = suffix_map.get(field)
+            if suffix:
+                val = f"{val}{suffix}"
+            value_parts.append(val)
+        group_value = "-".join(value_parts)
+
+        # 最終的分組值格式
+        # group_values = {group_key_label: group_value}
+        group_values = {feature_value: group_value}
+
+        # 以下原本的邏輯照舊
         unique_chars = group_df["漢字"].unique().tolist()
         count = len(unique_chars)
 
         poly_details = []
-        poly_df = group_df[group_df["多地位標記"] == "1"]
-        for hz in poly_df["漢字"].unique():
-            sub = poly_df[poly_df["漢字"] == hz]
+        poly_chars = group_df[group_df["多地位標記"] == "1"]["漢字"].unique()
+        for hz in poly_chars:
+            sub = df[(df["漢字"] == hz) & (df["多地位標記"] == "1")]
             summary = []
             for _, row in sub.iterrows():
                 parts = f"{row['攝']}{row['呼']}{row['等']}{row['韻']}{row['調']}"
@@ -162,7 +186,7 @@ def analyze_characters_from_db(
             "多地位詳情": "; ".join(poly_details)
         })
 
-    return grouped_result
+    return pd.DataFrame(grouped_result)
 
 
 def pho2sta(locations, regions, features, status_inputs,
@@ -235,13 +259,19 @@ def pho2sta(locations, regions, features, status_inputs,
     return results
 
 
-if __name__ == "__testp2s__":
-    locations = ['东莞莞城 順德大良', '雲浮富林']
-    features = ['聲母', '韻母', '聲調']
-    group_inputs = ['組聲', '攝等', '清濁調']  # ✅ 用戶指定分組欄位
-    pho_value = ['l', 'm', 'an']
-    regions = ['封綏', '儋州']
-    results = pho2sta(locations, regions, features, group_inputs, pho_value)
-
-    for row in results:
-        print(row)
+# if __name__ == "__main__":
+#     pd.set_option('display.max_rows', None)
+#     pd.set_option('display.max_columns', None)
+#     pd.set_option('display.max_colwidth', None)
+#     pd.set_option('display.width', 0)
+#     locations = ['高州泗水 高州根子']
+#     # features = ['聲母', '韻母', '聲調']
+#     features = ['韻母']
+#     # group_inputs = ['組', '攝等', '清濁調']  # ✅ 用戶指定分組欄位
+#     group_inputs = ['攝']  # ✅ 用戶指定分組欄位
+#     pho_value = ['l', 'm', 'an']
+#     regions = ['封綏', '儋州']
+#     results = pho2sta(locations, regions, features, group_inputs, pho_value)
+#
+#     for row in results:
+#         print(row)

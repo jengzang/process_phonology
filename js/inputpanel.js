@@ -1,4 +1,3 @@
-// 📥 輸入邏輯與交互事件：完全保留原功能
 
 function parseInputField(id) {
     const v = document.getElementById(id).value.trim();
@@ -6,9 +5,11 @@ function parseInputField(id) {
     try {
         return JSON.parse(v);
     } catch {
-        return v.split(/[\n\s]+/).map(s => s.trim()).filter(Boolean);
+        // 只用換行符 \n 作為分隔符，保留空格和其他分隔符
+        return v.split('\n').map(s => s.trim()).filter(Boolean);
     }
 }
+
 
 function getSelectedFeatures() {
     return Array.from(document.querySelectorAll('#features-group input[type=checkbox]'))
@@ -27,9 +28,13 @@ updateVisibility();
 
 window.runAnalysis = async function () {
     const debugLog = document.getElementById("debug-log");
-    const resultOutput = document.getElementById("resultOutput");
-    debugLog.textContent = "";
-    resultOutput.textContent = "";
+
+    const log = (msg, json = null) => {
+        const now = new Date().toISOString().split("T")[1].slice(0, 8);
+        debugLog.textContent += `[${now}] ${msg}\n`;
+        if (json) debugLog.textContent += JSON.stringify(json, null, 2) + "\n";
+        debugLog.scrollTop = debugLog.scrollHeight;
+    };
 
     try {
         const payload = {
@@ -42,29 +47,22 @@ window.runAnalysis = async function () {
             pho_values: parseInputField("pho_values")
         };
 
-        debugLog.textContent += "📦 發送:\n" + JSON.stringify(payload, null, 2) + "\n\n";
-        resultOutput.textContent = "⏳ 分析中...";
+        debugLog.textContent = ""; // 清空舊 log
+        log("📦 發送 Payload", payload);
 
-        const res = await fetch("http://127.0.0.1:5000/api/phonology", {
+        const res = await fetchWithLog("http://127.0.0.1:5000/api/phonology", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         });
 
-        debugLog.textContent += `📡 狀態：${res.status}\n`;
-        if (!res.ok) {
-            const txt = await res.text();
-            throw new Error(txt || res.status);
-        }
-
         const json = await res.json();
-        resultOutput.textContent = JSON.stringify(json, null, 2);
-        debugLog.textContent += "✅ 完成\n";
+        log("✅ 回傳結果", json);
     } catch (err) {
-        debugLog.textContent += "❌ 錯誤： " + err.message + "\n";
-        resultOutput.textContent = `❌ ${err.message}`;
+        log("❌ 錯誤", { message: err.message });
     }
 };
+
 
 // 🧪 後端測試按鈕
 document.getElementById("testBackendBtn").addEventListener("click", async () => {
@@ -125,13 +123,24 @@ window.showPartitionSelector = function (textarea) {
     const clearAll = () => {
         container.remove();
         document.removeEventListener('keydown', escHandler);
+        document.removeEventListener('mousedown', outsideClickHandler); // ✅ 清除點擊事件
     };
+
     const escHandler = e => {
         if (e.key === 'Escape') clearAll();
     };
+
+    const outsideClickHandler = e => {
+        if (!container.contains(e.target)) {
+            clearAll(); // ✅ 點擊外部元素就收起
+        }
+    };
+
     document.addEventListener('keydown', escHandler);
+    document.addEventListener('mousedown', outsideClickHandler); // ✅ 加上點擊監聽
 
     renderList(topLevel, lvl1, null, textarea, clearAll, lvl2, lvl3);
+
 };
 
 function renderList(items, container, parentLabel, textarea, onClose, lvl2 = null, lvl3 = null) {
@@ -295,12 +304,13 @@ inputEl.addEventListener("keyup", () => {
                         e.preventDefault();
                         const before = value.slice(0, queryStart);
                         const after = value.slice(cursorPos);
-                        inputEl.value = before + item + after;
+                        inputEl.value = before + item + ' ' + after;
 
-                        const newPos = before.length + item.length;
+                        const newPos = before.length + item.length + 1;
                         inputEl.setSelectionRange(newPos, newPos);
                         suggestion.style.display = "none";
                     });
+
 
                     suggestion.appendChild(div);
                 });

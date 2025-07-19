@@ -1,5 +1,4 @@
-/* === #resultPanel 結果面板 專屬樣式 === */
-
+/* === 結果面板主體樣式 === */
 #resultOutput {
     white-space: pre-wrap;
     font-family: monospace;
@@ -12,4 +11,111 @@
     height: 100%;
     overflow-y: auto;
     border-radius: 8px;
+    width: 100%;
+}
+
+/* 整體表格風格 */
+#resultTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* 表頭與表格單元格 */
+#resultTable th,
+#resultTable td {
+    padding: 8px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* 同地點行的分隔 */
+#resultTable tbody tr:not(.group-break) td {
+    border-bottom: 1px solid #ccc;
+}
+
+/* 不同地點行的分隔 */
+#resultTable tbody tr.group-break td {
+    border-bottom: 2px solid #666;
+}
+
+/* 父行是 flex（這你已經有） */
+.result-row {
+    display: flex;
+    align-items: stretch;  /* 核心設定！讓所有欄位一樣高 */
+}
+
+
+
+
+/* 第一列：地點 */
+.col1 {
+    width: 14.2857%;
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    background-color: #f6f6f6;
+    font-weight: bold;
+    border-right: 2px solid #333;
+}
+
+/* 第二列：特徵值 */
+.col2 .col4{
+    width: 14.2857%;
+    border-right: 1px solid #ccc;
+}
+
+/* 第三列：對應字 */
+.col3 {
+    width: 57.1429%;
+    border-right: 1px solid #ccc;
+    font-size: 18px;
+    line-height: 1.6;
+    word-break: break-word;
+}
+
+/* 第四列字數 / 佔比：上下分隔 */
+/* 第四列：字數 / 佔比 */
+.col4 {
+    width: 14.2857%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* 垂直方向平均分配 */
+    align-items: stretch; /* 使每行的高度完全拉伸到和第三列一样 */
+    text-align: center;
+    padding: 0 8px;
+    border-left: none;
+    border-right: none;
+    height: 100%; /* 让它与父级高度保持一致 */
+}
+
+/* 字數：第一行 */
+.col4 > div:first-child {
+    font-size: 14px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 50%; /* 垂直分配，保持对称 */
+}
+
+/* 佔比：第二行 */
+.col4 > div:last-child {
+    font-size: 12px;
+    color: #888;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 50%; /* 垂直分配，保持对称 */
+}
+
+
+/* 多音字斜體 + hover 樣式 */
+.char.multi {
+    font-style: italic;
+    margin: 0 4px;
+}
+.char.multi[title] {
+    text-decoration: underline dotted #666;
+    cursor: help;
 }

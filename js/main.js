@@ -71,3 +71,54 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 });
 
+
+// 🌐 共用封裝 fetch，統一紀錄前後端交換資料
+window.fetchWithLog = function (url, options = {}) {
+    console.log("🔍 檢查 debugLog 是否 null？", document.getElementById("debug-log"));
+    const debugLog = document.getElementById("debug-log");
+    const log = (msg, json = null) => {
+        const now = new Date().toISOString().split("T")[1].slice(0, 8);
+        debugLog.textContent += `[${now}] ${msg}\n`;
+        if (json) debugLog.textContent += JSON.stringify(json, null, 2) + "\n";
+        debugLog.scrollTop = debugLog.scrollHeight;
+    };
+
+    log("🌐 發送請求：" + url, options.body ? safeJson(options.body) : null);
+
+    return fetch(url, options).then(async res => {
+        log("📡 回應狀態：" + res.status);
+        const contentType = res.headers.get("content-type");
+        let body;
+        try {
+            body = contentType && contentType.includes("application/json")
+                ? await res.json()
+                : await res.text();
+            log("📥 回應內容：", body);
+        } catch (err) {
+            log("❌ 回應解析失敗：" + err.message);
+        }
+        return new Response(JSON.stringify(body), {
+            status: res.status,
+            headers: res.headers
+        });
+    }).catch(err => {
+        log("❌ 請求錯誤：" + err.message);
+        throw err;
+    });
+
+    function safeJson(str) {
+        try {
+            return JSON.parse(str);
+        } catch {
+            return str;
+        }
+    }
+};
+
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("runBtn")?.addEventListener("click", async () => {
+        await runAnalysis();          // 先送出分析並記錄 log
+        await analysis_from_db();     // 然後渲染表格結果
+    });
+});

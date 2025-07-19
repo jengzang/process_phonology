@@ -65,7 +65,7 @@
 
                 <div class="region-input">
                     <button id="partitionBtn" class="text-btn">音典分區 ▼</button>
-                    <textarea id="regions">嶺南 嶺東</textarea>
+                    <textarea id="regions"></textarea>
                 </div>
             </div>
         </div>
@@ -97,7 +97,8 @@
         <!-- 操作與 debug -->
         <div class="input-section">
             <div class="center-btn">
-                <button class="fancy-run-btn" onclick="runAnalysis()">🚀 單擊運行</button>
+                <!-- 不要在 HTML 裡綁定 onclick -->
+                <button id="runBtn" class="fancy-run-btn">🚀 單擊運行</button>
             </div>
 
             <div class="debug-row">
@@ -119,7 +120,18 @@
         <button id="resultMaximizeBtn" class="mode-btn">⛶</button>
     </div>
     <div id="resultPanelContent" class="panel-content">
-        <div id="resultOutput"></div>
+        <table id="resultTable">
+            <thead>
+            <tr>
+                <th>地點</th>
+                <th>特徵值</th>
+                <th>對應字</th>
+                <th>字數/佔比</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
     </div>
 </div>
 

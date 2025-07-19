@@ -420,7 +420,11 @@ def query_dialect_abbreviations(
 
     with sqlite3.connect(db_path) as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT 音典分區, 簡稱 FROM dialects")
+        cursor.execute("""
+            SELECT 音典分區, 簡稱 
+            FROM dialects 
+            WHERE 存儲標記 IS NOT NULL AND 存儲標記 != ''
+        """)
         all_rows = cursor.fetchall()
 
         for item in region_list:
