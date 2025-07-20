@@ -126,7 +126,7 @@ window.fetchWithLog = async function(url, options) {
 
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("runBtn")?.addEventListener("click", async () => {
-        await runAnalysis();          // 先送出分析並記錄 log
+        // await runAnalysis();          // 先送出分析並記錄 log
         await analysis_from_db();     // 然後渲染表格結果
     });
 });

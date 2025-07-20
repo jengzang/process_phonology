@@ -15,6 +15,7 @@ from source.process_input import read_partition_hierarchy, match_locations_batch
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
+
 class AnalysisPayload(BaseModel):
     mode: str
     locations: List[str] = Field(default_factory=list)
@@ -24,40 +25,40 @@ class AnalysisPayload(BaseModel):
     group_inputs: Union[str, List[str], None] = None
     pho_values: Union[str, List[str], None] = None
 
+
 @app.post("/api/phonology")
 async def api_run_phonology_analysis(payload: AnalysisPayload):
     try:
-        # 轉換 tuple型別為純 Python list
-        locations = payload.locations
-        regions = payload.regions
-        features = payload.features
-
-        status_inputs = payload.status_inputs
-        group_inputs = payload.group_inputs
-        pho_values = payload.pho_values
-
-        # 使用 asyncio.to_thread 轉同步分析邏輯
         analysis_result = await asyncio.to_thread(
             run_phonology_analysis,
             mode=payload.mode,
-            locations=locations,
-            regions=regions,
-            features=features,
-            status_inputs=status_inputs,
-            group_inputs=group_inputs,
-            pho_values=pho_values
+            locations=payload.locations,
+            regions=payload.regions,
+            features=payload.features,
+            status_inputs=payload.status_inputs,
+            group_inputs=payload.group_inputs,
+            pho_values=payload.pho_values
         )
 
-        json_results = []
-        for df in analysis_result:
-            if isinstance(df, pd.DataFrame):
-                json_results.append(df.to_dict(orient="records"))
-            elif isinstance(df, dict):
-                json_results.append(df)
-            else:
-                json_results.append({"warning": "未知類型結果", "type": str(type(df))})
+        # 假設只回傳一個 DataFrame
+        if isinstance(analysis_result, pd.DataFrame):
+            return {
+                "success": True,
+                "results": analysis_result.to_dict(orient="records")
+            }
 
-        return {"success": True, "results": json_results}
+        # 若是清單，合併所有 DataFrame
+        if isinstance(analysis_result, list) and all(isinstance(df, pd.DataFrame) for df in analysis_result):
+            merged_df = pd.concat(analysis_result, ignore_index=True)
+            return {
+                "success": True,
+                "results": merged_df.to_dict(orient="records")
+            }
+
+        return {
+            "success": False,
+            "error": "未識別的分析結果格式"
+        }
 
     except Exception as e:
         return {"success": False, "error": str(e)}
@@ -91,7 +92,7 @@ async def batch_match(data: MatchRequest):
         if success:
             responses.append({
                 "success": True,
-                "message": f"✅ 第{idx+1}個“{part}”匹配成功",
+                "message": f"✅ 第{idx + 1}個“{part}”匹配成功",
                 "items": []
             })
         else:
@@ -104,11 +105,12 @@ async def batch_match(data: MatchRequest):
                     merged.add(val)
             responses.append({
                 "success": False,
-                "message": f"第{idx+1}個“{part}”未匹配",
+                "message": f"第{idx + 1}個“{part}”未匹配",
                 "items": list(merged)
             })
 
     return responses
+
 
 if __name__ == "__main__":
     uvicorn.run("app:app", host="127.0.0.1", port=5000, reload=True)

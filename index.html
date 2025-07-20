@@ -119,21 +119,26 @@
         <button id="resultMinimizeBtn" class="mode-btn">🗕</button>
         <button id="resultMaximizeBtn" class="mode-btn">⛶</button>
     </div>
+    <!-- 將浮動欄移出內容區，放在這裡 -->
+    <div id="stickyContextBar" class="sticky-label" style="display: none;">
+        <span id="stickyContextText"></span>
+        <button id="toggleColumnsBtn">切換隱藏</button>
+    </div>
     <div id="resultPanelContent" class="panel-content">
-        <table id="resultTable">
+        <table id="resultTable" class="four-col"> <!-- 初始設成 4欄 -->
             <thead>
             <tr>
-                <th>地點</th>
-                <th>特徵值</th>
-                <th>對應字</th>
-                <th>字數/佔比</th>
+                <th class="col1">地點</th>
+                <th class="col2">特徵值</th>
+                <th class="col3">對應字</th>
+                <th class="col4">字數/佔比</th>
             </tr>
             </thead>
             <tbody></tbody>
         </table>
-
     </div>
 </div>
+
 
 <!-- 結果面板復原按鈕 -->
 <button id="resultRestoreBtn" class="toggle-btn">🗗</button>

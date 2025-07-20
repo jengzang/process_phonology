@@ -40,23 +40,28 @@ def run_phonology_analysis(
             raise ValueError("🔴 mode='p2s' 時，請提供 group_inputs ")
         return pho2sta(locations, regions, features, group_inputs, pho_values)
 
+
     else:
         raise ValueError("🔴 mode 必須為 's2p' 或 'p2s'")
 
 
 def main():
     # 測試資料
+    # status_inputs = [
+    #     "知組三 端",
+    #     "通开三",
+    # ]
     status_inputs = [
-        "知組三 端",
-        "通开三",
+        "通开一",
     ]
-    regions = ['封綏', '儋州']
-    locations = ['東莞莞城', '雲浮富林']
-    features = ['聲母', '韻母', '聲調']
+    regions = [""]
+    locations = [ "東莞莞城","雲浮富林"]
+    # features = ['聲母', '韻母', '聲調']
+    features = ['韻母']
     # group_inputs = ["組聲 攝等 清濁調"]
-    pho_value = ["l"]
+    pho_value = ["l m an 陰平"]
     group_inputs = ["攝"]
-    mode = "s2p"  # or "s2p"
+    mode = "p2s"  # or "s2p"
 
     pd.set_option('display.max_rows', None)
     pd.set_option('display.max_columns', None)

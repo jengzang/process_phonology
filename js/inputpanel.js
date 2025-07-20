@@ -26,42 +26,42 @@ document.querySelectorAll('input[name="mode"]').forEach(r => {
 });
 updateVisibility();
 
-window.runAnalysis = async function () {
-    const debugLog = document.getElementById("debug-log");
-
-    const log = (msg, json = null) => {
-        const now = new Date().toISOString().split("T")[1].slice(0, 8);
-        debugLog.textContent += `[${now}] ${msg}\n`;
-        if (json) debugLog.textContent += JSON.stringify(json, null, 2) + "\n";
-        debugLog.scrollTop = debugLog.scrollHeight;
-    };
-
-    try {
-        const payload = {
-            mode: document.querySelector('input[name="mode"]:checked').value,
-            locations: parseInputField("locations"),
-            regions: parseInputField("regions"),
-            features: getSelectedFeatures(),
-            status_inputs: parseInputField("status_inputs"),
-            group_inputs: parseInputField("group_inputs"),
-            pho_values: parseInputField("pho_values")
-        };
-
-        debugLog.textContent = ""; // 清空舊 log
-        log("📦 發送 Payload", payload);
-
-        const res = await fetchWithLog("http://127.0.0.1:5000/api/phonology", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        });
-
-        const json = await res.json();
-        log("✅ 回傳結果", json);
-    } catch (err) {
-        log("❌ 錯誤", { message: err.message });
-    }
-};
+// window.runAnalysis = async function () {
+//     const debugLog = document.getElementById("debug-log");
+//
+//     const log = (msg, json = null) => {
+//         const now = new Date().toISOString().split("T")[1].slice(0, 8);
+//         debugLog.textContent += `[${now}] ${msg}\n`;
+//         if (json) debugLog.textContent += JSON.stringify(json, null, 2) + "\n";
+//         debugLog.scrollTop = debugLog.scrollHeight;
+//     };
+//
+//     try {
+//         const payload = {
+//             mode: document.querySelector('input[name="mode"]:checked').value,
+//             locations: parseInputField("locations"),
+//             regions: parseInputField("regions"),
+//             features: getSelectedFeatures(),
+//             status_inputs: parseInputField("status_inputs"),
+//             group_inputs: parseInputField("group_inputs"),
+//             pho_values: parseInputField("pho_values")
+//         };
+//
+//         debugLog.textContent = ""; // 清空舊 log
+//         log("📦 發送 Payload", payload);
+//
+//         const res = await fetchWithLog("http://127.0.0.1:5000/api/phonology", {
+//             method: "POST",
+//             headers: { "Content-Type": "application/json" },
+//             body: JSON.stringify(payload)
+//         });
+//
+//         const json = await res.json();
+//         log("✅ 回傳結果", json);
+//     } catch (err) {
+//         log("❌ 錯誤", { message: err.message });
+//     }
+// };
 
 
 // 🧪 後端測試按鈕

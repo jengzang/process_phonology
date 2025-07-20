@@ -48,7 +48,7 @@ def query_dialect_features(locations, features, db_path=DIALECTS_DB_PATH, table=
     df = pd.read_sql_query(f"SELECT * FROM {table}", conn)
     conn.close()
     print(f"✅ 資料總筆數：{len(df)}")
-
+    # print("1111")
     # 過濾輸入的地點
     df = df[df["簡稱"].isin(locations)]
 
@@ -76,6 +76,7 @@ def query_dialect_features(locations, features, db_path=DIALECTS_DB_PATH, table=
                     feature_dict[value]["多音字詳情"].append(detail)
 
         result[feature] = feature_dict
+    # print(result)
 
     return result
 
@@ -109,7 +110,7 @@ def analyze_characters_from_db(
         "韻母": ["韻"],
         "聲調": ["清濁", "調"]
     }
-
+    print(f"特徵值{feature_value}")
     if not group_fields:
         group_fields = default_grouping.get(feature_type)
         if not group_fields:
@@ -174,6 +175,9 @@ def analyze_characters_from_db(
                 meta = f"{row['系']}(系){row['組']}(組){row['聲']}(母)"
                 summary.append(f"{parts},{meta}")
             poly_details.append(f"{hz}: {' | '.join(summary)}")
+        # print(f"🧩 當前分析地點：{loc}")
+        # print(f"🔢 total_chars for {loc}: {total_chars}")
+        # print(f"📄 特徵 {group_value} 的字數：{count}")
 
         grouped_result.append({
             "地點": loc,
@@ -193,10 +197,6 @@ def pho2sta(locations, regions, features, status_inputs,
             pho_values=None,
             dialect_db_path=DIALECTS_DB_PATH,
             character_db_path=CHARACTERS_DB_PATH):
-    """
-       新增參數 pho_values：若非空，僅處理在其中的 feature_value，否則處理全部。
-       若 pho_values 沒有任何值在資料中出現，則 fallback 輸出所有。
-    """
 
     HIERARCHY_COLUMNS = ["攝", "呼", "等", "韻", "入", "調", "清濁", "系", "組", "聲"]
     pho_values = split_pho_input(pho_values or [])
@@ -206,42 +206,49 @@ def pho2sta(locations, regions, features, status_inputs,
         user_input = status_inputs[idx] if idx < len(status_inputs) else ""
         user_columns = [col for col in HIERARCHY_COLUMNS if col in user_input]
         if not user_columns:
-            print(f"⚠️ 無有效欄位於輸入「{user_input}」中 → 將使用 analyze_characters_from_db 的預設分組欄位")
+            print(f"⚠️ 無有效欄位於輸入「{user_input}」中 → 將使用預設分組欄位")
             grouping_columns_map[feature] = None
         else:
-            print(f"[DEBUG] 特徵 {feature} 使用分組欄位：{user_columns}")
+            print(f"✅ 特徵【{feature}】使用分組欄位：{user_columns}")
             grouping_columns_map[feature] = user_columns
 
     locations_new = query_dialect_abbreviations(regions, locations)
-    # 驗證地點
     match_results = match_locations_batch(" ".join(locations_new))
     if not any(res[1] == 1 for res in match_results):
         print("🛑 沒有任何地點完全匹配，終止分析。")
         return []
 
     unique_abbrs = list({abbr for res in match_results for abbr in res[0]})
-    print(f"\n📍 完全匹配地點簡稱：{unique_abbrs}")
+    print(f"\n📍 確認匹配地點：{unique_abbrs}")
 
     results = []
     dialect_output = query_dialect_features(unique_abbrs, features, db_path=dialect_db_path)
 
     for loc in unique_abbrs:
+        print(f"\n🔷 開始處理地點：{loc}")
         for feature in features:
+            print(f"  ├── 特徵：{feature}")
             group_fields = grouping_columns_map.get(feature)
 
             feature_items = dialect_output[feature].items()
 
-            # 若 pho_values 非空，先過濾出存在的
+            # 過濾 pho_values（若有）
             if pho_values:
+                print(pho_values)
                 filtered_items = [(fv, d) for fv, d in feature_items if fv in pho_values]
-                # 若沒有任何一個 match，就 fallback 為全部
                 if filtered_items:
+                    # print(f"     📌 過濾特徵值：{[fv for fv, _ in filtered_items]}")
                     feature_items = filtered_items
+                else:
+                    print("     ⚠️ 無匹配特徵值，fallback 使用全部")
 
             for feature_value, data in feature_items:
                 sub_df = data["sub_df"]
                 loc_chars = sub_df[sub_df["簡稱"] == loc]["漢字"].unique().tolist()
+                # print(f"     ➤ 運算特徵值：{feature_value}（字數：{len(loc_chars)}）")
+
                 if not loc_chars:
+                    print("        ⚠️ 該特徵值在此地點無資料，略過")
                     continue
 
                 result = analyze_characters_from_db(
@@ -257,6 +264,7 @@ def pho2sta(locations, regions, features, status_inputs,
                 results.extend(result if isinstance(result, list) else [result])
 
     return results
+
 
 
 # if __name__ == "__main__":

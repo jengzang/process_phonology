@@ -285,7 +285,7 @@ def sta2pho(
 
     # ➕ 若 test_inputs 為空，自動根據 features 推導測試條件
     if not test_inputs:
-        print("ℹ️ test_inputs 為空，自動推導條件字串...")
+        print("ℹ️ inputs 為空，自動推導條件字串...")
         conn = sqlite3.connect(db_path_char)
         df_char = pd.read_sql_query("SELECT * FROM characters", conn)
         conn.close()
@@ -327,7 +327,7 @@ def sta2pho(
         all_results = []
         for user_input in test_inputs:
             print("\n" + "═" * 60)
-            print(f"📘 分析輸入：{user_input} 對應特徵：{features[0]}")
+            print(f"📘📘 分析輸入：{user_input} 對應特徵：{features[0]}")
 
             summary = run_status([user_input], db_path=db_path_char)
 
@@ -395,25 +395,25 @@ def extract_unique_values(db_path=CHARACTERS_DB_PATH, table="characters"):
     return unique_values
 
 
-# if __name__ == "__main__":
-#     pd.set_option('display.max_rows', None)
-#     pd.set_option('display.max_columns', None)
-#     pd.set_option('display.max_colwidth', None)
-#     pd.set_option('display.width', 0)
-#
-#     status_inputs = [
-#         "知組三 端",
-#         "通开三",
-#     ]
-#     # status_inputs = [
-#     # ]
-#     locations = ['东莞莞城', '雲浮富林']
-#     # features = ['聲母', '韻母', '聲調']
-#     regions = ['封綏', '儋州']
-#     features = ['韻母']
-#
-#     results = sta2pho(locations, regions, features, status_inputs)
-#     # print(all_summaries)
-#
-#     for row in results:
-#         print(row)
+if __name__ == "__main__":
+    pd.set_option('display.max_rows', None)
+    pd.set_option('display.max_columns', None)
+    pd.set_option('display.max_colwidth', None)
+    pd.set_option('display.width', 0)
+
+    status_inputs = [
+        "知組三 端",
+        "通开三",
+    ]
+    # status_inputs = [
+    # ]
+    locations = ['东莞莞城', '雲浮富林']
+    # features = ['聲母', '韻母', '聲調']
+    regions = ['封綏', '儋州']
+    features = ['韻母']
+
+    results = sta2pho(locations, regions, features, status_inputs)
+    # print(all_summaries)
+
+    for row in results:
+        print(row)
