@@ -190,30 +190,30 @@ def run_status(
         table="characters"
 ):
     """
-    📌 功能總結：
+           📌 功能總結：
 
-    🔹 主要用途：對使用者輸入的一組「音系條件語法」（例如：「知組三」、「通开三」）進行格式化轉換，
-    並查詢 characters.db 中，符合該條件的所有漢字。
+       🔹 主要用途：
+       接收一組語音條件輸入字串（如「知組三」、「蟹攝」），
+       將其轉換為一個或多個標準查詢語法（path），並查詢符合條件的漢字。
 
-    ✔ 處理流程：
-    1. 調用 `auto_convert_batch` → 將輸入轉換為標準語法格式（如 [知]{組}[三]{等}）
-    2. 每個轉換結果，丟給 `query_characters_by_path`：
-       - 查出符合條件的漢字列表
-       - 判定哪些是多地位的字（例如：一字多組合、具備多重地位）
-    3. 整合每個輸入的查詢結果，包含：
-       - 原始輸入
-       - 查得的漢字清單
-       - 多地位漢字清單
+       🔁 每個條件輸入可能會對應到多個 path（如等級、組、攝的展開），
+       本函數會對每個 path 獨立查詢，再將結果合併返回。
 
-    🔁 多筆輸入可以批次處理，適合在主流程中被呼叫，例如：
-       run_status(["知組三", "通开三"])
-       → 傳回所有符合這些條件的字，以及它們的多地位判定結果。
+       ✔ 處理流程：
+       1. 調用 `auto_convert_batch(s)` 將每個輸入轉換為多個 path（如 [知]{組}-[三]{等}）
+       2. 每個 path 用 `query_characters_by_path()` 查出符合的漢字與多地位字
+       3. 最後將每個輸入的所有 path 查得的字與多地位字合併
+       4. 回傳格式保留與舊版本一致，以支援原先 `sta2pho` 用法
 
-    🔄 它是 run_feature_analysis 的「前處理步驟」，提供：
-       ➤ 字集清單（char_list）
-       ➤ 多地位字清單（multi_chars）
+       🧾 回傳內容：
+       - List，每個元素為一個 tuple：
+           (
+               原始輸入字串,           # 例如 "蟹攝"
+               合併後的漢字清單,       # e.g., ["協", "些", "斜"]
+               合併後的多地位字清單,   # e.g., ["協"]
+               每個 path 的明細清單     # list of dicts（含 path、characters、multi）
+           )
     """
-
     results_summary = []
 
     for s in input_strings:
@@ -230,22 +230,30 @@ def run_status(
             isinstance(r, tuple) and r[0] is False for r in batch_result
         )
 
-        # 嘗試處理成功的部分
-        all_chars = []
-        all_multi = []
+        path_results = []  # ✨ collect per-path result
+
         for path_tuple in batch_result:
             if isinstance(path_tuple, tuple) and path_tuple[0] is not False:
                 path_str = path_tuple[0]
                 characters, multi_chars = query_characters_by_path(
                     path_str, db_path=db_path, table=table
                 )
-                all_chars.extend(characters)
-                all_multi.extend(multi_chars)
+                path_results.append({
+                    "path": path_str,
+                    "characters": characters,
+                    "multi": multi_chars
+                })
 
-        if all_chars:
-            results_summary.append((s, all_chars, list(set(all_multi))))
+        # 統一合併後的格式（為了相容 sta2pho）
+        if path_results:
+            all_chars = []
+            all_multi = []
+            for result in path_results:
+                all_chars.extend(result["characters"])
+                all_multi.extend(result["multi"])
+            results_summary.append((s, all_chars, list(set(all_multi)), path_results))
         else:
-            results_summary.append((s, False, False))
+            results_summary.append((s, False, False, []))
 
         if has_error:
             print(f"  ⚠️ 部分片段轉換失敗：{s}")
@@ -263,18 +271,9 @@ def sta2pho(
 ):
     """
     📌 主控函數：對語音條件輸入進行特徵分析，支援多地點與特徵欄位。
-
-    返回值：
-    List of dicts，每個 dict 含：
-        {
-            "輸入條件": ...,     # 原始語音條件，如「知組三」
-            "對應字": [...],     # 符合條件的漢字
-            "多地位字": [...],   # 多地位的漢字
-            "統計結果": DataFrame # 每地點+特徵的統計
-        }
+    回傳：List of DataFrames（每個條件的統計結果）
     """
     locations_new = query_dialect_abbreviations(regions, locations)
-    # 驗證地點
     match_results = match_locations_batch(" ".join(locations_new))
     if not any(res[1] == 1 for res in match_results):
         print("🛑 沒有任何地點完全匹配，終止分析。")
@@ -283,7 +282,6 @@ def sta2pho(
     unique_abbrs = list({abbr for res in match_results for abbr in res[0]})
     print(f"\n📍 完全匹配地點簡稱：{unique_abbrs}")
 
-    # ➕ 若 test_inputs 為空，自動根據 features 推導測試條件
     if not test_inputs:
         print("ℹ️ inputs 為空，自動推導條件字串...")
         conn = sqlite3.connect(db_path_char)
@@ -307,7 +305,6 @@ def sta2pho(
             elif feat == "聲調":
                 clean_vals = sorted(df_char["清濁"].dropna().unique())
                 tone_vals = sorted(df_char["調"].dropna().unique())
-
                 for cv in clean_vals:
                     for tv in tone_vals:
                         auto_inputs.append(f"{cv}{tv}")
@@ -321,55 +318,56 @@ def sta2pho(
 
         print(f"🔧 產生輸入條件 {len(test_inputs)} 筆 ➤ 前5項：{test_inputs[:5]}")
 
+    all_results = []
 
     if len(features) == 1:
-        # 如果只有一個 feature，將所有 test_inputs 與該唯一 feature 對應
-        all_results = []
         for user_input in test_inputs:
             print("\n" + "═" * 60)
             print(f"📘📘 分析輸入：{user_input} 對應特徵：{features[0]}")
 
             summary = run_status([user_input], db_path=db_path_char)
 
-            for path_input, chars, multi in summary:
-                print(f"\n📘 輸入原文：{path_input}")
+            for path_input, chars, multi, path_details in summary:
                 if chars is False:
                     print("🛑 查詢失敗或無法解析")
                     continue
 
-                # print(f"🔡 查得字數：{len(chars)} ➤ {chars}")
-                # print(f"⚠️ 多地位：{multi if multi else '無'}")
+                for result in path_details:
+                    path_str = result["path"]
+                    path_chars = result["characters"]
 
-                all_chars = list(set(chars))
+                    if not path_chars:
+                        continue
 
-                print(f"\n🔧 開始分析『{user_input}』的特徵分布 ({features[0]})...\n")
-                df = query_by_status(all_chars, unique_abbrs, [features[0]], user_input, db_path=db_path_dialect)
+                    print(f"\n🔧 開始分析『{path_str}』的特徵分布 ({features[0]})...\n")
+                    simplified_input = ''.join(re.findall(r'\[(.*?)\]', path_str))
+                    df = query_by_status(path_chars, unique_abbrs, [features[0]], simplified_input, db_path=db_path_dialect)
 
-                all_results.append(df)
+                    all_results.append(df)
+
     else:
-        # 如果 features 有多個元素，正常的 zip 對應
-        all_results = []
         for user_input, feature in zip(test_inputs, features):
-            # print("\n" + "═" * 60)
-            print(f"📘 分析輸入：{user_input} 對應特徵：{feature}")
+            print(f"\n📘 分析輸入：{user_input} 對應特徵：{feature}")
 
             summary = run_status([user_input], db_path=db_path_char)
 
-            for path_input, chars, multi in summary:
-                print(f"\n📘 輸入原文：{path_input}")
+            for path_input, chars, multi, path_details in summary:
                 if chars is False:
                     print("🛑 查詢失敗或無法解析")
                     continue
 
-                print(f"🔡 查得字數：{len(chars)} ➤ {chars}")
-                print(f"⚠️ 多地位：{multi if multi else '無'}")
+                for result in path_details:
+                    path_str = result["path"]
+                    path_chars = result["characters"]
 
-                all_chars = list(set(chars))
+                    if not path_chars:
+                        continue
 
-                print(f"\n🔧 開始分析『{user_input}』的特徵分布 ({feature})...\n")
-                df = query_by_status(all_chars, unique_abbrs, [feature], user_input, db_path=db_path_dialect)
+                    print(f"\n🔧 開始分析『{path_str}』的特徵分布 ({feature})...\n")
+                    simplified_input = ''.join(re.findall(r'\[(.*?)\]', path_str))
+                    df = query_by_status(path_chars, unique_abbrs, [feature], simplified_input, db_path=db_path_dialect)
 
-                all_results.append(df)
+                    all_results.append(df)
 
     return all_results
 
@@ -401,12 +399,8 @@ if __name__ == "__main__":
     pd.set_option('display.max_colwidth', None)
     pd.set_option('display.width', 0)
 
-    status_inputs = [
-        "知組三 端",
-        "通开三",
-    ]
-    # status_inputs = [
-    # ]
+    status_inputs = ["蟹-系等", "知組三 端", "通开三"]
+    # status_inputs = ""
     locations = ['东莞莞城', '雲浮富林']
     # features = ['聲母', '韻母', '聲調']
     regions = ['封綏', '儋州']

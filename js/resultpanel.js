@@ -42,7 +42,7 @@ const custom_order = [
     'ø', 'iø', 'e', 'ie', 'ʊ', 'u', 'ɯ', 'y', 'i', 'ɿ', 'ʮ',
     '陰平', '陰平甲', '陰平乙', '陽平', '陽平甲', '陽平乙', '陰上', '陰上甲', '陰上乙',
     '陽上', '陽上甲', '陽上乙', '陰去', '陰去甲', '陰去乙', '陽去', '陽去甲', '陽去乙',
-    '陰入', '上陰入', '下陰入', '陽入', '上陽入', '下陽入', '變調', '變調1', '變調2', '輕聲',
+    '陰入', '上陰入', '下陰入', '陽入', '上陽入', '下陽入', '變調', '變調1', '變調2', '輕聲','一','二','三','四',
 ];
 
 // 創建 custom_order 易，便於快速查找每個元素的索引
@@ -50,6 +50,35 @@ const customOrderMap = custom_order.reduce((acc, item, index) => {
     acc[item] = index;
     return acc;
 }, {});
+
+// 用来记录每个地點的顏色
+const locationColors = {};
+
+function getRandomColorForLocation(loc) {
+    // 如果这个地點已经有顏色，直接返回已存储的颜色
+    if (locationColors[loc]) {
+        return locationColors[loc];
+    }
+
+    const minValue = 150;  // 设置最小值为50，避免颜色过于亮
+    const maxValue = 180;  // 设置最大值为150，限制颜色的亮度
+
+    const r = Math.floor(Math.random() * (maxValue - minValue)) + minValue;  // 红色通道范围：50 到 150
+    const g = Math.floor(Math.random() * (maxValue - minValue)) + minValue;  // 绿色通道范围：50 到 150
+    const b = Math.floor(Math.random() * (maxValue - minValue)) + minValue;  // 蓝色通道范围：50 到 150
+// 直接返回生成的颜色，不限制 RGB 值
+    const color = `rgb(${r}, ${g}, ${b})`;
+
+// 将这个地點的颜色记录到 locationColors
+    locationColors[loc] = color;
+
+// 调试输出，确保颜色正确生成
+    console.log(`Color generated for ${loc}: ${color}`);
+
+
+    return color;
+}
+
 
 function toggleColumnVisibility(hideMode = true) {
     const table = document.getElementById('resultTable');
@@ -239,21 +268,10 @@ function renderResults(data) {
     let lastFeatureKey = null;
     let lastTr = null;
 
+// 渲染表格内容
     data.forEach(item => {
-        // 新增這段：隱藏模式下根據條件過濾
-        if (table.classList.contains('condensed-mode')) {
-            const 字數 = item.字數 || 0;
-            const 佔比 = item.佔比 || 0;
-
-            if (佔比 < 0.05 || 字數 === 1) return; // 條件 1：必須隱藏
-            if (佔比 > 0.10 || 字數 >= 8) {
-                // 條件 2：必須顯示，不做 return
-            } else if ((佔比 * 字數) < 0.4) {
-                return; // 條件 3：應該隱藏
-            }
-        }
         const tr = document.createElement('tr');
-        const loc = item.地點;
+        const loc = item.地點;  // 获取地點
         tr.dataset.loc = loc;
 
         const group = item.分組值 || {};
@@ -288,7 +306,6 @@ function renderResults(data) {
             }
         }
 
-
         if (useFiveCols) {
             if (isNewGroup && !shouldHideCol2) {
                 const tdFeature = document.createElement('td');
@@ -308,6 +325,12 @@ function renderResults(data) {
                 const tag = document.createElement('div');
                 tag.className = 'inline-indicator';
                 tag.textContent = `${loc}${featKey}`;
+
+                // 根据地點来获取颜色
+                const randomColor = getRandomColorForLocation(loc);
+                tag.style.backgroundColor = randomColor; // 设置背景色
+                tag.style.borderColor = randomColor; // 设置边框色
+
                 tdValue.prepend(tag);
             }
 
@@ -326,6 +349,12 @@ function renderResults(data) {
                 const tag = document.createElement('div');
                 tag.className = 'inline-indicator';
                 tag.textContent = loc;
+
+                // 根据地點来获取颜色
+                const randomColor = getRandomColorForLocation(loc);
+                tag.style.backgroundColor = randomColor; // 设置背景色
+                tag.style.borderColor = randomColor; // 设置边框色
+
                 td.prepend(tag);
             }
 
@@ -380,6 +409,7 @@ function renderResults(data) {
         tbody.appendChild(tr);
         lastTr = tr;
     });
+
 
     setupStickyContextObserver();
     clearLoadingMessage();

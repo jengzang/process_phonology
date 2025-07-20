@@ -31,13 +31,13 @@ def run_phonology_analysis(
     """
 
     if mode == 's2p':
-        if not status_inputs:
-            raise ValueError("🔴 mode='s2p' 時，請提供 status_inputs。")
+        # if not status_inputs:
+        #     raise ValueError("🔴 mode='s2p' 時，請提供 status_inputs。")
         return sta2pho(locations, regions, features, status_inputs)
 
     elif mode == 'p2s':
-        if not group_inputs :
-            raise ValueError("🔴 mode='p2s' 時，請提供 group_inputs ")
+        # if not group_inputs :
+        #     raise ValueError("🔴 mode='p2s' 時，請提供 group_inputs ")
         return pho2sta(locations, regions, features, group_inputs, pho_values)
 
 

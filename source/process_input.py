@@ -2,12 +2,13 @@ import os
 import re
 import sqlite3
 from collections import defaultdict
+from itertools import product
 
 from pypinyin import lazy_pinyin
 import Levenshtein
 
 from source.format_convert import s2t_pro
-from typing import Tuple, Union, List
+from typing import Tuple, Union, List, Optional
 
 from source.config import QUERY_DB_PATH
 
@@ -32,15 +33,15 @@ column_values = {
            '精', '群', '船', '莊', '見', '透', '邪', '非']
 }
 
-# 優先邏輯（分層關係）
-priority = [
-    ("聲", ["聲", "組", "系"]),
-    ("攝", ["攝", "韻"]),
-    ("調", ["入", "調"]),
-    ("清濁", ["清濁"]),
-    ("等", ["等"]),
-    ("呼", ["呼"]),
-]
+# # 優先邏輯（分層關係）
+# priority = [
+#     ("聲", ["聲", "組", "系"]),
+#     ("攝", ["攝", "韻"]),
+#     ("調", ["入", "調"]),
+#     ("清濁", ["清濁"]),
+#     ("等", ["等"]),
+#     ("呼", ["呼"]),
+# ]
 
 
 def match_locations(user_input):
@@ -182,8 +183,9 @@ def match_locations_batch(input_string: str):
     return results
 
 
+
 def auto_convert_single(user_input: str) -> Union[Tuple[str, int], Tuple[bool, int]]:
-    def process(input_text: str) -> Union[Tuple[str, int], Tuple[bool, int]]:
+    def process(input_text: str, priority_key: Optional[str] = None) -> Union[Tuple[str, int], Tuple[bool, int]]:
         result = []
         match_count = 0
         used_columns = set()
@@ -199,7 +201,39 @@ def auto_convert_single(user_input: str) -> Union[Tuple[str, int], Tuple[bool, i
         for col, values in extended_column_values.items():
             for val in values:
                 value_to_columns.setdefault(val, set()).add(col)
-        # print("22222")
+
+        # 優先順序產生器
+        def generate_priority(priority_key: Optional[str]):
+            default_priority = [
+                ("聲", ["聲", "組", "系"]),
+                ("攝", ["攝", "韻"]),
+                ("調", ["入", "調"]),
+                ("清濁", ["清濁"]),
+                ("等", ["等"]),
+                ("呼", ["呼"]),
+            ]
+
+            if not priority_key:
+                return default_priority
+
+            key_order = list(priority_key)
+            key_index = {k: i for i, k in enumerate(key_order)}
+
+            ordered = []
+            unordered = default_priority.copy()
+
+            # 先把用戶指定的欄位轉為單欄位群組
+            for key in key_order:
+                ordered.append((key, [key]))
+
+            # 再加入未出現過的 default 群組（只要群組內的欄位不在 priority_key 中）
+            for label, cols in default_priority:
+                if not any(c in key_order for c in cols):
+                    ordered.append((label, cols))
+
+            return ordered
+
+        priority = generate_priority(priority_key)
 
         while i < len(input_text):
             matched = False
@@ -217,7 +251,7 @@ def auto_convert_single(user_input: str) -> Union[Tuple[str, int], Tuple[bool, i
                         continue
                     if frag.endswith(col) and len(frag) > len(col):
                         val = frag[:-len(col)]
-                        if val in column_values.get(col, []):  # 確保是合法值
+                        if val in column_values.get(col, []):
                             if col not in used_columns:
                                 result.append(f"[{val}]{{{col}}}")
                                 used_columns.add(col)
@@ -230,7 +264,6 @@ def auto_convert_single(user_input: str) -> Union[Tuple[str, int], Tuple[bool, i
                     continue
 
                 possible_columns = value_to_columns[frag]
-
                 best_group = None
                 for group_key, group_members in priority:
                     if any(col in possible_columns for col in group_members):
@@ -254,19 +287,13 @@ def auto_convert_single(user_input: str) -> Union[Tuple[str, int], Tuple[bool, i
                 if matched_in_group:
                     break
 
-            # ✅ 這是新加的，for j 結束後還是沒匹配，就 return
             if not matched:
                 return False, 0
 
-        # print("11111")
-
-        # 延遲處理所有清類型
         for frag, _, _ in pending_clear:
             options = value_to_columns.get(frag, set())
             voice_used = "聲" in used_columns
             rhyme_used = "韻" in used_columns
-
-            # print(f"\n🔸 延遲處理『{frag}』：可配欄位 {options}，已使用 {used_columns}")
 
             if frag == "*清":
                 if "清濁" in options and "清濁" not in used_columns:
@@ -317,15 +344,63 @@ def auto_convert_single(user_input: str) -> Union[Tuple[str, int], Tuple[bool, i
 
         return "-".join(result), match_count
 
-    # ▶ 先試原始輸入（簡體）
-    res = process(user_input)
-    if res[0] is not False:
-        return res
+    if '-' in user_input:
+        prefix, suffix = user_input.split('-', 1)
 
-    # ▶ 簡體沒匹配，嘗試繁體
-    clean_str, _ = s2t_pro(user_input, level=2)
-    print(f"[DEBUG] 原輸入：{user_input} → 繁體轉換後再嘗試：{clean_str}")
-    return process(clean_str)
+        fields = []
+        temp = suffix
+        while temp:
+            matched = False
+            for field in HIERARCHY_COLUMNS:
+                if temp.startswith(field):
+                    fields.append(field)
+                    temp = temp[len(field):]
+                    matched = True
+                    break
+            if not matched:
+                print(f"❌ 無效欄位名：「{suffix}」中斷於「{temp}」")
+                return (False, 0)
+
+        # 優先順序：傳入的順序最優先
+        priority_key = ''.join(fields)
+
+        # 簡體轉繁體邏輯（保留您的原來邏輯）
+        clean_str, _ = s2t_pro(user_input, level=2)
+        print(f"[DEBUG] 原輸入：{user_input} → 繁體轉換後再嘗試：{clean_str}")
+        user_input = clean_str
+
+        # 取得每個欄位的合法值
+        try:
+            value_lists = [column_values[f] for f in fields]
+        except KeyError:
+            return (False, 0)
+
+        all_results = []
+        for combo in product(*value_lists):
+            full_input = prefix + ''.join(combo)
+            # 使用 generate_priority 動態產生的優先順序
+            res = process(full_input, priority_key=priority_key)
+            if res[0] is False:
+                print(f"⚠️ 略過非法組合：{full_input}")
+                continue
+            all_results.append(res)
+
+        if not all_results:
+            return (False, 0)
+        return all_results
+
+    else:
+        # ▶ 先試原始輸入（簡體）
+        res = process(user_input)
+        if res[0] is not False:
+            return res
+
+        # ▶ 簡體沒匹配，嘗試繁體
+        clean_str, _ = s2t_pro(user_input, level=2)
+        print(f"[DEBUG] 原輸入：{user_input} → 繁體轉換後再嘗試：{clean_str}")
+        return process(clean_str)
+
+
 
 
 def auto_convert_batch(input_string: str) -> List[Union[Tuple[str, int], Tuple[bool, int]]]:
@@ -336,8 +411,11 @@ def auto_convert_batch(input_string: str) -> List[Union[Tuple[str, int], Tuple[b
         if part:
             print(f"🔹 處理第 {idx + 1} 段：{part}")
             res = auto_convert_single(part)
+            if isinstance(res, list):
+                results.extend(res)
+            else:
+                results.append(res)
             print(f"   ⮡ 結果: {res}")
-            results.append(res)
     return results
 
 
@@ -502,9 +580,9 @@ def read_partition_hierarchy(parent_regions=None, db_path=QUERY_DB_PATH):
 
     return result
 
-# results = match_locations_batch("台云")
+results = auto_convert_single("通开一")
 # # # results = match_locations_batch("東莞")
-# print(results)
+print(results)
 # print(results[1])
 # print(results[2])
 # print(results[3])
