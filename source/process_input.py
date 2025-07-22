@@ -1,3 +1,4 @@
+import math
 import os
 import re
 import sqlite3
@@ -528,6 +529,129 @@ def query_dialect_abbreviations(
 
     return final_result
 
+
+def get_coordinates_from_db(abbreviation_list, db_path=QUERY_DB_PATH):
+    print("即將處理經緯度")
+    # Haversine 公式計算兩點間的距離，單位為公里
+    def haversine(lat1, lon1, lat2, lon2):
+        R = 6371  # 地球半徑，單位為公里
+        phi1 = math.radians(lat1)
+        phi2 = math.radians(lat2)
+        delta_phi = math.radians(lat2 - lat1)
+        delta_lambda = math.radians(lon2 - lon1)
+
+        a = math.sin(delta_phi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2) ** 2
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+        distance = R * c  # 返回距離，單位為公里
+        return distance
+
+    def get_optimal_zoom(lat_diff, lon_diff):
+        # 使用經度和緯度差來計算最大距離
+        max_diff = max(lat_diff, lon_diff)
+
+        # 除以6得到單位距離（距離/6）
+        unit_distance = 1000 * max_diff / 6
+
+        # 根據距離尋找合適的zoom層級
+        zoom_to_distance = {
+            20: 10, 19: 10, 18: 25, 17: 50, 16: 100,
+            15: 200, 14: 500, 13: 1000, 12: 2000, 11: 5000,
+            10: 10000, 9: 20000, 8: 30000, 7: 50000, 6: 100000,
+            5: 200000, 4: 500000, 3: 1000000, 2: 2000000
+        }
+
+        # 從字典中找到合適的zoom層級
+        for zoom, distance_threshold in zoom_to_distance.items():
+            if unit_distance <= distance_threshold:
+                return zoom
+        # 如果沒有找到合適的值（通常不會發生）
+        return 10
+
+    abbreviation_list = [abbreviation for abbreviation in abbreviation_list if abbreviation]
+
+    # 連接到數據庫
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    # 用於存儲結果的列表
+    result = []
+    latitudes = []
+    longitudes = []
+    abbreviation_lat_lon_pairs = []  # 用來存儲簡稱和經緯度的配對
+
+    # 根據簡稱查詢經緯度
+    for abbreviation in abbreviation_list:
+        # 執行SQL查詢，選取簡稱匹配的行並獲取經緯度
+        cursor.execute("SELECT 經緯度 FROM dialects WHERE 簡稱=?", (abbreviation,))
+        row = cursor.fetchone()
+
+        # 如果找到了匹配的行，處理經緯度
+        if row:
+            lat_lon_str = row[0]
+            try:
+                # 解析經緯度字符串，將其轉換為浮點數元組
+                latitude, longitude = map(float, lat_lon_str.split(','))
+                result.append((latitude, longitude))
+                latitudes.append(latitude)
+                longitudes.append(longitude)
+                abbreviation_lat_lon_pairs.append((abbreviation, (latitude, longitude)))  # 存儲簡稱與經緯度配對
+            except ValueError:
+                print(f"無法解析經緯度：{lat_lon_str}")
+        else:
+            print(f"未找到簡稱：{abbreviation}")
+
+    # 計算中心經緯度
+    if latitudes and longitudes:
+        center_latitude = (max(latitudes) + min(latitudes)) / 2
+        center_longitude = (max(longitudes) + min(longitudes)) / 2
+
+        # 保留6位小數
+        center_coordinate = [round(center_latitude, 6), round(center_longitude, 6)]
+
+        # 計算橫向最大距離（經度差）
+        max_lon_distance = 0
+        max_lat_distance = 0
+
+        # 計算最大經度距離（橫向）
+        for i in range(len(longitudes)):
+            for j in range(i + 1, len(longitudes)):
+                max_lon_distance = max(max_lon_distance,
+                                       haversine(latitudes[i], longitudes[i], latitudes[j], longitudes[i]))
+
+        # 計算最大緯度距離（縱向）
+        for i in range(len(latitudes)):
+            for j in range(i + 1, len(latitudes)):
+                max_lat_distance = max(max_lat_distance,
+                                       haversine(latitudes[i], longitudes[i], latitudes[i], longitudes[j]))
+
+        # 保留2位小數
+        max_lat_distance = round(max_lat_distance, 2)
+        max_lon_distance = round(max_lon_distance, 2)
+
+        # 根據最大距離計算合適的zoom層級
+        zoom_level = get_optimal_zoom(max_lat_distance, max_lon_distance)
+
+    else:
+        center_coordinate = None
+        max_lat_distance = max_lon_distance = 0
+        zoom_level = None
+
+    # 關閉數據庫連接
+    conn.close()
+
+    # 返回結果，包括經緯度與簡稱配對、中心經緯度、最大縱向和橫向距離，以及對應的zoom層級
+    coordinates = {
+        "coordinates_locations": abbreviation_lat_lon_pairs,  # 返回簡稱與經緯度的配對
+        "center_coordinate": center_coordinate,
+        "max_distances": {
+            "lat_km": max_lat_distance,
+            "lon_km": max_lon_distance,
+        },
+        "zoom_level": zoom_level  # 返回選擇的zoom層級
+    }
+
+    return coordinates
 def read_partition_hierarchy(parent_regions=None, db_path=QUERY_DB_PATH):
     """
     傳入 parent_region，返回它下層的分區：
@@ -580,9 +704,14 @@ def read_partition_hierarchy(parent_regions=None, db_path=QUERY_DB_PATH):
 
     return result
 
-results = auto_convert_single("通开一")
-# # # results = match_locations_batch("東莞")
-print(results)
+# # results = auto_convert_single("通开一")
+# locations = [""]
+# regions = ["嶺南","閩西"]
+# abbreviations_list = query_dialect_abbreviations(regions,locations)
+# # print(abbreviations_list)
+# result = get_coordinates_from_db(abbreviations_list)
+# # # # results = match_locations_batch("東莞")
+# print(result)
 # print(results[1])
 # print(results[2])
 # print(results[3])

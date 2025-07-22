@@ -270,6 +270,17 @@ function renderResults(data) {
 
 // 渲染表格内容
     data.forEach(item => {
+        if (table.classList.contains('condensed-mode')) {
+            const 字數 = item.字數 || 0;
+            const 佔比 = item.佔比 || 0;
+
+            if (佔比 < 0.05 || 字數 === 1) return; // 條件 1：必須隱藏
+            if (佔比 > 0.10 || 字數 >= 8) {
+                // 條件 2：必須顯示，不做 return
+            } else if ((佔比 * 字數) < 0.4) {
+                return; // 條件 3：應該隱藏
+            }
+        }
         const tr = document.createElement('tr');
         const loc = item.地點;  // 获取地點
         tr.dataset.loc = loc;
@@ -553,9 +564,10 @@ async function analysis_from_db() {
             clearLoadingMessage();
             return;
         }
-
         const data = result.results;
-        window.latestResults = data; // 👈 加上這一行，確保能在 toggle 時用
+        // 清除字數为0的數據
+        const filteredData = data.filter(item => item.字數 !== 0);
+        window.latestResults = filteredData; // 👈 加上這一行，確保能在 toggle 時用
         // console.log('🔍 data 第一筆:', data[0]);
         // console.log('🔍 整個data:', data);
         // console.log('🔍 data 第一筆特徵值的型別:', typeof data[0].特徵值, data[0].特徵值);
@@ -568,7 +580,7 @@ async function analysis_from_db() {
 
         setLoadingMessage("📊 表格整理中…");
         const renderStart = performance.now();
-        renderResults(data);
+        renderResults(latestResults);
         const renderEnd = performance.now();
         console.log(`🖥️ 表格渲染耗時：${(renderEnd - renderStart).toFixed(2)} ms`);
 

@@ -40,17 +40,19 @@ function bindPanel(minBtn, maxBtn, restoreBtn, el, getMode, setMode) {
     });
 }
 
-
 document.addEventListener("DOMContentLoaded", () => {
     const inputpanel = document.getElementById("inputpanel");
     const resultPanel = document.getElementById("resultPanel");
+    const mapPanel = document.getElementById("mapPanel"); // 获取地图面板
 
     // ❗ 保證 restore 按鈕在初始時為隱藏
     document.getElementById("panelRestoreBtn").style.display = "none";
     document.getElementById("resultRestoreBtn").style.display = "none";
+    document.getElementById("mapPanelRestoreBtn").style.display = "none"; // 地图面板的复原按钮初始为隐藏
 
     makeDraggable(inputpanel, document.getElementById("dragHandle"), () => currentMode);
     makeDraggable(resultPanel, document.getElementById("resultDragHandle"), () => resultMode);
+    makeDraggable(mapPanel, document.getElementById("mapDragHandle"), () => currentMode); // 给 mapPanel 添加拖动
 
     bindPanel(
         document.getElementById("minimizeBtn"),
@@ -69,7 +71,18 @@ document.addEventListener("DOMContentLoaded", () => {
         () => resultMode,
         m => resultMode = m
     );
+
+    // 为地图面板添加最小化、最大化、复原控制
+    bindPanel(
+        document.getElementById("mapMinimizeBtn"),
+        document.getElementById("mapMaximizeBtn"),
+        document.getElementById("mapPanelRestoreBtn"),
+        mapPanel,
+        () => currentMode,
+        m => currentMode = m
+    );
 });
+
 
 
 // 🌐 共用封裝 fetch，統一紀錄前後端交換資料

@@ -2,12 +2,16 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8" />
+<!--    <meta http-equiv="X-UA-Compatible" content="IE=edge">-->
+<!--    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">-->
     <title>不羈🙌🏻地理語言學工具</title>
 
     <!-- CSS 引入 -->
     <link rel="stylesheet" href="css/global.css" />
     <link rel="stylesheet" href="css/inputpanel.css" />
     <link rel="stylesheet" href="css/resultpanel.css" />
+    <link rel="stylesheet" href="css/mappanel.css" />
+    <script src="https://webapi.amap.com/loader.js"></script>
 </head>
 
 <body>
@@ -139,13 +143,105 @@
     </div>
 </div>
 
-
 <!-- 結果面板復原按鈕 -->
 <button id="resultRestoreBtn" class="toggle-btn">🗗</button>
+
+<script src="https://webapi.amap.com/loader.js"></script>
+
+<!-- 新增地图面板 -->
+<div id="mapPanel" class="panel panel-medium">
+    <div class="panel-header" id="mapDragHandle">
+        <span class="panel-title">🗺️ 地图</span>
+        <button id="mapMinimizeBtn" class="mode-btn">🗕</button>
+        <button id="mapMaximizeBtn" class="mode-btn">⛶</button>
+
+        <!-- 新增的特徵值下拉框或按钮，默认不显示 -->
+        <div id="featureContainer" class="feature-container">
+            <!-- 默认是空的，下拉框或按钮将在点击后填充 -->
+        </div>
+    </div>
+    <div id="mapPanelContent" class="panel-content">
+                <!-- 地图区域 -->
+        <div id="mapContainer">
+            <!-- 地图将加载在这里 -->
+        </div>
+
+           <!-- 控件控制面板（最小化和最大化是通过鼠标操作和点击控制）-->
+        <div class="input-card" id="inputCard">
+            <div class="input-item">
+                <label class="switch">
+                    <input type="checkbox" id="togglesearch" name="toggleControls" />
+                    <span class="slider"></span>
+                </label>
+                <label for="togglesearch" class="custom-label">搜索地點</label>
+            </div>
+            <div class="input-item">
+                <!-- 苹果风格的开关按钮 -->
+                <label class="switch">
+                    <input type="checkbox" id="toggleControlsRadio" name="toggleControls" checked/>
+                    <span class="slider"></span>
+                </label>
+                <label for="toggleControlsRadio" class="custom-label">顯示/隱藏 控件</label>
+            </div>
+            <div class="input-item">
+                <label class="switch">
+                    <input type="checkbox" id="toggleBg" name="mapStyle" value="bg" checked />
+                    <span class="slider"></span>
+                </label>
+                <label for="toggleBg" class="custom1-label">區域面 </label>
+            </div>
+
+            <div class="input-item">
+                <label class="switch">
+                    <input type="checkbox" id="toggleRoad" name="mapStyle" value="road" />
+                    <span class="slider"></span>
+                </label>
+                <label for="toggleRoad" class="custom1-label">道路</label>
+            </div>
+
+            <div class="input-item">
+                <label class="switch">
+                    <input type="checkbox" id="toggleBuilding" name="mapStyle" value="building" checked />
+                    <span class="slider"></span>
+                </label>
+                <label for="toggleBuilding" class="custom1-label">建築物 </label>
+            </div>
+
+            <div class="input-item">
+                <label class="switch">
+                    <input type="checkbox" id="togglePoint" name="mapStyle" value="point" checked />
+                    <span class="slider"></span>
+                </label>
+                <label for="togglePoint" class="custom1-label">標註</label>
+            </div>
+        </div>
+        <div id="myPageTop">
+            <table>
+                <tr>
+                    <td>
+                        <label>请输入关键字：</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input id="tipinput"/>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- mapPanel 面板复原按钮 -->
+<button id="mapPanelRestoreBtn" class="toggle-btn">🗗</button>
 
 <!-- JS 檔案引入 -->
 <script src="js/main.js"></script>
 <script src="js/inputpanel.js"></script>
 <script src="js/resultpanel.js"></script>
+<script src="js/mappanel.js"></script>
+<!--<script src="js/resultpanel_new.js"></script>-->
 </body>
 </html>

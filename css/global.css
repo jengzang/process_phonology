@@ -114,10 +114,19 @@ html, body {
     background: #007aff;
 }
 #resultRestoreBtn {
-    top: 10px;
+    top: 50px;
     right: 10px;
     background: #34c759;
 }
+
+/* mapPanel最小化按钮位置 */
+#mapPanelRestoreBtn {
+    position: absolute;
+    top: 90px; /* 下方 40px 的位置 */
+    right: 10px;
+    background: #ff9500;
+}
+
 
 .loading-box {
     display: flex;
@@ -147,4 +156,55 @@ html, body {
 
 .loading-text {
     font-weight: bold;
+}
+
+/* 苹果风格的按钮样式 */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 42px; /* 原宽度60px * 0.7 = 42px */
+    height: 23.8px; /* 原高度34px * 0.7 = 23.8px */
+}
+
+/* 背景容器 */
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* 背景圆角矩形 */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 34px; /* 圆角不变 */
+}
+
+/* 圆形滑块 */
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18.2px;  /* 原高度26px * 0.7 = 18.2px */
+    width: 18.2px;   /* 原宽度26px * 0.7 = 18.2px */
+    border-radius: 50%;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: 0.4s;
+}
+
+
+/* 控件显示时，改变背景和滑块的位置 */
+input:checked + .slider {
+    background-color: #007aff; /* 绿色背景 */
+}
+
+input:checked + .slider:before {
+    transform: translateX(18.2px); /* 滑块向右移动 */
 }

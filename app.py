@@ -1,5 +1,6 @@
 from typing import List, Optional, Union
 
+import httpx
 import uvicorn
 from pydantic import BaseModel, Field
 import asyncio
@@ -10,10 +11,12 @@ from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from main import run_phonology_analysis
-from source.process_input import read_partition_hierarchy, match_locations_batch
+from source.process_input import read_partition_hierarchy, match_locations_batch, query_dialect_abbreviations, \
+    get_coordinates_from_db
 
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+
 
 
 class AnalysisPayload(BaseModel):
@@ -24,6 +27,16 @@ class AnalysisPayload(BaseModel):
     status_inputs: Union[str, List[str], None] = None
     group_inputs: Union[str, List[str], None] = None
     pho_values: Union[str, List[str], None] = None
+
+
+# @app.get("/proxy")
+# async def proxy(url: str):
+#     # 使用 httpx 获取目标 URL 的响应
+#     async with httpx.AsyncClient() as client:
+#         response = await client.get(url)
+#
+#     # 返回目标 URL 的响应内容
+#     return JSONResponse(content=response.json(), status_code=response.status_code)
 
 
 @app.post("/api/phonology")
@@ -110,6 +123,20 @@ async def batch_match(data: MatchRequest):
             })
 
     return responses
+
+@app.get("/get_coordinates")
+async def get_coordinates(regions: str = Query(...), locations: str = Query(...)):
+    # 处理传入的字符串，转化为列表
+    locations_list = locations.split(',')  # 用逗号分隔字符串，转换为列表
+    regions_list = regions.split(',')  # 同样处理 regions
+
+    # Step 1: Query the dialect abbreviations based on regions and locations
+    abbreviations_list = query_dialect_abbreviations(regions_list, locations_list)
+
+    # Step 2: Get the coordinates and other information from the database
+    result = get_coordinates_from_db(abbreviations_list)
+
+    return result
 
 
 if __name__ == "__main__":
