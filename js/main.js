@@ -141,5 +141,12 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("runBtn")?.addEventListener("click", async () => {
         // await runAnalysis();          // 先送出分析並記錄 log
         await analysis_from_db();     // 然後渲染表格結果
+        await create_map1();
+        window.mergedData = []
+        console.log("重置数据")
+        // 假设点击按钮后，数据加载
+        await loadData();
+        // 数据加载完成后执行 mergeData 函数
+        await func_mergeData();
     });
 });

@@ -1,3 +1,5 @@
+// let mergedData;
+
 // 配置安全代码
 window._AMapSecurityConfig = {
     securityJsCode: "06fece76cc6ddd8f7996819c28315b58",  // 替换为您自己的 securityJsCode
@@ -167,10 +169,8 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
-
-document.getElementById('runBtn').addEventListener('click', async function() {
-
-    // 获取用户输入的 locations 和 regions，并将它们转换为数组（按空格分割）
+//初次绘图
+async function create_map1(){
     const locations = document.getElementById('locations').value.trim().split(/\s+/);  // 获取地點，并拆分成数组
     const regions = document.getElementById('regions').value.trim().split(/\s+/);  // 获取分區，并拆分成数组
     console.log('locations', locations);
@@ -222,136 +222,118 @@ document.getElementById('runBtn').addEventListener('click', async function() {
             // 清除旧的标记
             map.clearMap();
 
-            // 遍历后端返回的地点数据，进行坐标转换并创建标记
+            // 遍历后端返回的地点数据，进行坐标处理并创建标记
             locations_data.coordinates_locations.forEach(([locationName, coordinates]) => {
-                console.log("坐標",coordinates)
-                // 将百度坐标转换为 AMap.LngLat 对象
-                // const baiduCoordinate = new AMap.LngLat(coordinates[0], coordinates[1]);
+                console.log("坐标", coordinates);
 
-                // 坐标转换：百度坐标转高德坐标
-                AMap.convertFrom(coordinates, 'baidu', function(status, result) {
-                    console.log("進入循環", status, result);
-                    let index;
-                    if (status === 'complete') {
-                        // 检查返回的 result.locations 数组是否有效
-                        if (result.locations && result.locations.length > 0) {
-                            // 获取转换后的坐标（AMap.LngLat 对象）
-                            const gcj02Coordinates = result.locations[0];  // 获取第一个转换后的坐标
-                            console.log("转换后的坐标：", gcj02Coordinates);
+                // 直接使用原始经纬度数据（假设 coordinates 是 [lng, lat]）
+                const lng = coordinates[0];
+                const lat = coordinates[1];
+                console.log("原始经纬度：", lng, lat);
 
-                            // 使用 getLng() 和 getLat() 方法访问经纬度
-                            const lng = gcj02Coordinates.getLng();
-                            const lat = gcj02Coordinates.getLat();
-                            console.log("转换后的经纬度：", lng, lat);
-                            index = 10
-                            // 确保坐标是有效的并可以用来绘制标记
-                            if (lng && lat) {
-                                // 使用转换后的坐标创建文本标记
-                                const text = new window.AMap.Text({
-                                    text: locationName,  // 使用地点名作为文本
-                                    anchor: 'center',
-                                    draggable: false,
-                                    cursor: 'pointer',
-                                    angle: 10,
-                                    zIndex: index,
-                                    className: 'amap-overlay-text-container',  // 应用 CSS 类
-                                    position: [lng, lat],// 使用转换后的高德坐标
-                                    style: {
-                                        padding: '.05rem .1rem',        // 调整 padding，更加紧凑
-                                        marginBottom: '.1rem',           // 调整底部 margin
-                                        borderRadius: '.1rem',
-                                        backgroundColor: 'white',
-                                        width: 'auto',                    // 根据文字长度自动撑开宽度
-                                        borderWidth: 0,
-                                        boxShadow: '0 2px 6px 0 rgba(114, 124, 245, .5)',
-                                        textAlign: 'center',
-                                        fontSize: '12px',                // 调小字体大小
-                                        color: 'blue',
-                                        display: 'inline-block',          // 让容器根据内容宽度调整
-                                        whiteSpace: 'nowrap',            // 保证文字不换行
-                                        overflow: 'hidden',               // 防止超出容器的文本显示
-                                        textOverflow: 'ellipsis',        // 超过容器时显示省略号
-                                        fontFamily: '"SimHei", "黑体", sans-serif', // 设置黑体字体
-                                    }
-                                    // clickable: true,
-                                    // extData: {
-                                    //     index, // 把层级携带下去
-                                    //     locationName,
-                                    // },
-                                });
-
-                                // 将文本标记添加到地图上
-                                text.setMap(map);
-                                // textall.push(text);
-                                // // 绑定点击事件
-                                // text.on('click', (e) => {
-                                //     // 在这里处理点击事件
-                                //     console.log('点击了点:', e.target);
-                                // });
-
-                                // // 绑定 mouseover 事件，用于提升层级
-                                // text.on('mouseover', (e) => {
-                                //     const extData = e.target._opts.extData;  // 获取附加的数据（index）
-                                //     // 确保 textall[extData.index] 存在且已初始化
-                                //     if (textall[extData.index]) {
-                                //         // 提高层级（zIndex）
-                                //         textall[extData.index].setOptions({
-                                //             zIndex: 20  // 提高层级，确保在最上面
-                                //         });
-                                //     } else {
-                                //         console.error("textall[extData.index] 未定义:", extData.index);
-                                //     }
-                                // });
-                                //
-                                // // 绑定 mouseout 事件，用于恢复层级
-                                // text.on('mouseout', (e) => {
-                                //     const extData = e.target._opts.extData;  // 获取附加的数据（index）
-                                //     // 确保 textall[extData.index] 存在且已初始化
-                                //     if (textall[extData.index]) {
-                                //         // 恢复层级
-                                //         textall[extData.index].setOptions({
-                                //             zIndex: extData.index  // 恢复原来的层级
-                                //         });
-                                //     } else {
-                                //         console.error("textall[extData.index] 未定义:", extData.index);
-                                //     }
-                                // });
-
-                            } else {
-                                console.error("转换后的坐标无效：", gcj02Coordinates);
-                            }
-                        } else {
-                            console.error("转换结果没有有效的坐标：", result);
+                // 确保坐标是有效的并可以用来绘制标记
+                if (lng && lat) {
+                    const text = new window.AMap.Text({
+                        text: locationName,  // 使用地点名作为文本
+                        anchor: 'center',
+                        draggable: false,
+                        cursor: 'pointer',
+                        angle: 10,
+                        // zIndex: index,
+                        className: 'amap-overlay-text-container',  // 应用 CSS 类
+                        position: [lng, lat],// 使用转换后的高德坐标
+                        style: {
+                            padding: '.05rem .1rem',        // 调整 padding，更加紧凑
+                            marginBottom: '.1rem',           // 调整底部 margin
+                            borderRadius: '.1rem',
+                            backgroundColor: 'white',
+                            width: 'auto',                    // 根据文字长度自动撑开宽度
+                            borderWidth: 0,
+                            boxShadow: '0 2px 6px 0 rgba(114, 124, 245, .5)',
+                            textAlign: 'center',
+                            fontSize: '12px',                // 调小字体大小
+                            color: 'blue',
+                            display: 'inline-block',          // 让容器根据内容宽度调整
+                            whiteSpace: 'nowrap',            // 保证文字不换行
+                            overflow: 'hidden',               // 防止超出容器的文本显示
+                            textOverflow: 'ellipsis',        // 超过容器时显示省略号
+                            fontFamily: '"SimHei", "黑体", sans-serif', // 设置黑体字体
                         }
-                    } else {
-                        console.error("坐标转换失败：", status);
-                    }
-                });
+                        // clickable: true,
+                        // extData: {
+                        //     index, // 把层级携带下去
+                        //     locationName,
+                        // },
+                    });
+
+                    // 将文本标记添加到地图上
+                    text.setMap(map);
+                    // textall.push(text);
+                    // // 绑定点击事件
+                    // text.on('click', (e) => {
+                    //     // 在这里处理点击事件
+                    //     console.log('点击了点:', e.target);
+                    // });
+
+                    // // 绑定 mouseover 事件，用于提升层级
+                    // text.on('mouseover', (e) => {
+                    //     const extData = e.target._opts.extData;  // 获取附加的数据（index）
+                    //     // 确保 textall[extData.index] 存在且已初始化
+                    //     if (textall[extData.index]) {
+                    //         // 提高层级（zIndex）
+                    //         textall[extData.index].setOptions({
+                    //             zIndex: 20  // 提高层级，确保在最上面
+                    //         });
+                    //     } else {
+                    //         console.error("textall[extData.index] 未定义:", extData.index);
+                    //     }
+                    // });
+                    //
+                    // // 绑定 mouseout 事件，用于恢复层级
+                    // text.on('mouseout', (e) => {
+                    //     const extData = e.target._opts.extData;  // 获取附加的数据（index）
+                    //     // 确保 textall[extData.index] 存在且已初始化
+                    //     if (textall[extData.index]) {
+                    //         // 恢复层级
+                    //         textall[extData.index].setOptions({
+                    //             zIndex: extData.index  // 恢复原来的层级
+                    //         });
+                    //     } else {
+                    //         console.error("textall[extData.index] 未定义:", extData.index);
+                    //     }
+                    // });
+
+                }
             });
         }
     } catch (error) {
         console.error("❌ 错误:", error);
         alert("請求後端錯誤：" + error.message);
     }
-});
+}
 
 
-let mergedData = [];
-
-function func_mergeData() {
+async function func_mergeData() {
     // 检查数据是否准备好
-    if (!latestResults || !locations_data) {
+    if (!window.latestResults || !window.locations_data) {
         console.log("数据未准备好！");
         return;
     }
-
+    locations_data = window.locations_data;
+    latestResults = window.latestResults;
     // 获取 zoom_level 和 center_coordinate
     let zoomLevel = locations_data.zoom_level;
     let centerCoordinate = locations_data.center_coordinate;
+    let coordinates_raw = locations_data.coordinates_locations;
+
+    // 最小化改动 - 创建地点到坐标的映射
+    let locationToCoordinates = {};
+    coordinates_raw.forEach(coord => {
+        locationToCoordinates[coord[0]] = coord[1]; // coord[0] 是地点，coord[1] 是坐标
+    });
 
     // 用于存储合并后的数据
     let mergedData = [];
-
     // 用一个对象根据 location 和 feature 分组数据
     let groupedData = {};
 
@@ -396,6 +378,7 @@ function func_mergeData() {
                     percentage,
                     cha_nums
                 });
+                console.log("处理完成：",location)
             }
         }
     });
@@ -412,9 +395,9 @@ function func_mergeData() {
             group.forEach(item => {
                 if (item.percentage >= 0.5) {
                     more.push(item.value);
-                } else if (item.percentage >= 0.3) {
+                } else if (item.percentage >= 0.35) {
                     middle.push(item.value);
-                } else if (item.percentage >= 0.15){
+                } else if (item.percentage >= 0.2) {
                     less.push(item.value);
                 }
             });
@@ -423,11 +406,10 @@ function func_mergeData() {
             let finalValue = '';
 
             // 处理 "多" 的情况
-            if (more.length > 0 )
+            if (more.length > 0)
                 if (more.length === 1) {
                     finalValue += more.join('');  // 直接拼接“多”
-                }
-                else {
+                } else {
                     finalValue += more.join('/');
                 }
             // 处理 "中" 的情况
@@ -455,12 +437,16 @@ function func_mergeData() {
                 return (prev.percentage > current.percentage) ? prev : current;
             }).value;
 
+            // 最小化改动 - 获取对应地点的坐标并添加到 mergedData 中
+            let coordinate = locationToCoordinates[location] || null; // 获取坐标，若没有则设为 null
+            // const [lng, lat] = await convertCoordinates(coordinate);
             // 将合并后的数据推入 mergedData
             mergedData.push({
                 location: location,
                 feature: feature,
                 value: finalValue,
                 zoomLevel: zoomLevel,
+                coordinate: coordinate,
                 centerCoordinate: centerCoordinate,
                 maxValue: maxPercentageValue,  // 添加最大占比对应的 value
                 detailContent: groupedData[location][feature].detailContent // 详细记录
@@ -487,9 +473,12 @@ function func_mergeData() {
 
 // 颜色分配函数
     const colorScale = [
-        '#FF0000', '#FF7F00', '#FFFF00', '#00FF00', '#0000FF', '#8A2BE2',
-        '#A52A2A', '#DEB887', '#5F9EA0', '#D2691E'  // 颜色数组，可以根据需要扩展
-    ];
+        '#FFB3B3', '#FFB366', '#FFFF99', '#B3FFB3', '#99CCFF', '#D4A6FF',
+        '#FF6666', '#FFD699', '#99CCCC', '#D1D1FF', '#FF9999', '#FFB3FF',
+        '#FFFF66', '#B3FF99', '#99CCFF', '#FFCC99', '#CCCCFF', '#FF66CC',
+        '#FFFF66', '#B3FFCC'
+    ]
+
 
 // 为每个特征的 maxPercentageValue 进行颜色分配
     let featureToColor = {};
@@ -520,17 +509,6 @@ function func_mergeData() {
 }
 
 
-
-// 为按钮绑定点击事件
-document.getElementById('runBtn').addEventListener('click', async () => {
-    // 假设点击按钮后，数据加载
-    await loadData();
-
-    // 数据加载完成后执行 mergeData 函数
-    func_mergeData();
-});
-
-
 // 实际异步加载数据的函数
 async function loadData() {
     return new Promise(resolve => {
@@ -552,7 +530,7 @@ document.addEventListener("DOMContentLoaded", function() {
     // 获取按钮和容器
     const runBtn = document.getElementById('runBtn');
     const featureContainer = document.getElementById('featureContainer');
-
+    // func_mergeData()
     // 绑定 runBtn 按钮点击事件
     runBtn.addEventListener('click', function() {
         console.log("Run button clicked!"); // 确认按钮点击事件触发
@@ -567,10 +545,10 @@ document.addEventListener("DOMContentLoaded", function() {
     // 检查 latestResults 是否有数据，如果为空则等待 3 秒后再次检查
     function checkDataAvailability() {
         const checkInterval = setInterval(() => {
-            if (latestResults.length > 0) {
+            if (window.latestResults.length > 0) {
                 clearInterval(checkInterval); // 停止检查
                 // 一旦数据可用，填充下拉框或按钮
-                populateFeatureData(latestResults);
+                populateFeatureData(window.latestResults);
             } else {
                 console.log('等待数据加载...');
             }
@@ -588,10 +566,15 @@ document.addEventListener("DOMContentLoaded", function() {
             button.classList.add("single-button");
             button.textContent = uniqueFeatures[0];  // 显示唯一的特徵值
             featureContainer.appendChild(button);
+            // 为按钮添加点击事件，触发绘图函数并传递按钮内容
+            button.addEventListener("click", function() {
+                // console.log("点击前的mergeddata:",mergedData)
+                triggerDrawingFunction(button.textContent);  // 传递按钮的文本作为参数
+            });
         } else if (uniqueFeatures.length > 1) {
             // 如果有多个特徵值，创建下拉框
             console.log("生成下拉框，特徵值:", uniqueFeatures); // 输出下拉框生成的特徵值
-// 创建下拉框和箭头按钮
+            // 创建下拉框和箭头按钮
             const dropdown = document.createElement("div");
             dropdown.classList.add("dropdown");
 
@@ -647,6 +630,8 @@ function setupEventListeners(dropdownArrow, dropdown, placeholder) {
         item.addEventListener('click', function() {
             placeholder.textContent = item.textContent;
             dropdown.classList.remove('expanded');  // 收起下拉框
+            // 触发绘图函数，传递被选中的 item 作为参数
+            triggerDrawingFunction(item.textContent);  // 这里调用绘图函数
         });
     });
 
@@ -659,6 +644,211 @@ function setupEventListeners(dropdownArrow, dropdown, placeholder) {
     });
 }
 
+// 再次触发绘图函数
+async function triggerDrawingFunction(selectedItem) {
+    console.log("绘图函数触发，选中的项是：", selectedItem);
+    // 等待 mergedData 填充完成
+    if (!window.mergedData) {
+        console.log("fuck", window.mergedData);
+        await func_mergeData()
+    }
+
+    if (window.mergedData) {
+        console.log("绘图正常运行")
+        // 更新地图中心点和缩放级别
+        map.setCenter(window.mergedData[0].centerCoordinate);
+        map.setZoom(window.mergedData[0].zoomLevel);
+
+        // 清除旧的标记
+        map.clearMap();
+
+        // 使用 for...of 循环遍历 mergedData 中的每个数组项
+        for (const dataItem of window.mergedData) {
+            console.log("feature",dataItem.feature)
+            // 检查 dataItem 中的 feature 是否与 selectedItem 匹配
+            if (dataItem.feature === selectedItem) {
+                const locationName = dataItem.location;  // 获取地点名称
+                const coordinates = dataItem.coordinate;  // 获取坐标（假设为 [longitude, latitude]）
+                const value = dataItem.value;
+                const color = dataItem.color
+                const detailContent = dataItem.detailContent; // 假设你有一个 detailContent 数组
+                const feature = dataItem.feature;
+
+                console.log("处理:", locationName);
+
+                try {
+                    // 检查坐标是否有效
+                    if (Array.isArray(coordinates) && coordinates.length === 2) {
+                        // const { lng, lat } = await convertCoordinates(coordinates);
+
+                        // 使用转换后的坐标创建文本标记
+                        const text = new window.AMap.Text({
+                            text: value,  // 使用地点名作为文本
+                            anchor: 'center',
+                            draggable: false,
+                            cursor: 'pointer',
+                            angle: 10,
+                            className: 'amap-overlay-text-container',  // 应用 CSS 类
+                            position: coordinates,  // 使用转换后的高德坐标
+                            clickable: true,
+                            style: {
+                                padding: '.05rem .1rem',           // 调整 padding，更加紧凑
+                                marginBottom: '.1rem',           // 调整底部 margin
+                                borderRadius: '.1rem',
+                                backgroundColor: color,
+                                width: 'auto',                    // 根据文字长度自动撑开宽度
+                                borderWidth: 0,
+                                boxShadow: '0 2px 6px 0 rgba(114, 124, 245, .5)',
+                                textAlign: 'center',
+                                fontSize: '15px',                // 调小字体大小
+                                color: 'black',
+                                display: 'inline-block',          // 让容器根据内容宽度调整
+                                whiteSpace: 'nowrap',            // 保证文字不换行
+                                overflow: 'hidden',               // 防止超出容器的文本显示
+                                textOverflow: 'ellipsis',        // 超过容器时显示省略号
+                                fontFamily: '"Times new Roman"', //
+                            },
+                            extData: {
+                                locationName,
+                                feature ,
+                                detailContent         // 将 detailContent 数组传递到 extData 中
+                            },
+                        });
+
+                        // 将文本标记添加到地图上
+                        text.setMap(map);
+
+                        // 绑定点击事件
+                        text.on('click', (e) => {
+                            const { locationName, feature, detailContent } = text._opts.extData;
+                            // console.log("地点名称:", locationName);
+                            // console.log("特征：", feature);
+                            // console.log("详细内容:", detailContent);
+                            // 确保获取到正确的元素
+                            const locationNameEl = document.getElementById("location-name");
+                            const featureEl = document.getElementById("feature");
+                            const detailContentEl = document.getElementById("detail-content");
+
+
+                            // 设置弹窗内容
+                            locationNameEl.textContent = ` ${locationName}`;
+                            featureEl.textContent = ` ${feature}`;
+                            // detailContentEl.textContent = `详细内容: ${JSON.stringify(detailContent)}`;
+
+                            // 清空旧的详细内容并插入新内容
+                            detailContentEl.innerHTML = ""; // 清空之前的内容
+                            // 使用 <ul> 和 <li> 显示详细内容
+                            const ul = document.createElement("ul");
+
+                            detailContent.forEach(item => {
+                                const li = document.createElement("li");
+                                // 保留一位小数并带上百分号
+                                const percentageFormatted = (item.percentage * 100).toFixed(1) + '%';
+                                li.innerHTML = `<span>•</span> ${item.value} <span>~</span> ${percentageFormatted}`;
+                                ul.appendChild(li);
+                            });
+
+                            detailContentEl.appendChild(ul); // 将生成的 <ul> 添加到弹窗中
+
+                            // 获取原生事件对象
+                            const nativeEvent = e.originalEvent || e;  // 获取原生事件对象
+                            const mouseY = nativeEvent.originEvent.clientY;  // 获取鼠标点击位置
+                            const mouseX = nativeEvent.originEvent.clientX;  // 获取鼠标的水平位置
+                            const popupWidth = popup.offsetWidth;
+                            const popupHeight = popup.offsetHeight;
+
+                            // console.log("mouseY:", nativeEvent);  // 打印鼠标Y坐标
+                            // console.log("popupHeight:", popupHeight);  // 打印弹窗高度
+
+                            if (popupHeight === 0) {
+                                console.log("Popup height is 0! Make sure the popup is rendered correctly.");
+                            }
+
+// 设置弹窗初始位置，根据鼠标点击的位置来确定
+                            const offsetTop = 30;  // 增加的垂直偏移量，控制弹窗离鼠标点击位置更远
+                            const offsetLeft = 15; // 增加的水平偏移量，控制弹窗向左移动
+
+// 垂直位置计算
+                            const popupTop = mouseY - popupHeight - offsetTop; // 通过增加偏移量向上移动
+                            const maxTop = 20; // 限制弹窗距离顶部的最小距离
+                            popup.style.top = `${Math.max(popupTop, maxTop)}px`; // 确保弹窗不会超出页面顶部
+
+// 水平位置计算
+                            const popupLeft = mouseX - popupWidth / 2 - offsetLeft; // 通过增加偏移量让弹窗向左偏移
+                            const maxLeft = 20;  // 限制弹窗距离页面左侧的最小距离
+                            const maxRight = window.innerWidth - popupWidth - 20;  // 限制弹窗右侧不能超出屏幕
+                            popup.style.left = `${Math.min(Math.max(popupLeft, maxLeft), maxRight)}px`;  // 确保弹窗不会超出页面左右边界
+
+                            // console.log("Calculated popup position:", popup.style.top);  // 打印计算后的弹窗位置
+
+                            // 确保弹窗具有正确的定位
+                            popup.style.position = 'fixed'; // 确保弹窗使用绝对定位
+
+                            // 弹窗显示并滑动效果
+                            popup.classList.add("active");
+
+                            // 阻止事件冒泡，避免点击弹窗外的地方关闭弹窗
+                            if (nativeEvent && typeof nativeEvent.stopPropagation === 'function') {
+                                nativeEvent.stopPropagation();
+                            }
+                        });
+                    }
+                }catch (e) {
+                    console.log("error:", e);
+                };
+            }
+        }
+    }
+}
+
+// 监听点击事件，点击外部关闭弹窗
+document.addEventListener('click', (e) => {
+    // 如果点击的不是弹窗和按钮，就关闭弹窗
+    if (!popup.contains(e.target) && !e.target.closest('.amap-overlay-text-container')) {
+        closePopup();
+    }
+});
+
+// 关闭弹窗的函数
+function closePopup() {
+    popup.classList.remove("active");
+}
+
+//轉換坐標函數，暫時不用
+async function convertCoordinates(coordinates, retryLimit = 5, attempt = 0) {
+    return new Promise((resolve, reject) => {
+        AMap.convertFrom(coordinates, 'baidu', function (status, result) {
+            if (status === 'complete') {
+                // 检查返回的 result.locations 数组是否有效
+                if (result.locations && result.locations.length > 0) {
+                    // 获取转换后的坐标（AMap.LngLat 对象）
+                    const gcj02Coordinates = result.locations[0];
+
+                    // 使用 getLng() 和 getLat() 方法访问经纬度
+                    const lng = gcj02Coordinates.getLng();
+                    const lat = gcj02Coordinates.getLat();
+
+                    // 确保坐标是有效的并可以用来绘制标记
+                    if (lng && lat) {
+                        resolve([lng, lat]);  // 返回数组形式 [lng, lat]
+                    } else {
+                        reject("转换后的坐标无效");
+                    }
+                } else {
+                    reject("转换结果没有有效的坐标");
+                }
+            } else {
+                if (attempt < retryLimit) {
+                    // 如果转换失败且尝试次数小于限制，重新尝试
+                    console.log(`转换失败，正在重新尝试... 尝试次数：${attempt + 1}`);
+                    resolve(convertCoordinates(coordinates, retryLimit, attempt + 1));  // 递归重试
+                } else {
+                    reject("坐标转换失败，已达到最大重试次数");
+                }
+            }
+        });
+    });
+}
 
 
 

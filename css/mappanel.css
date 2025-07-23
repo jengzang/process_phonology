@@ -277,3 +277,84 @@
     background-color: #f0f0f0; /* 按钮悬停背景色 */
     border-color: #888; /* 按钮悬停时边框颜色 */
 }
+
+/* 弹窗的基本样式 */
+.popup {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(255, 255, 255, 0.6);  /* 设置半透明背景 (90% 不透明) */
+    padding: 6px 6px;  /* 减小 padding，减少字与边框的间距 */
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    text-align: center;  /* 文字水平居中 */
+}
+
+
+.popup.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(20px); /* 适当的偏移量 */
+}
+
+.popup-content {
+    font-family: 'Arial', sans-serif;
+    color: #333;
+    text-align: center;  /* 内容居中 */
+}
+
+.popup h4 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.popup p {
+    margin: 2px 0;
+    font-size: 13px;  /* 调整字体大小 */
+    background-color: rgba(255, 204, 153, 1);   /* 灰色底色，30% 不透明 */
+    padding: 0;  /* 去掉内边距，确保底色紧贴文字 */
+    border-radius: 5px;  /* 圆角效果 */
+    font-weight: bold;
+    display: block;  /* 让背景色紧贴文字 */
+}
+
+.popup ul {
+    padding: 0;  /* 去除列表的默认内边距 */
+    list-style-type: none;  /* 去除默认的列表符号 */
+    margin: 0;  /* 去除默认的外边距 */
+}
+
+.popup li {
+    margin: 2px 0;  /* 缩小上下间距 */
+    font-size: 12px;  /* 调整字体大小，稍微缩小 */
+    background-color: rgba(173, 216, 230, 1);  /* 灰色底色，30% 不透明 */
+    padding: 0;  /* 去掉内边距，确保底色紧贴文字 */
+    border-radius: 5px;  /* 圆角效果 */
+    font-weight: bold;
+}
+
+.popup li span {
+    font-weight: bold;
+    margin-right: 5px; /* 让文本与span之间的间距更紧凑 */
+}
+
+
+.popup-close-btn {
+    background-color: #007aff;
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.popup-close-btn:hover {
+    background-color: #005bb5;
+}

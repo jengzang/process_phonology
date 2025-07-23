@@ -1,4 +1,6 @@
 import os
+
+from source.change_coordinates import bd09togcj02
 from source.get_new import extract_all_from_tsv
 from source.match_fromdb import get_tsvs
 import pandas as pd
@@ -59,6 +61,36 @@ def build_dialect_database():
     df_han["存儲標記"] = ""  # ✅ 補上這一列
     df_han = df_han[[col for col in required_columns if col in df_han.columns]].copy()
     df_han = df_han.rename(columns=rename_map)
+
+    # --- 處理經緯度轉換 ---
+    def convert_coordinates(df):
+        """
+        對 '經緯度' 列進行坐標轉換，忽略空值
+        """
+        new_coordinates = []
+        for coords in df['經緯度']:
+            # 如果經緯度為空，跳過
+            if pd.isna(coords) or coords.strip() == '':
+                new_coordinates.append(None)  # 如果是空值，將經緯度設為 None
+                continue
+
+            # 確保 coords 是字符串類型
+            coords = str(coords).strip()
+
+            # 分割經緯度
+            bd_lon, bd_lat = map(float, coords.split(','))
+
+            # 使用轉換函數
+            converted_coords = bd09togcj02(bd_lon, bd_lat)
+            new_coordinates.append(f"{converted_coords[0]},{converted_coords[1]}")  # 轉換後的坐標以逗號分隔
+
+        # 更新 '經緯度' 列
+        df['經緯度'] = new_coordinates
+        return df
+
+    # 處理 df_other 和 df_han 兩個 DataFrame
+    df_other = convert_coordinates(df_other)
+    df_han = convert_coordinates(df_han)
 
     # --- 寫入 SQLite ---
     with sqlite3.connect(sqlite_db) as conn:
@@ -397,3 +429,4 @@ def write_to_sql():
 
 if __name__ == "__main__":
     write_to_sql()
+    # build_dialect_database()
