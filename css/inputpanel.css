@@ -385,6 +385,8 @@ label {
     max-width: 320px;
     z-index: 99999 !important;
     pointer-events:auto !important;
+    max-height: calc(8 * 2.5em); /* 8行，每行1.2em */
+    overflow-y: auto;  /* 超過8行時顯示滾動條 */
 }
 
 .inline-suggestion .success {

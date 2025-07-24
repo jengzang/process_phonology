@@ -135,11 +135,11 @@ def analyze_characters_from_db(
     for group_keys, group_df in grouped:
         # 特定欄位需要後綴
         suffix_map = {
-            "系": "(系)",
-            "組": "(組)",
-            "聲": "(母)",
-            "攝": "(攝)",
-            "韻": "(韻)"
+            "系": "·系",
+            "組": "·組",
+            "聲": "·母",
+            "攝": "·攝",
+            "韻": "·韻"
         }
 
         # 構建分組 key 和 value
@@ -172,7 +172,7 @@ def analyze_characters_from_db(
             summary = []
             for _, row in sub.iterrows():
                 parts = f"{row['攝']}{row['呼']}{row['等']}{row['韻']}{row['調']}"
-                meta = f"{row['系']}(系){row['組']}(組){row['聲']}(母)"
+                meta = f"{row['系']}「系」{row['組']}「組」{row['聲']}「母」"
                 summary.append(f"{parts},{meta}")
             poly_details.append(f"{hz}: {' | '.join(summary)}")
         # print(f"🧩 當前分析地點：{loc}")

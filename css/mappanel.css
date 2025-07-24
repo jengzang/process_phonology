@@ -171,7 +171,7 @@
 /* 新增的特徵值下拉框或按钮容器样式 */
 .feature-container {
     position: absolute;
-    left: 50%;
+    left: 40%;
     transform: translateX(-50%);
     display: flex;
     align-items: center;

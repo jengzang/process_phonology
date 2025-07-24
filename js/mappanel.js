@@ -186,10 +186,15 @@ async function create_map1(){
         return;
     }
 
-    // 创建请求的 URL
-    const url = new URL("http://127.0.0.1:5000/get_coordinates");  // 后端 API 地址
+// 假设 customToggle 和 isCustomOn 已经在其他地方定义并控制开关状态
+    const url = new URL("http://127.0.0.1:5000/api/get_coordinates");  // 后端 API 地址
     url.searchParams.append('locations', locations);  // 添加 locations 参数
     url.searchParams.append('regions', regions);  // 添加 regions 参数
+
+// 如果开关处于开启状态，添加 iscustom 参数为 true
+    if (window.isCustomOn) {
+        url.searchParams.append('iscustom', 'true');
+    }
 
     // 显示加载提示
     const debugLog = document.getElementById("debug-log");
@@ -454,10 +459,100 @@ async function func_mergeData() {
         }
     }
 
+    // 获取前端页面数据
+    const locations = document.getElementById('locations').value.trim().split(/\s+/);
+    const regions = document.getElementById('regions').value.trim().split(/\s+/);
+    const uniqueFeatures = [...new Set(latestResults.map(result => result.特徵值))];
+
+// 创建请求体
+    const queryParams = {
+        locations: locations,
+        regions: regions,
+        need_features: uniqueFeatures
+    };
+
+// 发送 POST 请求到后端
+    await  fetch("http://127.0.0.1:5000/api/get_custom", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(queryParams)
+    })
+        .then(response => response.json())  // 解析响应为 JSON
+        .then(result => {
+            // 检查 result 是否是数组
+            if (Array.isArray(result)) {
+                result.forEach(row => {
+                    const newCoordinate = row["經緯度"];
+                    const newLocation = row["簡稱"];
+                    const newFeature = row["特徵"];
+
+                    // 使用原来的 feature 字段查找是否已存在相同的 item
+                    const locationIndex = mergedData.findIndex(item => item.feature === newFeature);
+
+                    // 如果没有找到匹配的 feature，跳过当前数据
+                    if (locationIndex === -1) {
+                        return; // 跳过该数据项，不做任何操作
+                    }
+
+                    const existingItem = mergedData[locationIndex];
+
+                    // 检查经纬度是否相同
+                    if (JSON.stringify(existingItem.coordinate) === JSON.stringify(newCoordinate)) {
+                        // 如果经纬度相同，检查简称是否相同
+                        if (existingItem.location === newLocation) {
+                            // 如果简称相同，则合并数据
+                            existingItem.value += "║" + row["值"];
+                            existingItem.maxValue += "║" + row["maxValue"];
+                            existingItem.notes += "║" + row["說明"];
+                            existingItem.iscustoms = 1; // 确保标记为 1
+                        } else {
+                            // 如果简称不同，则照常写入
+                            mergedData.push({
+                                location: newLocation,
+                                feature: newFeature,
+                                value: row["值"],
+                                coordinate: newCoordinate,
+                                maxValue: row["maxValue"],
+                                notes: row["說明"],
+                                iscustoms: 1,
+                                zoomLevel: mergedData.length > 0 ? mergedData[0].zoomLevel : 10,
+                                centerCoordinate: mergedData.length > 0 ? mergedData[0].centerCoordinate : [0, 0],
+                                detailContent: []
+                            });
+                        }
+                    } else {
+                        // 如果经纬度不同，则照常写入
+                        mergedData.push({
+                            location: newLocation,
+                            feature: newFeature,
+                            value: row["值"],
+                            coordinate: newCoordinate,
+                            maxValue: row["maxValue"],
+                            notes: row["說明"],
+                            iscustoms: 1,
+                            zoomLevel: mergedData.length > 0 ? mergedData[0].zoomLevel : 10,
+                            centerCoordinate: mergedData.length > 0 ? mergedData[0].centerCoordinate : [0, 0],
+                            detailContent: []
+                        });
+                    }
+                });
+
+                // 你可以在这里处理更新后的 mergedData
+                console.log(mergedData);  // 查看更新后的 mergedData
+            } else {
+                console.error('返回的数据不是数组:', result);  // 输出错误，说明返回的数据格式有问题
+            }
+        })
+        .catch(error => {
+            console.error('请求失败:', error);  // 如果请求失败，捕获错误并输出
+        });
+
     // 在 mergedData 之前，按特征分开统计独特的 maxPercentageValue 数量
     let featureMaxValuesToColor = {};
 
-// 遍历 mergedData，收集每个特征的 maxPercentageValue
+    // 遍历 mergedData，收集每个特征的 maxPercentageValue
     mergedData.forEach(item => {
         const feature = item.feature;
         const maxPercentageValue = item.maxValue;
@@ -470,8 +565,7 @@ async function func_mergeData() {
         // 将 maxPercentageValue 添加到该特征的 Set 中，自动去重
         featureMaxValuesToColor[feature].add(maxPercentageValue);
     });
-
-// 颜色分配函数
+    // 颜色分配函数
     const colorScale = [
         '#FFB3B3', '#FFB366', '#FFFF99', '#B3FFB3', '#99CCFF', '#D4A6FF',
         '#FF6666', '#FFD699', '#99CCCC', '#D1D1FF', '#FF9999', '#FFB3FF',
@@ -479,8 +573,7 @@ async function func_mergeData() {
         '#FFFF66', '#B3FFCC'
     ]
 
-
-// 为每个特征的 maxPercentageValue 进行颜色分配
+    // 为每个特征的 maxPercentageValue 进行颜色分配
     let featureToColor = {};
 
     Object.keys(featureMaxValuesToColor).forEach(feature => {
@@ -556,8 +649,8 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // 填充数据到下拉框或按钮
-    function populateFeatureData(latestResults) {
-        const uniqueFeatures = [...new Set(latestResults.map(result => result.特徵值))];
+    function populateFeatureData() {
+        const uniqueFeatures = [...new Set(window.latestResults.map(result => result.特徵值))];
 
         // 根据 uniqueFeatures 的数量决定是显示下拉框还是按钮
         if (uniqueFeatures.length === 1) {
@@ -569,7 +662,8 @@ document.addEventListener("DOMContentLoaded", function() {
             // 为按钮添加点击事件，触发绘图函数并传递按钮内容
             button.addEventListener("click", function() {
                 // console.log("点击前的mergeddata:",mergedData)
-                triggerDrawingFunction(button.textContent);  // 传递按钮的文本作为参数
+                window.selectedItem = button.textContent;
+                triggerDrawingFunction();  // 传递按钮的文本作为参数
             });
         } else if (uniqueFeatures.length > 1) {
             // 如果有多个特徵值，创建下拉框
@@ -631,7 +725,8 @@ function setupEventListeners(dropdownArrow, dropdown, placeholder) {
             placeholder.textContent = item.textContent;
             dropdown.classList.remove('expanded');  // 收起下拉框
             // 触发绘图函数，传递被选中的 item 作为参数
-            triggerDrawingFunction(item.textContent);  // 这里调用绘图函数
+            window.selectedItem = item.textContent;
+            triggerDrawingFunction();  // 这里调用绘图函数
         });
     });
 
@@ -645,8 +740,11 @@ function setupEventListeners(dropdownArrow, dropdown, placeholder) {
 }
 
 // 再次触发绘图函数
-async function triggerDrawingFunction(selectedItem) {
+async function triggerDrawingFunction() {
+    selectedItem = window.selectedItem;
     console.log("绘图函数触发，选中的项是：", selectedItem);
+    // 将 selectedItem 填入表单中的“特征”输入框
+    document.getElementById("feature-input").value = selectedItem;
     // 等待 mergedData 填充完成
     if (!window.mergedData) {
         console.log("fuck", window.mergedData);
@@ -670,7 +768,7 @@ async function triggerDrawingFunction(selectedItem) {
                 const locationName = dataItem.location;  // 获取地点名称
                 const coordinates = dataItem.coordinate;  // 获取坐标（假设为 [longitude, latitude]）
                 const value = dataItem.value;
-                const color = dataItem.color
+                const color = dataItem.color;
                 const detailContent = dataItem.detailContent; // 假设你有一个 detailContent 数组
                 const feature = dataItem.feature;
 
@@ -680,124 +778,216 @@ async function triggerDrawingFunction(selectedItem) {
                     // 检查坐标是否有效
                     if (Array.isArray(coordinates) && coordinates.length === 2) {
                         // const { lng, lat } = await convertCoordinates(coordinates);
-
-                        // 使用转换后的坐标创建文本标记
-                        const text = new window.AMap.Text({
-                            text: value,  // 使用地点名作为文本
-                            anchor: 'center',
-                            draggable: false,
-                            cursor: 'pointer',
-                            angle: 10,
-                            className: 'amap-overlay-text-container',  // 应用 CSS 类
-                            position: coordinates,  // 使用转换后的高德坐标
-                            clickable: true,
-                            style: {
-                                padding: '.05rem .1rem',           // 调整 padding，更加紧凑
-                                marginBottom: '.1rem',           // 调整底部 margin
-                                borderRadius: '.1rem',
-                                backgroundColor: color,
-                                width: 'auto',                    // 根据文字长度自动撑开宽度
-                                borderWidth: 0,
-                                boxShadow: '0 2px 6px 0 rgba(114, 124, 245, .5)',
-                                textAlign: 'center',
-                                fontSize: '15px',                // 调小字体大小
-                                color: 'black',
-                                display: 'inline-block',          // 让容器根据内容宽度调整
-                                whiteSpace: 'nowrap',            // 保证文字不换行
-                                overflow: 'hidden',               // 防止超出容器的文本显示
-                                textOverflow: 'ellipsis',        // 超过容器时显示省略号
-                                fontFamily: '"Times new Roman"', //
-                            },
-                            extData: {
-                                locationName,
-                                feature ,
-                                detailContent         // 将 detailContent 数组传递到 extData 中
-                            },
-                        });
-
-                        // 将文本标记添加到地图上
-                        text.setMap(map);
-
-                        // 绑定点击事件
-                        text.on('click', (e) => {
-                            const { locationName, feature, detailContent } = text._opts.extData;
-                            // console.log("地点名称:", locationName);
-                            // console.log("特征：", feature);
-                            // console.log("详细内容:", detailContent);
-                            // 确保获取到正确的元素
-                            const locationNameEl = document.getElementById("location-name");
-                            const featureEl = document.getElementById("feature");
-                            const detailContentEl = document.getElementById("detail-content");
-
-
-                            // 设置弹窗内容
-                            locationNameEl.textContent = ` ${locationName}`;
-                            featureEl.textContent = ` ${feature}`;
-                            // detailContentEl.textContent = `详细内容: ${JSON.stringify(detailContent)}`;
-
-                            // 清空旧的详细内容并插入新内容
-                            detailContentEl.innerHTML = ""; // 清空之前的内容
-                            // 使用 <ul> 和 <li> 显示详细内容
-                            const ul = document.createElement("ul");
-
-                            detailContent.forEach(item => {
-                                const li = document.createElement("li");
-                                // 保留一位小数并带上百分号
-                                const percentageFormatted = (item.percentage * 100).toFixed(1) + '%';
-                                li.innerHTML = `<span>•</span> ${item.value} <span>~</span> ${percentageFormatted}`;
-                                ul.appendChild(li);
+                        // 检查 iscustoms 不存在 或者 iscustoms 不为 1
+                        if (!dataItem.hasOwnProperty('iscustoms') || dataItem.iscustoms !== 1) {
+                            const text = new window.AMap.Text({
+                                text: value,  // 使用地点名作为文本
+                                anchor: 'center',
+                                draggable: false,
+                                cursor: 'pointer',
+                                angle: 10,
+                                className: 'amap-overlay-text-container',  // 应用 CSS 类
+                                position: coordinates,  // 使用转换后的高德坐标
+                                clickable: true,
+                                style: {
+                                    padding: '.05rem .1rem',           // 调整 padding，更加紧凑
+                                    marginBottom: '.1rem',           // 调整底部 margin
+                                    borderRadius: '.1rem',
+                                    backgroundColor: color,
+                                    width: 'auto',                    // 根据文字长度自动撑开宽度
+                                    borderWidth: 0,
+                                    boxShadow: '0 2px 6px 0 rgba(114, 124, 245, .5)',
+                                    textAlign: 'center',
+                                    fontSize: '15px',                // 调小字体大小
+                                    color: 'black',
+                                    display: 'inline-block',          // 让容器根据内容宽度调整
+                                    whiteSpace: 'nowrap',            // 保证文字不换行
+                                    overflow: 'hidden',               // 防止超出容器的文本显示
+                                    textOverflow: 'ellipsis',        // 超过容器时显示省略号
+                                    fontFamily: '"Times new Roman"', //
+                                },
+                                extData: {
+                                    locationName,
+                                    feature,
+                                    detailContent         // 将 detailContent 数组传递到 extData 中
+                                },
                             });
 
-                            detailContentEl.appendChild(ul); // 将生成的 <ul> 添加到弹窗中
+                            // 将文本标记添加到地图上
+                            text.setMap(map);
 
-                            // 获取原生事件对象
-                            const nativeEvent = e.originalEvent || e;  // 获取原生事件对象
-                            const mouseY = nativeEvent.originEvent.clientY;  // 获取鼠标点击位置
-                            const mouseX = nativeEvent.originEvent.clientX;  // 获取鼠标的水平位置
-                            const popupWidth = popup.offsetWidth;
-                            const popupHeight = popup.offsetHeight;
+                            // 绑定点击事件
+                            text.on('click', (e) => {
+                                const {locationName, feature, detailContent} = text._opts.extData;
+                                // console.log("地点名称:", locationName);
+                                // console.log("特征：", feature);
+                                // console.log("详细内容:", detailContent);
+                                // 确保获取到正确的元素
+                                const locationNameEl = document.getElementById("location-name");
+                                const featureEl = document.getElementById("feature");
+                                const detailContentEl = document.getElementById("detail-content");
 
-                            // console.log("mouseY:", nativeEvent);  // 打印鼠标Y坐标
-                            // console.log("popupHeight:", popupHeight);  // 打印弹窗高度
 
-                            if (popupHeight === 0) {
-                                console.log("Popup height is 0! Make sure the popup is rendered correctly.");
-                            }
+                                // 设置弹窗内容
+                                locationNameEl.textContent = ` ${locationName}`;
+                                featureEl.textContent = ` ${feature}`;
+                                // detailContentEl.textContent = `详细内容: ${JSON.stringify(detailContent)}`;
 
-// 设置弹窗初始位置，根据鼠标点击的位置来确定
-                            const offsetTop = 30;  // 增加的垂直偏移量，控制弹窗离鼠标点击位置更远
-                            const offsetLeft = 15; // 增加的水平偏移量，控制弹窗向左移动
+                                // 清空旧的详细内容并插入新内容
+                                detailContentEl.innerHTML = ""; // 清空之前的内容
+                                // 使用 <ul> 和 <li> 显示详细内容
+                                const ul = document.createElement("ul");
 
-// 垂直位置计算
-                            const popupTop = mouseY - popupHeight - offsetTop; // 通过增加偏移量向上移动
-                            const maxTop = 20; // 限制弹窗距离顶部的最小距离
-                            popup.style.top = `${Math.max(popupTop, maxTop)}px`; // 确保弹窗不会超出页面顶部
+                                detailContent.forEach(item => {
+                                    const li = document.createElement("li");
+                                    // 保留一位小数并带上百分号
+                                    const percentageFormatted = (item.percentage * 100).toFixed(1) + '%';
+                                    li.innerHTML = `<span>•</span> ${item.value} <span>~</span> ${percentageFormatted}`;
+                                    ul.appendChild(li);
+                                });
 
-// 水平位置计算
-                            const popupLeft = mouseX - popupWidth / 2 - offsetLeft; // 通过增加偏移量让弹窗向左偏移
-                            const maxLeft = 20;  // 限制弹窗距离页面左侧的最小距离
-                            const maxRight = window.innerWidth - popupWidth - 20;  // 限制弹窗右侧不能超出屏幕
-                            popup.style.left = `${Math.min(Math.max(popupLeft, maxLeft), maxRight)}px`;  // 确保弹窗不会超出页面左右边界
+                                detailContentEl.appendChild(ul); // 将生成的 <ul> 添加到弹窗中
 
-                            // console.log("Calculated popup position:", popup.style.top);  // 打印计算后的弹窗位置
+                                // 获取原生事件对象
+                                const nativeEvent = e.originalEvent || e;  // 获取原生事件对象
+                                const mouseY = nativeEvent.originEvent.clientY;  // 获取鼠标点击位置
+                                const mouseX = nativeEvent.originEvent.clientX;  // 获取鼠标的水平位置
+                                const popupWidth = popup.offsetWidth;
+                                const popupHeight = popup.offsetHeight;
 
-                            // 确保弹窗具有正确的定位
-                            popup.style.position = 'fixed'; // 确保弹窗使用绝对定位
+                                // console.log("mouseY:", nativeEvent);  // 打印鼠标Y坐标
+                                // console.log("popupHeight:", popupHeight);  // 打印弹窗高度
 
-                            // 弹窗显示并滑动效果
-                            popup.classList.add("active");
+                                if (popupHeight === 0) {
+                                    console.log("Popup height is 0! Make sure the popup is rendered correctly.");
+                                }
 
-                            // 阻止事件冒泡，避免点击弹窗外的地方关闭弹窗
-                            if (nativeEvent && typeof nativeEvent.stopPropagation === 'function') {
-                                nativeEvent.stopPropagation();
-                            }
-                        });
+                                // 设置弹窗初始位置，根据鼠标点击的位置来确定
+                                const offsetTop = 30;  // 增加的垂直偏移量，控制弹窗离鼠标点击位置更远
+                                const offsetLeft = 15; // 增加的水平偏移量，控制弹窗向左移动
+
+                                // 垂直位置计算
+                                const popupTop = mouseY - popupHeight - offsetTop; // 通过增加偏移量向上移动
+                                const maxTop = 20; // 限制弹窗距离顶部的最小距离
+                                popup.style.top = `${Math.max(popupTop, maxTop)}px`; // 确保弹窗不会超出页面顶部
+
+                                // 水平位置计算
+                                const popupLeft = mouseX - popupWidth / 2 - offsetLeft; // 通过增加偏移量让弹窗向左偏移
+                                const maxLeft = 20;  // 限制弹窗距离页面左侧的最小距离
+                                const maxRight = window.innerWidth - popupWidth - 20;  // 限制弹窗右侧不能超出屏幕
+                                popup.style.left = `${Math.min(Math.max(popupLeft, maxLeft), maxRight)}px`;  // 确保弹窗不会超出页面左右边界
+
+                                // console.log("Calculated popup position:", popup.style.top);  // 打印计算后的弹窗位置
+
+                                // 确保弹窗具有正确的定位
+                                popup.style.position = 'fixed'; // 确保弹窗使用绝对定位
+
+                                // 弹窗显示并滑动效果
+                                popup.classList.add("active");
+
+                                // 阻止事件冒泡，避免点击弹窗外的地方关闭弹窗
+                                if (nativeEvent && typeof nativeEvent.stopPropagation === 'function') {
+                                    nativeEvent.stopPropagation();
+                                }
+                            });
+
+                        }
+
+                        if (dataItem.iscustoms === 1 && window.isCustomOn) {
+                            const notes = dataItem.notes;
+                            const text = new window.AMap.Text({
+                                text: value,  // 使用地点名作为文本
+                                anchor: 'center',
+                                draggable: false,
+                                cursor: 'pointer',
+                                angle: 10,
+                                className: 'amap-overlay-text-container',  // 应用 CSS 类
+                                position: coordinates,  // 使用转换后的高德坐标
+                                clickable: true,
+                                style: {
+                                    padding: '.05rem .1rem',           // 调整 padding，更加紧凑
+                                    marginBottom: '.1rem',           // 调整底部 margin
+                                    borderRadius: '.1rem',
+                                    backgroundColor: color,
+                                    width: 'auto',                    // 根据文字长度自动撑开宽度
+                                    borderWidth: 0,
+                                    boxShadow: '0 2px 6px 0 rgba(114, 124, 245, .5)',
+                                    textAlign: 'center',
+                                    fontSize: '15px',                // 调小字体大小
+                                    color: 'black',
+                                    display: 'inline-block',          // 让容器根据内容宽度调整
+                                    whiteSpace: 'nowrap',            // 保证文字不换行
+                                    overflow: 'hidden',               // 防止超出容器的文本显示
+                                    textOverflow: 'ellipsis',        // 超过容器时显示省略号
+                                    fontFamily: '"Times new Roman"', //
+                                },
+                                extData: {
+                                    locationName,
+                                    feature,
+                                    notes,       // 将 detailContent 数组传递到 extData 中
+                                },
+                            });
+
+                            // 将文本标记添加到地图上
+                            text.setMap(map);
+
+                            // 绑定点击事件
+                            text.on('click', (e) => {
+                                const {locationName, feature, detailContent} = text._opts.extData;
+                                // 确保获取到正确的元素
+                                const locationNameEl = document.getElementById("location-name");
+                                const featureEl = document.getElementById("feature");
+                                const notesEl = document.getElementById("notes1");  // 使用 notes 代替 detailContent
+
+                                locationNameEl.textContent = ` ${locationName}`;
+                                featureEl.textContent = ` ${feature}`;
+                                notesEl.textContent = `說明: ${notes}`;  // 直接显示 notes 文本内容
+
+                                // 获取原生事件对象
+                                const nativeEvent = e.originalEvent || e;  // 获取原生事件对象
+                                const mouseY = nativeEvent.originEvent.clientY;  // 获取鼠标点击位置
+                                const mouseX = nativeEvent.originEvent.clientX;  // 获取鼠标的水平位置
+                                const popupWidth = popup.offsetWidth;
+                                const popupHeight = popup.offsetHeight;
+
+                                if (popupHeight === 0) {
+                                    console.log("Popup height is 0! Make sure the popup is rendered correctly.");
+                                }
+
+                                // 设置弹窗初始位置，根据鼠标点击的位置来确定
+                                const offsetTop = 30;  // 增加的垂直偏移量，控制弹窗离鼠标点击位置更远
+                                const offsetLeft = 15; // 增加的水平偏移量，控制弹窗向左移动
+
+                                // 垂直位置计算
+                                const popupTop = mouseY - popupHeight - offsetTop; // 通过增加偏移量向上移动
+                                const maxTop = 20; // 限制弹窗距离顶部的最小距离
+                                popup.style.top = `${Math.max(popupTop, maxTop)}px`; // 确保弹窗不会超出页面顶部
+
+                                // 水平位置计算
+                                const popupLeft = mouseX - popupWidth / 2 - offsetLeft; // 通过增加偏移量让弹窗向左偏移
+                                const maxLeft = 20;  // 限制弹窗距离页面左侧的最小距离
+                                const maxRight = window.innerWidth - popupWidth - 20;  // 限制弹窗右侧不能超出屏幕
+                                popup.style.left = `${Math.min(Math.max(popupLeft, maxLeft), maxRight)}px`;  // 确保弹窗不会超出页面左右边界
+
+                                // 确保弹窗具有正确的定位
+                                popup.style.position = 'fixed'; // 确保弹窗使用绝对定位
+
+                                // 弹窗显示并滑动效果
+                                popup.classList.add("active");
+
+                                // 阻止事件冒泡，避免点击弹窗外的地方关闭弹窗
+                                if (nativeEvent && typeof nativeEvent.stopPropagation === 'function') {
+                                    nativeEvent.stopPropagation();
+                                }
+                            });
+                        }
                     }
                 }catch (e) {
                     console.log("error:", e);
                 };
             }
         }
+        window.plotted = true;
     }
 }
 
@@ -849,7 +1039,6 @@ async function convertCoordinates(coordinates, retryLimit = 5, attempt = 0) {
         });
     });
 }
-
 
 
 

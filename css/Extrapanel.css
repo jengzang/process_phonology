@@ -1,0 +1,390 @@
+/* * {*/
+/*    margin: 0;*/
+/*    padding: 0;*/
+/*    box-sizing: border-box;*/
+/*}*/
+
+
+/*html, body {*/
+/*    height: 100%;*/
+/*    font-family: 'Arial', sans-serif;*/
+/*    background-color: #f4f4f4;*/
+/*}*/
+
+/* 初始加号按钮样式 */
+.expand-button {
+    position: fixed;
+    right: 10px;  /* 位于页面右侧 */
+    top: 50%;     /* 垂直居中 */
+    transform: translateY(-50%);
+    width: 50px;
+    height: 50px;
+    background-color: #007aff;  /* 苹果蓝 */
+    color: white;
+    font-size: 32px;
+    text-align: center;
+    line-height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+/* 展开面板的动画效果 */
+.right-panel {
+    position: fixed;
+    right: -23%;  /* 初始状态在页面右侧外面 */
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20%;  /* 宽度占页面右侧1/5 */
+    height: 50%;  /* 高度居中 */
+    background-color: #ffffff;
+    border-radius: 15px 0 0 15px;
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.3);
+    padding: 20px 20px 10px 20px;  /* 调整padding，减少下间距，增加左右间距 */
+    transition: right 0.5s ease;  /* 展开时平滑动画 */
+    flex-direction: column;
+    justify-content: flex-start;  /* 讓內容對齊顶部 */
+    display: flex;
+}
+
+/* 右側面板的內容 */
+.panel-content {
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;  /* 自動控制表單行間距 */
+    flex-grow: 1;  /* 使表單填滿可用空間 */
+    overflow-y: auto;  /* 如果內容過多，可以滾動 */
+}
+
+/* 调整 h2 和表单之间的间距 */
+.panel-content h2 {
+    font-size: 18px;
+    text-align: center;
+    margin-bottom: 15px;  /* 增加 h2 和表单之间的空隙 */
+}
+
+
+/* 展开按钮和面板展开时的样式 */
+.right-panel.open {
+    right: 0; /* 展开时位于页面右侧 */
+}
+
+.expand-button.open {
+    transform: translateY(-50%) rotate(45deg); /* 点击后旋转加号 */
+    background-color: #4cd964;  /* 点击后背景变绿 */
+}
+
+/* 表單行 */
+.form-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px; /* 控制每行之间的间距 */
+    align-items: center;
+    /*gap: 12px;*/
+}
+
+/* 修改標籤字體大小 */
+.form-row label {
+    width: 30%;  /* 標籤寬度 */
+    font-size: 14px;  /* 增加字體大小 */
+    font-weight: bold;  /* 设置加粗 */
+}
+
+
+.form-row input, .form-row textarea {
+    width: 65%;  /* 輸入框寬度 */
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+/* 特徵和值分開顯示，垂直排列 */
+.feature-row {
+    flex-direction: column;  /* 讓特徵和值垂直排列 */
+}
+
+.feature-row input[type="text"] {
+    width: 100%;  /* 讓每個輸入框占滿整行 */
+}
+
+/*!* 特徵和值在同一行 *!*/
+/*.feature-row {*/
+/*    flex-direction: row;*/
+/*}*/
+
+
+/* 展開按鈕和面板展開時的樣式 */
+.right-panel.open {
+    right: 0; /* 展開時位於頁面右側 */
+}
+
+.expand-button.open {
+    transform: translateY(-50%) rotate(45deg); /* 點擊後旋轉加號 */
+    background-color: #4cd964;  /* 點擊後背景變綠 */
+}
+
+button[type="submit"] {
+    width: 100%;
+    padding: 10px;
+    background-color: #007aff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    margin-top: auto;  /* 使按鈕緊貼底部 */
+}
+
+button[type="submit"]:hover {
+    background-color: #4cd964;
+}
+
+
+/* 整个容器样式 */
+.custom-switch-container {
+    position: absolute;
+    left: 70%;  /* 定位到父容器的 70% 位置 */
+    transform: translateX(-50%);  /* 居中对齐 */
+    display: flex;
+    align-items: center;  /* 垂直居中 */
+    justify-content: center;  /* 水平居中 */
+    font-family: 'Arial', sans-serif;
+    font-size: 16px;
+    width: 100%;  /* 确保容器占满父容器 */
+    height: 100%;  /* 使容器高度填充父容器 */
+}
+
+/* 自定义开关容器 */
+.custom-switch {
+    position: relative;
+    cursor: pointer;
+    width: 50px;
+    height: 30px;
+    background-color: #ccc;  /* 灰色背景 */
+    border-radius: 30px;  /* 圆角效果 */
+    display: flex;
+    align-items: center;  /* 垂直居中 */
+    justify-content: center;  /* 水平居中 */
+    transition: background-color 0.3s ease;
+}
+
+/* 小圆点 */
+.custom-slider:before {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 26px;
+    height: 26px;
+    background-color: white;
+    border-radius: 50%;  /* 小圆点 */
+    transition: all 0.3s ease;
+}
+
+/* 开启状态时的背景和小圆点位置 */
+.custom-switch.open {
+    background-color: #4CAF50;  /* 绿色 */
+}
+
+.custom-switch.open .custom-slider:before {
+    transform: translateX(20px); /* 小圆点向右移动 */
+}
+
+/* 按钮内的文字 */
+#switch-text {
+    color: black;  /* 黑色文字 */
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;  /* 文字大写 */
+    position: absolute;
+    z-index: 1;  /* 确保文字位于圆点之上 */
+    transition: transform 0.3s ease, color 0.3s ease;
+    pointer-events: none;  /* 禁止文字的点击事件 */
+    top: 50%;  /* 垂直居中 */
+    transform: translateY(-50%);  /* 通过 translateY 将文字向上移动自身高度的 50% */
+}
+
+
+/* 开启状态时文字的颜色变化 */
+.custom-switch.open #switch-text {
+    color: black;  /* 保持文字为黑色 */
+    transform: translateX(-25px) translateY(-50%);  /* 让文本略微移动并确保上下居中 */
+    top: 50%;  /* 确保文字垂直居中 */
+    position: absolute;
+    z-index: 1;  /* 确保文字位于圆点之上 */
+    pointer-events: none;  /* 禁止文字的点击事件 */
+    transition: transform 0.3s ease, color 0.3s ease, text-shadow 0.3s ease;
+
+    /* 动态光环旋转效果 */
+    animation: glowing 2s infinite linear;
+    white-space: nowrap;  /* 禁止换行 */
+}
+
+/* 动态光环旋转效果 */
+@keyframes glowing {
+    0% {
+        text-shadow:
+                0 0 5px rgba(255, 255, 255, 0.7),
+                0 0 10px rgba(255, 255, 255, 0.5),
+                0 0 15px rgba(255, 255, 255, 0.3),
+                0 0 20px rgba(0, 255, 0, 0.8),  /* 绿色光环效果 */
+                0 0 40px rgba(0, 255, 0, 0.8),  /* 绿色光环效果 */
+                0 0 60px rgba(0, 255, 0, 0.8);  /* 绿色光环效果 */
+    }
+    50% {
+        text-shadow:
+                0 0 10px rgba(255, 255, 255, 0.9),
+                0 0 15px rgba(255, 255, 255, 0.6),
+                0 0 20px rgba(255, 255, 255, 0.4),
+                0 0 30px rgba(0, 255, 0, 0.9),  /* 更亮的绿色光环 */
+                0 0 50px rgba(0, 255, 0, 0.9),
+                0 0 70px rgba(0, 255, 0, 0.9);  /* 更亮的绿色光环 */
+    }
+    100% {
+        text-shadow:
+                0 0 5px rgba(255, 255, 255, 0.7),
+                0 0 10px rgba(255, 255, 255, 0.5),
+                0 0 15px rgba(255, 255, 255, 0.3),
+                0 0 20px rgba(0, 255, 0, 0.8),
+                0 0 40px rgba(0, 255, 0, 0.8),
+                0 0 60px rgba(0, 255, 0, 0.8);
+    }
+}
+
+
+
+
+
+.container-search {
+    width: 50%;
+    max-width: 700px;
+    min-width: 300px;
+}
+
+/* 按钮及输入框的样式 */
+.header-search {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background-color: #fff;
+    border-radius: 8px 8px 0 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.btn-search, .btn-with-input-search {
+    padding: 10px;
+    font-size: 16px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-with-input-search input {
+    border: none;
+    outline: none;
+    padding: 5px;
+    font-size: 16px;
+    width: 150px;
+    border-radius: 4px;
+}
+
+.drag-arrow-search {
+    font-size: 24px;
+    cursor: ns-resize;
+}
+
+/* 可展开的面板样式 */
+.expansion-panel-search {
+    background-color: #fff;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    height: 40%; /* 默认高度为页面的2/5 */
+    overflow: hidden;
+    transition: height 0.3s ease;
+    position: relative;
+}
+
+.content-search {
+    padding: 20px;
+    overflow-y: auto; /* 内容超出时启用滚动条 */
+    max-height: 100%;
+}
+/* 面板容器 */
+.container-search {
+    width: 50%;
+    max-width: 700px;
+    min-width: 300px;
+    position: relative;
+}
+
+/* 可展开的面板样式 */
+.expansion-panel-search {
+    position: absolute;
+    top: 30%; /* 初始面板位置在页面高度的3/10 */
+    width: 100%;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    height: 40%; /* 默认高度为页面的2/5 */
+    overflow: hidden;
+    transition: height 0.3s ease;
+}
+
+/* 面板内容样式 */
+.content-search {
+    padding: 20px;
+    overflow-y: auto; /* 内容超出时启用滚动条 */
+    max-height: 100%;
+}
+
+/* 底部按钮和输入框 */
+.footer-search {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: #fff;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+
+/* 按钮和输入框样式 */
+.btn-search, .btn-with-input-search {
+    padding: 10px 15px;
+    font-size: 16px;
+    background-color: #007aff;  /* 苹果风格的蓝色 */
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-search:hover, .btn-with-input-search:hover {
+    background-color: #0051a8;  /* 按钮悬停时变色 */
+}
+
+.btn-with-input-search input {
+    border: none;
+    outline: none;
+    padding: 8px 12px;
+    font-size: 16px;
+    width: 160px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.drag-arrow-search {
+    font-size: 24px;
+    cursor: ns-resize;
+    color: #007aff;
+}

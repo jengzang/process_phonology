@@ -1,3 +1,8 @@
+import os
+import re
+
+import pandas as pd
+
 from source.config import APPEND_PATH
 
 
@@ -112,6 +117,9 @@ def convert_tones(tone: dict, shortname: str):
         if tone_num is None:
             tone_num = match_tone(tail_tone, prev_char, tone_bian)
 
+        if tone_num is None:
+            tone_num = match_tone(tail_tone, prev_char, tone_ru)
+
         if tone_num:
             new_ipa = head + tone_num
             # print(f"[DEBUG] 轉換：{ipa} → {new_ipa}")
@@ -137,10 +145,6 @@ def convert_tones(tone: dict, shortname: str):
     #     print("⚠️ 欄位缺失，無法預覽。實際欄位為：", tsv_df.columns.tolist())
     return tsv_df
 
-
-import os
-import pandas as pd
-import re
 
 def tone_jyut2yindian(shortname: str):
     tsv_file_path = os.path.join("data/processed", f"{shortname}.tsv")

@@ -1,3 +1,6 @@
+// 全局变量记录面板的展开状态
+window.isPanelOpen = false;
+window.plotted = false
 // 🎛 通用控制：拖曳與最小化/最大化控制
 let currentMode = 1;
 let resultMode = 1;
@@ -139,6 +142,9 @@ window.fetchWithLog = async function(url, options) {
 
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("runBtn")?.addEventListener("click", async () => {
+        window.latestResults = []
+        window.locations_data = []
+        window.selectedItem = []
         // await runAnalysis();          // 先送出分析並記錄 log
         await analysis_from_db();     // 然後渲染表格結果
         await create_map1();

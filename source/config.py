@@ -19,6 +19,7 @@ PHO_TABLE_PATH = os.path.join(BASE_DIR, "data", "dependency", "聲韻.xlsx")
 QUERY_DB_PATH = os.path.join(BASE_DIR, "data", "dialects_query.db")
 DIALECTS_DB_PATH = os.path.join(BASE_DIR, "data", "dialects_all.db")
 CHARACTERS_DB_PATH = os.path.join(BASE_DIR, "data", "characters.db")
+SUPPLE_DB_PATH = os.path.join(BASE_DIR, "data", "supplements.db")
 ZHENGZI_PATH = os.path.join(BASE_DIR, "data", "dependency", "正字.tsv")
 MULCODECHAR_PATH = os.path.join(BASE_DIR, "data", "dependency", "mulcodechar.dt")
 

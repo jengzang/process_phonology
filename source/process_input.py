@@ -11,7 +11,7 @@ import Levenshtein
 from source.format_convert import s2t_pro
 from typing import Tuple, Union, List, Optional
 
-from source.config import QUERY_DB_PATH
+from source.config import QUERY_DB_PATH, SUPPLE_DB_PATH
 
 # 可用於分層篩選的欄位
 HIERARCHY_COLUMNS = ["攝", "呼", "等", "韻", "入", "調", "清濁", "系", "組", "聲"]
@@ -34,6 +34,7 @@ column_values = {
            '精', '群', '船', '莊', '見', '透', '邪', '非']
 }
 
+
 # # 優先邏輯（分層關係）
 # priority = [
 #     ("聲", ["聲", "組", "系"]),
@@ -45,7 +46,7 @@ column_values = {
 # ]
 
 
-def match_locations(user_input):
+def match_locations(user_input, filter_valid_abbrs_only=True):
     def is_pinyin_similar(a, b):
         if not a or not b:
             return False
@@ -87,13 +88,23 @@ def match_locations(user_input):
     conn = sqlite3.connect(QUERY_DB_PATH)
     cursor = conn.cursor()
 
-    # 撈出所有存儲標記 = 1 的合法簡稱
-    cursor.execute("SELECT 簡稱 FROM dialects WHERE 存儲標記 = 1")
+    # 根據 filter_valid_abbrs_only 決定是否過濾掉非存儲標記為1的數據
+
+    if filter_valid_abbrs_only:
+        print("過濾！！")
+        cursor.execute("SELECT 簡稱 FROM dialects WHERE 存儲標記 = 1")
+    else:
+        print("不過濾存儲標記")
+        cursor.execute("SELECT 簡稱 FROM dialects")
     valid_abbrs_set = set(row[0] for row in cursor.fetchall())
 
     matched_abbrs = set()
     for term in possible_inputs:
-        cursor.execute("SELECT 簡稱 FROM dialects WHERE 簡稱 = ? AND 存儲標記 = 1", (term,))
+        # 完全匹配查詢部分需要根據 filter_valid_abbrs_only 來過濾
+        if filter_valid_abbrs_only:
+            cursor.execute("SELECT 簡稱 FROM dialects WHERE 簡稱 = ? AND 存儲標記 = 1", (term,))
+        else:
+            cursor.execute("SELECT 簡稱 FROM dialects WHERE 簡稱 = ?", (term,))
         exact = cursor.fetchall()
         matched_abbrs.update([row[0] for row in exact])
         print(f"[DEBUG] 完全匹配【{term}】：{exact}")
@@ -103,7 +114,11 @@ def match_locations(user_input):
 
     fuzzy_abbrs = set()
     for term in possible_inputs:
-        cursor.execute("SELECT 簡稱 FROM dialects WHERE 簡稱 LIKE ? AND 存儲標記 = 1", (term + "%",))
+        # 模糊匹配查詢部分需要根據 filter_valid_abbrs_only 來過濾
+        if filter_valid_abbrs_only:
+            cursor.execute("SELECT 簡稱 FROM dialects WHERE 簡稱 LIKE ? AND 存儲標記 = 1", (term + "%",))
+        else:
+            cursor.execute("SELECT 簡稱 FROM dialects WHERE 簡稱 LIKE ?", (term + "%",))
         fuzzy = cursor.fetchall()
         fuzzy_abbrs.update([row[0] for row in fuzzy])
         print(f"[DEBUG] 模糊簡稱匹配【{term}】：{fuzzy}")
@@ -114,7 +129,10 @@ def match_locations(user_input):
     all_abbr_names = []
 
     for col in ["鎮", "行政村", "自然村"]:
-        cursor.execute(f"SELECT {col}, 簡稱 FROM dialects WHERE 存儲標記 = 1")
+        if filter_valid_abbrs_only:
+            cursor.execute(f"SELECT {col}, 簡稱 FROM dialects WHERE 存儲標記 = 1")
+        else:
+            cursor.execute(f"SELECT {col}, 簡稱 FROM dialects")
         rows = cursor.fetchall()
         for name, abbr in rows:
             all_geo_names.append(name)
@@ -159,7 +177,7 @@ def match_locations(user_input):
     )
 
 
-def match_locations_batch(input_string: str):
+def match_locations_batch(input_string: str, filter_valid_abbrs_only=True):
     input_string = input_string.strip()
     if not input_string:
         print("⚠️ 輸入為空，無法處理。")
@@ -174,7 +192,7 @@ def match_locations_batch(input_string: str):
         if part:
             print(f"\n🔹 處理第 {idx + 1} 個地名：{part}")
             try:
-                res = match_locations(part)
+                res = match_locations(part, filter_valid_abbrs_only)
                 print(f"   ⮡ 結果: {res}")
                 results.append(res)
             except Exception as e:
@@ -182,7 +200,6 @@ def match_locations_batch(input_string: str):
                 results.append((False, 0, [], [], [], [], [], []))
 
     return results
-
 
 
 def auto_convert_single(user_input: str) -> Union[Tuple[str, int], Tuple[bool, int]]:
@@ -402,8 +419,6 @@ def auto_convert_single(user_input: str) -> Union[Tuple[str, int], Tuple[bool, i
         return process(clean_str)
 
 
-
-
 def auto_convert_batch(input_string: str) -> List[Union[Tuple[str, int], Tuple[bool, int]]]:
     import re
     parts = re.split(r"[ ,;/，；、]+", input_string.strip())
@@ -452,6 +467,7 @@ def query_dialect_abbreviations(
         region_input=None,
         location_sequence=None,
         db_path=QUERY_DB_PATH,
+        tables="dialects",
         debug=False
 ):
     """
@@ -492,18 +508,19 @@ def query_dialect_abbreviations(
     combined_elements = list(set(region_list))
 
     if debug:
-        print(f"合併後元素: {combined_elements}")
+        print(f"分區合併後元素: {combined_elements}")
 
     result = []
     seen = set()
 
     with sqlite3.connect(db_path) as conn:
         cursor = conn.cursor()
-        cursor.execute("""
+        query = f"""
             SELECT 音典分區, 簡稱 
-            FROM dialects 
+            FROM {tables} 
             WHERE 存儲標記 IS NOT NULL AND 存儲標記 != ''
-        """)
+        """
+        cursor.execute(query)
         all_rows = cursor.fetchall()
 
         for item in region_list:
@@ -530,8 +547,10 @@ def query_dialect_abbreviations(
     return final_result
 
 
-def get_coordinates_from_db(abbreviation_list, db_path=QUERY_DB_PATH):
+def get_coordinates_from_db(abbreviation_list, supplementary_abbreviation_list=None,
+                            db_path=QUERY_DB_PATH, use_supplementary_db=False):
     print("即將處理經緯度")
+
     # Haversine 公式計算兩點間的距離，單位為公里
     def haversine(lat1, lon1, lat2, lon2):
         R = 6371  # 地球半徑，單位為公里
@@ -570,7 +589,7 @@ def get_coordinates_from_db(abbreviation_list, db_path=QUERY_DB_PATH):
 
     abbreviation_list = [abbreviation for abbreviation in abbreviation_list if abbreviation]
 
-    # 連接到數據庫
+    # 連接到查詢數據庫
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
@@ -580,7 +599,7 @@ def get_coordinates_from_db(abbreviation_list, db_path=QUERY_DB_PATH):
     longitudes = []
     abbreviation_lat_lon_pairs = []  # 用來存儲簡稱和經緯度的配對
 
-    # 根據簡稱查詢經緯度
+    # 根據簡稱查詢經緯度（主數據庫）
     for abbreviation in abbreviation_list:
         # 執行SQL查詢，選取簡稱匹配的行並獲取經緯度
         cursor.execute("SELECT 經緯度 FROM dialects WHERE 簡稱=?", (abbreviation,))
@@ -600,6 +619,35 @@ def get_coordinates_from_db(abbreviation_list, db_path=QUERY_DB_PATH):
                 print(f"無法解析經緯度：{lat_lon_str}")
         else:
             print(f"未找到簡稱：{abbreviation}")
+
+    # 如果需要，從補充數據庫中讀取數據
+    if use_supplementary_db and supplementary_abbreviation_list:
+        # 連接到補充數據庫
+        conn_supplementary = sqlite3.connect(SUPPLE_DB_PATH)
+        cursor_supplementary = conn_supplementary.cursor()
+
+        # 使用補充的簡稱列表進行查詢
+        for abbreviation in supplementary_abbreviation_list:
+            # 執行SQL查詢，選取簡稱匹配的行並獲取經緯度
+            cursor_supplementary.execute("SELECT 經緯度 FROM informations WHERE 簡稱=?", (abbreviation,))
+            row = cursor_supplementary.fetchone()
+
+            # 如果找到了匹配的行，處理經緯度
+            if row:
+                lat_lon_str = row[0]
+                try:
+                    # 解析經緯度字符串，將其轉換為浮點數元組
+                    latitude, longitude = map(float, lat_lon_str.split(','))
+                    result.append((latitude, longitude))
+                    latitudes.append(latitude)
+                    longitudes.append(longitude)
+                    abbreviation_lat_lon_pairs.append((abbreviation, (latitude, longitude)))  # 存儲簡稱與經緯度配對
+                except ValueError:
+                    print(f"無法解析經緯度：{lat_lon_str}")
+            else:
+                print(f"未找到簡稱：{abbreviation}")
+
+        conn_supplementary.close()
 
     # 計算中心經緯度
     if latitudes and longitudes:
@@ -652,6 +700,8 @@ def get_coordinates_from_db(abbreviation_list, db_path=QUERY_DB_PATH):
     }
 
     return coordinates
+
+
 def read_partition_hierarchy(parent_regions=None, db_path=QUERY_DB_PATH):
     """
     傳入 parent_region，返回它下層的分區：
