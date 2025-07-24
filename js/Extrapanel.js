@@ -246,32 +246,62 @@ customToggle.addEventListener('click', async function() {
 
 document.addEventListener("DOMContentLoaded", function () {
     const expansionPanelSearch = document.querySelector('.expansion-panel-search');
-    const dragArrowSearch = document.querySelector('.drag-arrow-search');
     const expandBtn = document.getElementById('expand-btn');
+    const footerSearch = document.querySelector('.footer-search');
+    const charactersBtn = document.getElementById('characters-btn');
+    const tonesBtn = document.getElementById('tones-btn');
 
     let isDragging = false;
     let initialHeight = expansionPanelSearch.offsetHeight;
     let startY = 0;
-    let isExpanded = true; // 初始状态是展开的
+    let isExpanded = false; // 默认面板未展开
 
-    // 监听按钮点击事件，控制面板展开和收回
+// 点击按钮时，根据当前状态展开或收回
     expandBtn.addEventListener('click', () => {
+        const footerHeight = footerSearch.offsetHeight;
+
         if (isExpanded) {
-            // 收回面板
-            expansionPanelSearch.style.height = '0';
+            // 如果当前是展开状态，点击按钮收回
+            expansionPanelSearch.style.height = `${footerHeight}px`;  // 收回到只漏出 footer-search 的高度
+            expandBtn.textContent = "▼";  // 修改按钮文本为 "展开"
         } else {
-            // 展开面板
-            expansionPanelSearch.style.height = '40%'; // 展开为页面的40%
+            // 如果当前是收回状态，点击按钮展开
+            expansionPanelSearch.style.height = '50%';  // 展开至页面高度的50%（或者根据需求调整）
+            expandBtn.textContent = "▲";  // 修改按钮文本为 "收回"
         }
-        isExpanded = !isExpanded; // 切换状态
+
+        // 切换状态
+        isExpanded = !isExpanded;
+    });
+    // 点击 "查字" 按钮时，自动展开面板
+    charactersBtn.addEventListener('click', () => {
+        if (!isExpanded) {
+            const footerHeight = document.querySelector('.footer-search').offsetHeight;
+            expansionPanelSearch.style.height = '50%'; // 展开至页面的50%
+            expandBtn.textContent = "▲";  // 修改按钮文本为 "收回"
+            isExpanded = true;
+        }
     });
 
-    // 监听鼠标按下事件，开始拖动
-    dragArrowSearch.addEventListener('mousedown', (e) => {
-        isDragging = true;
-        startY = e.clientY;
-        initialHeight = expansionPanelSearch.offsetHeight;
-        document.body.style.cursor = 'ns-resize';
+    // 点击 "查调" 按钮时，自动展开面板
+    tonesBtn.addEventListener('click', () => {
+        if (!isExpanded) {
+            const footerHeight = document.querySelector('.footer-search').offsetHeight;
+            expansionPanelSearch.style.height = '50%'; // 展开至页面的50%
+            expandBtn.textContent = "▲";  // 修改按钮文本为 "收回"
+            isExpanded = true;
+        }
+    });
+
+
+    // 长按展开按钮时，允许拖动调整面板的高度
+    expandBtn.addEventListener('mousedown', (e) => {
+        if (isExpanded) {
+            isDragging = true;
+            startY = e.clientY;
+            initialHeight = expansionPanelSearch.offsetHeight;
+            document.body.style.cursor = 'ns-resize'; // 改变光标样式，表示可以拖动
+        }
     });
 
     // 监听鼠标移动事件，进行面板的拖动
@@ -281,19 +311,12 @@ document.addEventListener("DOMContentLoaded", function () {
         const newHeight = initialHeight + deltaY;
 
         // 设置最大高度和最小高度限制
-        const maxHeight = window.innerHeight - 50; // 页面底部距离
+        const maxHeight = window.innerHeight - 30; // 页面底部距离
         const minHeight = 0;
 
         // 调整面板的高度
         if (newHeight >= minHeight && newHeight <= maxHeight) {
             expansionPanelSearch.style.height = `${newHeight}px`;
-        }
-
-        // 判断是否需要显示滚动条
-        if (expansionPanelSearch.scrollHeight > expansionPanelSearch.offsetHeight) {
-            expansionPanelSearch.querySelector('.content-search').style.overflowY = 'scroll';
-        } else {
-            expansionPanelSearch.querySelector('.content-search').style.overflowY = 'hidden';
         }
     });
 
@@ -302,7 +325,317 @@ document.addEventListener("DOMContentLoaded", function () {
         isDragging = false;
         document.body.style.cursor = 'default';
     });
+
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const deltaY = e.clientY - startY;
+        const newHeight = initialHeight + deltaY;
+
+        const maxHeight = window.innerHeight - 50; // 页面底部距离
+        const minHeight = 0;
+
+        if (newHeight >= minHeight && newHeight <= maxHeight) {
+            expansionPanelSearch.style.height = `${newHeight}px`;
+        }
+    });
+
+    document.addEventListener('mouseup', () => {
+        isDragging = false;
+        document.body.style.cursor = 'default';
+    });
 });
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    const charactersBtn = document.getElementById('characters-btn');
+    const inputBox = document.querySelector('.input-search'); // 获取输入框
+    const locationsInput = document.getElementById('locations'); // 获取 locations 输入框
+    const regionsInput = document.getElementById('regions');   // 获取 regions 输入框
+    const contentSearch = document.querySelector('.content-search');
+
+    let lastCharDiv = null;
+    let lastPositionsDiv = null;
+
+    charactersBtn.addEventListener('click', async () => {
+        // 获取输入框中的汉字
+        const chars = inputBox.value.trim().split(""); // 将输入框内容拆分成字符数组
+        const locations = locationsInput.value.trim().split(/\s+/); // 获取并拆分 locations
+        const regions = regionsInput.value.trim().split(/\s+/); // 获取并拆分 regions
+
+        if (chars.length === 0) {
+            alert("请输入汉字！");
+            return;
+        }
+
+        // 构造请求数据
+        const requestData = {
+            chars: chars,
+            locations: locations,
+            regions: regions
+        };
+
+        try {
+            // 发送 POST 请求到后端
+            const response = await fetch('http://127.0.0.1:5000/api/search_chars/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData),
+            });
+
+            // 处理返回的 JSON 数据
+            if (response.ok) {
+                const data = await response.json(); // 获取响应数据
+                const resultData = data.result; // 提取 `result` 数组
+
+                // 在前端控制台输出返回的数据
+                console.log('从后端返回的数据:', resultData);
+
+                if (Array.isArray(resultData)) {
+                    resultData.forEach((item) => {
+                        // 如果音节或 location 为空，则跳过当前元素
+                        if (!item.音节.length|| !item.location) {
+                            return; // 跳过当前元素
+                        }
+                        // 创建 charDiv，如果和上一个不一样
+                        const charDiv = document.createElement('div');
+                        charDiv.classList.add('char');
+                        charDiv.textContent = item.char;
+
+                        // 如果当前的 charDiv 和上一个不一样，才添加到 DOM 中
+                        if (!lastCharDiv || lastCharDiv.textContent !== charDiv.textContent) {
+                            contentSearch.appendChild(charDiv);
+                            lastCharDiv = charDiv;  // 更新 lastCharDiv
+                        }
+
+                        // 创建 positionsDiv，如果和上一个不一样
+                        const positionsDiv = document.createElement('div');
+                        positionsDiv.classList.add('positions');
+                        item.positions.forEach(position => {
+                            const positionPara = document.createElement('p');
+                            positionPara.textContent = position;
+                            positionsDiv.appendChild(positionPara);
+                        });
+
+                        // 如果当前的 positionsDiv 和上一个不一样，才添加到 DOM 中
+                        if (!lastPositionsDiv || lastPositionsDiv.innerHTML !== positionsDiv.innerHTML) {
+                            contentSearch.appendChild(positionsDiv);
+                            lastPositionsDiv = positionsDiv;  // 更新 lastPositionsDiv
+                        }
+
+                        const infoContainer = document.createElement('div');
+                        infoContainer.style.display = 'flex';  // 使用 flex 布局
+                        infoContainer.style.justifyContent = 'center'; // 水平居中
+                        infoContainer.style.alignItems = 'center'; // 垂直居中
+
+                        // 创建并添加 locationDiv
+                        const locationDiv = document.createElement('div');
+                        locationDiv.classList.add('location');
+                        locationDiv.textContent = item.location;
+                        infoContainer.appendChild(locationDiv);
+
+                        // 创建并添加 syllablesDiv
+                        const syllablesDiv = document.createElement('div');
+                        syllablesDiv.classList.add('syllables');
+                        syllablesDiv.innerHTML = item.音节.join(' <span>·</span> ');
+                        infoContainer.appendChild(syllablesDiv);
+
+                        // 将整个容器添加到 DOM 中
+                        contentSearch.appendChild(infoContainer);
+                    });
+                } else {
+                    console.error("返回的数据不是一个数组:", resultData);
+                }
+            } else {
+                const error = await response.json();
+                console.error('Error:', error);
+            }
+        } catch (error) {
+            console.error('请求失败:', error);
+        }
+    });
+});
+
+document.addEventListener("DOMContentLoaded",  function () {
+    const locationsInput = document.getElementById('locations'); // 获取 locations 输入框
+    const regionsInput = document.getElementById('regions');   // 获取 regions 输入框
+    const tonesBtn = document.getElementById('tones-btn');
+    const contentSearch = document.querySelector('.content-search');
+
+
+    tonesBtn.addEventListener('click', async () => {
+        // 获取输入框中的汉字
+        const locations = locationsInput.value.trim().split(/\s+/); // 获取并拆分 locations
+        const regions = regionsInput.value.trim().split(/\s+/); // 获取并拆分 regions
+
+        // 构造请求数据
+        const requestData = {
+            locations: locations,
+            regions: regions
+        };
+
+        try {
+            // 发送 POST 请求到后端
+            const response = await fetch('http://127.0.0.1:5000/api/search_tones/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData),
+            });
+
+            // 处理返回的 JSON 数据
+            if (response.ok) {
+                const data = await response.json(); // 获取响应数据
+                const resultData = data.tones_result; // 提取 `result` 数组
+
+                // // 在前端控制台输出返回的数据
+                // console.log('从后端返回的数据:', resultData);
+                const headers = ['地點', '陰平', '陽平', '陰上', '陽上', '陰去', '陽去', '陰入', '陽入', '其他調', '輕聲'];
+                const colorArray = [
+                    { name: "Orange", hex: "#f58231" },
+                    { name: "Yellow", hex: "#ffe119" },
+                    { name: "Green", hex: "#3cb44b" },
+                    { name: "Cyan", hex: "#42d4f4" },
+                    { name: "Blue", hex: "#CCFFFF" },
+                    { name: "Magenta", hex: "#9999FF" },
+                    { name: "Pink", hex: "#fabed4" },
+                    { name: "Beige", hex: "#fffac8" },
+                    { name: "Mint", hex: "#aaffc3" },
+                    { name: "Lavender", hex: "#dcbfff" }
+                ];
+                // 创建表格元素
+                const table = document.createElement('table');
+                table.classList.add('table-tones'); // 添加表格样式类
+
+                // 创建表格头部
+                const thead = document.createElement('thead');
+                const headerRow = document.createElement('tr');
+
+                // 填充表头并设置颜色
+                headers.forEach((headerText, index) => {
+                    const th = document.createElement('th');
+                    th.textContent = headerText;
+
+                    // 设置表头颜色，跳过 "地點名稱"
+                    if (index > 0) {
+                        th.style.backgroundColor = colorArray[index - 1].hex;
+                    }
+
+                    headerRow.appendChild(th);
+                });
+                thead.appendChild(headerRow);
+                table.appendChild(thead);
+
+                // 创建表格内容
+                const tbody = document.createElement('tbody');
+                // 创建弹窗
+                const popup = document.createElement('div');
+                popup.classList.add('popup-tones');  // 用来显示弹窗
+                document.body.appendChild(popup);
+                popup.style.display = 'none';  // 初始时隐藏弹窗
+
+                // 填充表格数据
+                resultData.forEach(item => {
+                    const row = document.createElement('tr');
+
+                    // 添加地点名称列
+                    const locationCell = document.createElement('td');
+                    locationCell.classList.add('location-tones'); // 添加地点名称列样式类
+                    locationCell.textContent = item["簡稱"];
+                    row.appendChild(locationCell);
+
+                    // 给“簡稱”添加点击事件
+                    locationCell.addEventListener('click', function(event) {
+                        // 弹窗内容设置为該行的總數據
+                        const totalData = item["總數據"].join('<br>');
+                        popup.innerHTML = totalData;
+                        // 显示弹窗
+                        popup.style.display = 'block';
+
+                        // 获取鼠标点击位置并定位弹窗
+                        popup.style.left = event.pageX + 'px';
+                        popup.style.top = event.pageY + 'px';
+                    });
+
+                    // 添加音调数据列，并填充颜色
+                    item.tones.forEach((tone, index) => {
+                        const td = document.createElement('td');
+                        td.classList.add('tones-cell-tones'); // 添加音调列样式类
+                        const toneKey = Object.keys(tone)[0]; // 获取键 (T1, T2, T3 ...)
+                        const toneValue = tone[toneKey];
+                        // console.log(toneValue)
+
+                        // // 填充颜色：跳过 "無" 或以"T"开头的单元格
+                        // if (toneValue !== "無" && !toneValue.startsWith("T")) {
+                        //     // console.log("填色！！")
+                        //     td.style.backgroundColor = colorArray[index].hex; // 使用对应列的颜色
+                        // }
+                        // 如果是 "無"，则清空单元格并添加斜线
+                        if (toneValue === "無") {
+                            td.textContent = ""; // 清空单元格内容
+                            td.style.position = 'relative'; // 设置相对定位
+                            td.style.backgroundColor = 'transparent'; // 背景色透明
+                            td.style.border = '1px solid #000'; // 给单元格加个边框
+                            td.style.backgroundImage = 'linear-gradient(45deg, transparent 49%, #000 50%, transparent 51%)'; // 设置斜线背景
+                            td.style.backgroundSize = '15px 15px'; // 控制斜线的大小
+                        }
+
+                        // 如果以 T 开头，读取对应列的颜色（T1 ~ T10）
+                        else if (toneValue.startsWith("T")) {
+                            const columnIndex = parseInt(toneValue.substring(1)) -1; // T1 -> 0, T2 -> 1, ..., T10 -> 9
+                            console.log("columnindex",columnIndex)
+                            td.style.backgroundColor = colorArray[columnIndex].hex;
+                        }
+                        // 如果值是数字开头的，显示数字值并填充颜色
+                        else if (/^\d/.test(toneValue)) { // 如果是以数字开头
+                            td.style.backgroundColor = colorArray[index].hex;
+                            td.textContent = toneValue; // 显示实际音调值
+                        }
+
+                        // td.textContent = toneValue;
+                        row.appendChild(td);
+                    });
+
+                    tbody.appendChild(row);
+                });
+
+                table.appendChild(tbody);
+
+                // 将表格添加到页面中的 .content-search 元素
+                contentSearch.appendChild(table);
+                // 关闭弹窗的功能：点击页面其他地方
+                document.addEventListener('click', function(event) {
+                    if (!popup.contains(event.target) && !event.target.classList.contains('location-tones')) {
+                        popup.style.display = 'none';  // 点击页面其他地方时关闭弹窗
+                    }
+                });
+            }
+        } catch (error) {
+            console.log("报错报错")
+        }
+    })
+})
+
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    const clearBtn = document.getElementById('clear-btn');
+    const contentSearch = document.querySelector('.content-search');
+
+    // 获取清空按钮本身，避免清空按钮
+    const clearButton = document.querySelector('.clear-btn');
+
+    clearBtn.addEventListener('click', function () {
+        // 清空除了按钮以外的内容
+        contentSearch.querySelectorAll(':not(.clear-btn)').forEach(el => el.remove());
+        console.log("内容已清空，按钮未受影响");
+    });
+});
+
+
 
 
 

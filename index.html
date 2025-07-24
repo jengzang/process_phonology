@@ -61,7 +61,7 @@
 
         <!-- 地點與分區 -->
         <div class="input-section">
-            <h4 class="panel-subtitle">輸入或選擇方言點</h4>
+            <h4 class="panel-subtitle">方言點</h4>
             <div class="location-row">
                 <div class="location-input">
                     <label for="locations">地點</label>
@@ -70,7 +70,7 @@
 
                 <div class="region-input">
                     <button id="partitionBtn" class="text-btn">音典分區 ▼</button>
-                    <textarea id="regions"></textarea>
+                    <textarea id="regions" placeholder="請輸入或選擇分區"></textarea>
                 </div>
             </div>
         </div>
@@ -78,22 +78,22 @@
         <!-- 中古音輸入 -->
         <div class="input-section">
             <div id="status_inputs_group">
-                <h4 class="panel-subtitle">輸入待查中古音地位</h4>
-                <textarea id="status_inputs">通开一</textarea>
+                <h4 class="panel-subtitle">中古音地位</h4>
+                <textarea id="status_inputs" placeholder="請輸入待查中古音地位 支持-全匹配"></textarea>
             </div>
         </div>
 
         <div class="input-section">
             <div id="group_inputs_group" style="display: none;">
-                <h4 class="panel-subtitle">輸入分類與待查音節（可選）</h4>
+                <h4 class="panel-subtitle">分類與待查音節</h4>
                 <div class="group-row">
                     <div>
                         <label for="group_inputs">按中古音分類</label>
-                        <textarea id="group_inputs">攝</textarea>
+                        <textarea id="group_inputs" placeholder="請輸入分類所用的中古音地位(留空則用默認）"></textarea>
                     </div>
                     <div>
                         <label for="pho_values">待查音節</label>
-                        <textarea id="pho_values">l m an 陰平</textarea>
+                        <textarea id="pho_values" placeholder="請輸入待查的音節(留空則查全部）"></textarea>
                     </div>
                 </div>
             </div>
@@ -114,8 +114,7 @@
     </div>
 </div>
 
-<!-- inputpanel 面板復原按鈕 -->
-<button id="panelRestoreBtn" class="toggle-btn">🗗</button>
+
 
 <!-- 結果面板 -->
 <div id="resultPanel" class="panel panel-medium">
@@ -144,8 +143,6 @@
     </div>
 </div>
 
-<!-- 結果面板復原按鈕 -->
-<button id="resultRestoreBtn" class="toggle-btn">🗗</button>
 
 <script src="https://webapi.amap.com/loader.js"></script>
 
@@ -253,7 +250,10 @@
         </div>
             </div>
 </div>
-<!-- mapPanel 面板复原按钮 -->
+
+<!-- 面板復原按鈕 -->
+<button id="panelRestoreBtn" class="toggle-btn">🗗</button>
+<button id="resultRestoreBtn" class="toggle-btn">🗗</button>
 <button id="mapPanelRestoreBtn" class="toggle-btn">🗗</button>
 
 <!-- 右侧面板容器 -->
@@ -299,19 +299,21 @@
     <div class="expansion-panel-search">
         <div class="content-search">
             <!-- 这里是可填充的内容 -->
-            <p>可展示的内容</p>
-            <p>更多的内容</p>
-            <p>更多的内容...</p>
-            <p>继续增加内容</p>
+            <button class="clear-btn" id="clear-btn">×</button> <!-- 清空按钮 -->
         </div>
-        <!-- 按钮和输入框放在面板的最底部 -->
+
+        <!-- 底部按钮部分 -->
         <div class="footer-search">
-            <button class="btn-search" id="expand-btn">展开/收回</button>
-            <button class="btn-with-input-search">
-                <input type="text" placeholder="输入框">
-            </button>
-            <span class="drag-arrow-search">&#8595;</span>
+            <!-- 输入框占据30%宽度 -->
+            <input type="text" class="input-search" placeholder="請輸入待查漢字">
+            <!-- 查字按钮 -->
+            <button class="btn-search" id="characters-btn">查字</button>
+            <!-- 查音按钮 -->
+            <button class="btn-search" id="tones-btn">查調</button>
+            <!-- 圆形展开按钮 -->
+            <button class="btn-search-circle" id="expand-btn">&#9776</button>
         </div>
+
     </div>
 </div>
 

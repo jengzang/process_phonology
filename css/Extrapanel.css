@@ -30,6 +30,10 @@
     transition: transform 0.3s ease, background-color 0.3s ease;
 }
 
+.expand-button:hover {
+    background-color: #0051a8;
+}
+
 /* 展开面板的动画效果 */
 .right-panel {
     position: fixed;
@@ -153,8 +157,8 @@ button[type="submit"]:hover {
     justify-content: center;  /* 水平居中 */
     font-family: 'Arial', sans-serif;
     font-size: 16px;
-    width: 100%;  /* 确保容器占满父容器 */
-    height: 100%;  /* 使容器高度填充父容器 */
+    /*width: 100%;  !* 确保容器占满父容器 *!*/
+    /*height: 100%;  !* 使容器高度填充父容器 *!*/
 }
 
 /* 自定义开关容器 */
@@ -258,80 +262,24 @@ button[type="submit"]:hover {
 
 
 
-.container-search {
-    width: 50%;
-    max-width: 700px;
-    min-width: 300px;
-}
-
-/* 按钮及输入框的样式 */
-.header-search {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    background-color: #fff;
-    border-radius: 8px 8px 0 0;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.btn-search, .btn-with-input-search {
-    padding: 10px;
-    font-size: 16px;
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.btn-with-input-search input {
-    border: none;
-    outline: none;
-    padding: 5px;
-    font-size: 16px;
-    width: 150px;
-    border-radius: 4px;
-}
-
-.drag-arrow-search {
-    font-size: 24px;
-    cursor: ns-resize;
-}
-
-/* 可展开的面板样式 */
-.expansion-panel-search {
-    background-color: #fff;
-    border-radius: 0 0 8px 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    height: 40%; /* 默认高度为页面的2/5 */
-    overflow: hidden;
-    transition: height 0.3s ease;
-    position: relative;
-}
-
-.content-search {
-    padding: 20px;
-    overflow-y: auto; /* 内容超出时启用滚动条 */
-    max-height: 100%;
-}
 /* 面板容器 */
 .container-search {
+    position: relative;
     width: 50%;
     max-width: 700px;
     min-width: 300px;
-    position: relative;
 }
 
 /* 可展开的面板样式 */
 .expansion-panel-search {
-    position: absolute;
-    top: 30%; /* 初始面板位置在页面高度的3/10 */
-    width: 100%;
+    position: fixed;
+    top: 0; /* 顶部贴着页面上边缘 */
+    left: 29%; /* 左侧位置在页面的3/10 */
+    width: 22%; /* 设置元素宽度 */
     background-color: #fff;
     border-radius: 12px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    height: 40%; /* 默认高度为页面的2/5 */
+    height: 6%; /* 默认高度为页面的2/5 */
     overflow: hidden;
     transition: height 0.3s ease;
 }
@@ -340,51 +288,197 @@ button[type="submit"]:hover {
 .content-search {
     padding: 20px;
     overflow-y: auto; /* 内容超出时启用滚动条 */
-    max-height: 100%;
+    /*max-height: 100%;*/
+    flex-grow: 1; /* 让内容区域填满剩余空间 */
+    max-height: calc(100% - 70px); /* 限制内容区域的最大高度，防止超过底部按钮 */
 }
 
 /* 底部按钮和输入框 */
 .footer-search {
     display: flex;
+    /*position: relative;*/
+    flex-shrink: 1; /* 防止按钮区域被挤压 */
+    flex-grow: 0;   /* 确保 footer 不会被压缩 */
     justify-content: space-between;
     align-items: center;
-    padding: 15px 20px;
+    padding: 6px 20px;
     background-color: #fff;
     border-radius: 0 0 12px 12px;
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
     position: absolute;
     bottom: 0;
-    width: 100%;
+    /*width: 100%;*/
 }
 
-/* 按钮和输入框样式 */
-.btn-search, .btn-with-input-search {
-    padding: 10px 15px;
-    font-size: 16px;
-    background-color: #007aff;  /* 苹果风格的蓝色 */
+
+.input-search {
+    width: 35%;  /* 输入框占据30%宽度 */
+    padding: 5px 8px;
+    font-size: 13px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-right: 1px;  /* 给按钮一些间距 */
+}
+
+.btn-search {
+    padding: 6px 10px;
+    font-size: 15px;
+    background-color: #007aff;
     color: #fff;
     border: none;
     border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.3s;
+    min-width: 25px;  /* 设置按钮的最小宽度 */
+    margin-right: 10px;  /* 按钮间距 */
+    white-space: nowrap;  /* 禁止按钮文字换行 */
 }
 
-.btn-search:hover, .btn-with-input-search:hover {
-    background-color: #0051a8;  /* 按钮悬停时变色 */
+.btn-search:hover {
+    background-color: #0051a8;
 }
 
-.btn-with-input-search input {
+/* 圆形展开按钮样式 */
+.btn-search-circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;  /* 圆形 */
+    font-size: 15px;
+    font-weight: bolder;
+    background-color: #007aff;
+    color: #fff;
     border: none;
-    outline: none;
-    padding: 8px 12px;
-    font-size: 16px;
-    width: 160px;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s;
 }
 
-.drag-arrow-search {
-    font-size: 24px;
-    cursor: ns-resize;
-    color: #007aff;
+.btn-search-circle:hover {
+    background-color: #0051a8;
+}
+
+.char {
+    font-size: 28px;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 15px;  /* 上边距增加 */
+    margin-bottom: 1px;
+}
+
+.positions {
+    font-size: 13px;
+    color: gray;
+    text-align: center;
+    margin-bottom: 15px; /* 调小 p 标签之间的间距 */
+}
+.positions p {
+    margin: 2px 0; /* 调小上下间距 */
+}
+
+
+.location {
+    font-size: 16px;
+    /*font-weight: bold;*/
+    color: darkblue;
+    margin-bottom: 5px;
+    display: inline-block; /* 设置为 inline-block */
+    margin-right: 8px;     /* 增加右侧间距 */
+}
+
+.syllables {
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    display: inline-block; /* 设置为 inline-block */
+    font-family: "Times New Roman";
+}
+
+.syllables span {
+    margin-right: 3px;
+}
+
+.clear-btn {
+    position: absolute; /* 绝对定位 */
+    top: 10px; /* 距离顶部 10px */
+    right: 10px; /* 距离右侧 10px */
+    font-size: 16px; /* 小字体大小 */
+    width: 20px; /* 设置按钮的宽度 */
+    height: 20px; /* 设置按钮的高度 */
+    border: none; /* 去除边框 */
+    background: none; /* 去除背景 */
+    color: #888; /* 设置按钮颜色 */
+    text-align: center; /* 居中文本 */
+    cursor: pointer; /* 鼠标悬停时显示手型光标 */
+    font-weight: bold; /* 设置字体加粗 */
+}
+
+/* 表格样式 */
+.table-tones {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.table-tones th,
+.table-tones td {
+    border: 1px solid #ddd;
+    padding: 3px;
+    text-align: center;
+    white-space: nowrap; /* 禁止换行 */
+    overflow: hidden;    /* 超出内容隐藏 */
+    text-overflow: ellipsis; /* 显示省略号 */
+    font-size: 1em; /* 默认字体大小 */
+}
+
+/* 地点名称列 */
+.location-tones {
+    width: 100px;
+    text-overflow: ellipsis; /* 超出显示省略号 */
+    overflow: hidden; /* 隐藏超出部分 */
+    white-space: nowrap; /* 禁止换行 */
+    font-size: 12px; /* 默认字体大小 */
+    transition: transform 0.2s ease, background-color 0.2s ease; /* 添加过渡效果 */
+}
+
+
+/* 鼠标悬停时变色、变大 */
+.location-tones:hover {
+    background-color: #f4f4f4; /* 鼠标悬停时变色 */
+    transform: scale(1.1); /* 鼠标悬停时稍微放大 */
+    cursor: pointer; /* 鼠标指针变为手形 */
+}
+
+/* 音调列 */
+.tones-cell-tones {
+    width: 60px;
+    text-overflow: ellipsis; /* 超出显示省略号 */
+    overflow: hidden; /* 隐藏超出部分 */
+    white-space: nowrap; /* 禁止换行 */
+    font-size: 1em; /* 默认字体大小 */
+}
+
+
+/* 弹窗样式 */
+.popup-tones {
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    max-width: 300px;
+    min-width: 150px;
+    font-size: 14px;
+    z-index: 1000;
+    display: none; /* 初始隐藏 */
+    white-space: pre-wrap; /* 保证内容换行 */
+    transition: opacity 0.3s ease; /* 加入过渡效果 */
+}
+
+.popup-tones h3 {
+    margin-top: 0;
+    font-size: 16px;
+    color: #333;
 }

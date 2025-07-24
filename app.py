@@ -11,7 +11,8 @@ from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from main import run_phonology_analysis
-from source.Extras_addplaces_searchchars import fetch_dialect_region, handle_form_submission, get_from_submission
+from source.Extras_addplaces_searchchars import fetch_dialect_region, handle_form_submission, get_from_submission, \
+    search_characters, search_tones
 from source.config import SUPPLE_DB_PATH
 from source.process_input import read_partition_hierarchy, match_locations_batch, query_dialect_abbreviations, \
     get_coordinates_from_db
@@ -201,6 +202,42 @@ async def query_location_data(query_params: QueryParams):
             raise HTTPException(status_code=404, detail="No matching data found")
 
         return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class SearchRequest(BaseModel):
+    chars: List[str]  # List of characters to search for
+    locations: List[str] = None  # List of locations (optional)
+    regions: List[str]= None  # List of regions (optional)
+
+
+@app.post("/api/search_chars/")
+async def search_chars(request: SearchRequest):
+    # print(request.chars)
+    # print(request.locations)
+    # print(request.regions)
+    # print("开始运行")
+    try:
+        # Call the search_characters function with the provided parameters
+        result = search_characters(chars=request.chars, locations=request.locations, regions=request.regions)
+
+        # Return the result
+        return {"result": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+class SearchRequest2(BaseModel):
+    locations: List[str] = None  # List of locations (optional)
+    regions: List[str]= None  # List of regions (optional)
+@app.post("/api/search_tones/")
+async def search_tones_o(request: SearchRequest2):
+    try:
+        # Call the search_characters function with the provided parameters
+        result = search_tones(locations=request.locations, regions=request.regions)
+
+        # Return the result
+        return {"tones_result": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

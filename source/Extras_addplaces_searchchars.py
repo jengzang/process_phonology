@@ -4,6 +4,7 @@ import sqlite3
 from typing import Union, List
 
 import numpy as np
+import pandas as pd
 
 from source.config import QUERY_DB_PATH, SUPPLE_DB_PATH, DIALECTS_DB_PATH, CHARACTERS_DB_PATH
 
@@ -197,13 +198,6 @@ def get_from_submission(locations, regions, need_features):
     return result
 
 
-
-import sqlite3
-import os
-
-import sqlite3
-import os
-
 def search_characters(chars, locations=None, regions=None):
     # 假设 query_dialect_abbreviations 函数返回一个地点简称的列表
     all_locations = query_dialect_abbreviations(regions, locations)
@@ -328,8 +322,175 @@ def search_characters(chars, locations=None, regions=None):
     return result
 
 
+def search_tones(locations=None, regions=None):
+    # 假设 query_dialect_abbreviations 函数返回一个地点简称的列表
+    all_locations = query_dialect_abbreviations(regions, locations)
 
-locations = ["東莞莞城", "雲浮富林"]
-chars = "干"
-result = search_characters(chars, locations)
-print(result)
+    # 打开数据库连接
+    conn = sqlite3.connect(QUERY_DB_PATH)
+    cursor = conn.cursor()
+
+    # 查询dialects表的相关列
+    query = """
+    SELECT 簡稱, T1陰平, T2陽平, T3陰上, T4陽上, T5陰去, T6陽去, T7陰入, T8陽入, T9其他調, T10輕聲 FROM dialects
+    """
+    # 使用pandas读取数据
+    df = pd.read_sql(query, conn)
+
+    # 设置簡稱为索引
+    df.set_index('簡稱', inplace=True)
+
+    # 如果传入了abbreviation，则根据它过滤数据
+    if  all_locations is not None:
+        df = df.loc[ all_locations]
+
+    # 处理每一列的单元格
+    def process_cell(value, num):
+        # 如果值是 None 或 NaN，返回空字符串
+        if value is None or pd.isnull(value):
+            return ""
+        if isinstance(value, str):  # 确保是字符串
+            # 如果没有 []，在开头添加[num]
+            if ('[' not in value) or (']' not in value):
+                return f"[{num}]{value}"
+            else:
+                # 如果有 []，按逗号拆分并处理
+                elements = value.split(',')
+                processed_elements = []
+                for element in elements:
+                    # 只有当元素没有 [num] 或 [] 时才加上[num]
+                    if '[' not in element and ']' not in element:
+                        processed_elements.append(f"[{num}]{element}")
+                    else:
+                        processed_elements.append(element)
+                return ','.join(processed_elements)
+        return value
+
+    match_table = {
+        'T1': ['陰平', '平聲', '阴平', '平声'],
+        'T2': ['陽平', '阳平'],
+        'T3': ['陰上', '上聲', '阴上', '上声'],
+        'T4': ['陽上', '阳上'],
+        'T5': ['陰去', '去聲', '阴去', '去声'],
+        'T6': ['陽去', '阳去'],
+        'T7': ['陰入', '阴入'],
+        'T8': ['陽入', '阳入']
+    }
+
+    # 遍历数据框并进行处理
+    for col_num, col_name in enumerate(df.columns, start=1):
+        # 处理每一列的每一行
+        df[col_name] = df[col_name].apply(lambda x: process_cell(x, col_num))
+
+    result = []
+    new_result = []
+
+    # 遍历所有数据行
+    for index, row in df.iterrows():
+        # 获取总数据
+        total_data = [str(x) if x != "" else "" for x in row.tolist()]
+
+        # 创建一个字典，保留簡稱和總數據
+        row_data = {
+            "簡稱": index,
+            "總數據": total_data
+        }
+
+        # 生成新的 tones 字段
+        new_row = {
+            "簡稱": index,
+            "總數據": total_data,
+            "tones": []
+        }
+
+        # 遍历 T1 到 T10
+        for i in range(1, 11):
+            matched = total_data[i - 1]  # 索引从 0 开始，因此使用 i - 1
+
+            # 去除方括号和其中的内容
+            raw_value = re.sub(r'\[.*?\]', '', matched)  # 删除方括号和其中的内容
+
+            if raw_value:
+                # 按逗号分割
+                raw_parts = raw_value.split(',')
+                value_list = []
+                name_list = []
+
+                for part in raw_parts:
+                    # 提取数字部分 (value)
+                    value = ''.join(re.findall(r'\d+', part))
+                    # 提取汉字部分 (name)
+                    name = ''.join(re.findall(r'[^\d,]+', part))
+
+                    value_list.append(value)
+                    name_list.append(name)
+
+                # 匹配名称
+                match_list = []
+                for name in name_list:
+                    matched_t = set()  # 使用 set 来去重
+                    for t, names in match_table.items():
+                        if any(matching_name in name for matching_name in names):  # 部分匹配
+                            matched_t.add(t)
+
+                    match_list.extend(list(matched_t))  # 将 set 转回 list，直接扩展到 match_list
+
+                # 去重 match_list
+                match_list = list(set(match_list))
+
+                # 将结果保存到 row_data 字典中
+                row_data[f"T{i}"] = {
+                    'raw': raw_value,
+                    'value': value_list,
+                    'name': name_list,
+                    'match': match_list
+                }
+
+                # 更新 tones 列表
+                new_row['tones'].append(
+                    {f"T{i}": ','.join(value_list) if value_list else ','.join(match_list) if match_list else '無'})
+            else:
+                # 如果没有匹配值，初始化为空
+                row_data[f"T{i}"] = {
+                    'raw': '',
+                    'value': [],
+                    'name': [],
+                    'match': []
+                }
+
+                new_row['tones'].append({f"T{i}": '無'})  # 初步处理为无匹配
+
+        # 在这里遍历结束之后再处理没有匹配的 T
+        for i in range(1, 11):  # 再次遍历每个 T
+            t_data = row_data[f"T{i}"]
+
+            if not t_data['value']:  # 如果 T[i] 的 value 为空
+                match_found = []
+                for j in range(1, 11):  # 遍历同一簡稱中的其他 T（T1 到 T10）
+                    if j != i:  # 避免比较自己
+                        t_j_data = row_data[f"T{j}"]
+                        if f"T{i}" in t_j_data.get('match', []):  # 检查 T[i] 是否在 T[j] 的 match 中
+                            match_found.append(f"T{j}")  # 如果匹配，则加入匹配列表
+
+                # 打印调试输出：当前 T[i] 在其它 T 的 match 中找到了什么
+                print(f"Searching for matches for T{i}: Found {match_found}")
+
+                if match_found:
+                    row_data[f"T{i}"]['match'] = ','.join(match_found)  # 填充匹配的 T
+                    new_row['tones'][i - 1] = {f"T{i}": ','.join(match_found)}  # 更新 tones
+                else:
+                    row_data[f"T{i}"]['match'] = '無'  # 如果没有匹配项，填充无
+                    new_row['tones'][i - 1] = {f"T{i}": '無'}  # 更新 tones 为无
+
+        # 添加到 result 和 new_result 中
+        result.append(row_data)
+        new_result.append(new_row)
+
+    return new_result
+
+# result = process_dialect_data()
+# print(result)
+# locations = ['東莞莞城', '雲浮富林']
+# chars = ['干']
+# result = search_characters(chars, locations)
+# print(result)
