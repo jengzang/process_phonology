@@ -1,12 +1,13 @@
 import os
-
-from source.change_coordinates import bd09togcj02
-from source.get_new import extract_all_from_tsv
-from source.match_fromdb import get_tsvs
-import pandas as pd
 import sqlite3
 from pathlib import Path
+
+import pandas as pd
+
+from source.change_coordinates import bd09togcj02
 from source.config import HAN_PATH, APPEND_PATH, QUERY_DB_PATH, DIALECTS_DB_PATH, CHARACTERS_DB_PATH, PHO_TABLE_PATH
+from source.get_new import extract_all_from_tsv
+from source.match_fromdb import get_tsvs
 
 
 def build_dialect_database():
@@ -232,7 +233,7 @@ def process_all2sql(tsv_paths, db_path, append=False):
     log_path = os.path.splitext(db_path)[0] + "_log.txt"
     with open(log_path, "w", encoding="utf-8") as f:
         f.write("\n".join(log_lines))
-    print(f"\n📝 已寫入紀錄至：{log_path}")
+    # print(f"\n📝 已寫入紀錄至：{log_path}")
 
 
 def process_polyphonic_annotations(db_path: str):
