@@ -12,6 +12,9 @@
     <link rel="stylesheet" href="css/resultpanel.css" />
     <link rel="stylesheet" href="css/mappanel.css" />
     <link rel="stylesheet" href="css/Extrapanel.css" />
+    <link rel="stylesheet" href="css/vue.css">
+    <!-- 加載 Vue 3 的 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.js"></script>
     <script src="https://webapi.amap.com/loader.js"></script>
 </head>
 
@@ -103,6 +106,15 @@
         <div class="input-section">
             <div class="center-btn">
                 <button id="runBtn" class="fancy-run-btn">🚀 單擊運行</button>
+                <!-- 圓形切換開關 -->
+                <div class="switch-container-masschange">
+                    <span id="button-text-masschange" class="button-text-masschange">海量數據</span>
+                    <button id="button-masschange" class="button-masschange">
+                        <span class="button-icon-masschange">↻</span>
+                    </button>
+                </div>
+
+
             </div>
 
             <div class="debug-row">
@@ -128,22 +140,13 @@
         <button id="toggleColumnsBtn">切換隱藏</button>
     </div>
     <div id="resultPanelContent" class="panel-content">
-        <table id="resultTable" class="four-col"> <!-- 初始設成 4欄 -->
-            <thead>
-            <tr>
-                <th class="col1">地點</th>
-                <th class="col2">特徵值</th>
-                <th class="col3">對應字</th>
-                <th class="col4">字數/佔比</th>
-            </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+    </div>
+    <div id="stickyContextBar2" class="sticky-label2" style="display: none;">
+        <span id="stickyContextText2"></span>
+        <button id="toggleColumnsBtn2" class="apple-button2">切换隐藏</button>
     </div>
 </div>
 
-
-<script src="https://webapi.amap.com/loader.js"></script>
 
 <!-- 新增地图面板 -->
 <div id="mapPanel" class="panel panel-medium">
@@ -304,7 +307,7 @@
         <!-- 底部按钮部分 -->
         <div class="footer-search">
             <!-- 输入框占据30%宽度 -->
-            <input type="text" class="input-search" placeholder="請輸入待查漢字">
+            <input type="text" class="input-search" placeholder="🔎︎請輸入待查漢字">
             <!-- 查字按钮 -->
             <button class="btn-search" id="characters-btn">查字</button>
             <!-- 查音按钮 -->
@@ -323,6 +326,6 @@
 <script src="js/resultpanel.js"></script>
 <script src="js/mappanel.js"></script>
 <script src="js/Extrapanel.js"></script>
-<!--<script src="js/resultpanel_new.js"></script>-->
+<script src="js/vue.js"></script>
 </body>
 </html>

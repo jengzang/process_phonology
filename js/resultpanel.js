@@ -181,8 +181,8 @@ function renderResults(data) {
     const headCols = headColsRaw.filter((_, idx) => {
         const colIdx = idx + 1;
         if (colIdx === 1 && shouldHideCol1) return false;
-        if (colIdx === 2 && useFiveCols && shouldHideCol2) return false;
-        return true;
+        return !(colIdx === 2 && useFiveCols && shouldHideCol2);
+
     });
 
     thead.innerHTML = `<tr>${headCols.map((h, i) => `<th class="col${i + 1}"><div class="th-inner">${h}</div></th>`).join('')}</tr>`;
@@ -214,8 +214,8 @@ function renderResults(data) {
     const visibleColClasses = allColClasses.filter((cls, idx) => {
         const colIdx = idx + 1;
         if (colIdx === 1 && shouldHideCol1) return false;
-        if (colIdx === 2 && useFiveCols && shouldHideCol2) return false;
-        return true;
+        return !(colIdx === 2 && useFiveCols && shouldHideCol2);
+
     });
 
     visibleColClasses.forEach((cls, i) => {
@@ -571,21 +571,7 @@ async function analysis_from_db() {
         // console.log('🔍 data 第一筆:', data[0]);
         // console.log('🔍 整個data:', data);
         // console.log('🔍 data 第一筆特徵值的型別:', typeof data[0].特徵值, data[0].特徵值);
-
-        if (!Array.isArray(data) || data.length === 0) {
-            alert("⚠️ 沒有有效的結果可渲染");
-            clearLoadingMessage();
-            return;
-        }
-
-        setLoadingMessage("📊 表格整理中…");
-        const renderStart = performance.now();
-        renderResults(latestResults);
-        const renderEnd = performance.now();
-        console.log(`🖥️ 表格渲染耗時：${(renderEnd - renderStart).toFixed(2)} ms`);
-
-        clearLoadingMessage();
-    } catch (error) {
+            } catch (error) {
         console.error("分析失敗", error);
         log("❌ 錯誤", { message: error.message });
         alert("❌ 請求後端錯誤：" + error.message);
@@ -593,4 +579,49 @@ async function analysis_from_db() {
     }
 }
 
+async function js_table_render() {
+    let latestResults = window.latestResults;
+    if (!Array.isArray(latestResults) || latestResults.length === 0) {
+        alert("⚠️ 沒有有效的結果可渲染");
+        clearLoadingMessage();
+        return;
+    }
+
+    // 在渲染之前動態創建表格（如果表格不存在）
+    let resultTable = document.getElementById("resultTable");
+    if (!resultTable) {
+        const resultPanelContent = document.getElementById("resultPanelContent");
+
+        resultTable = document.createElement("table");
+        resultTable.id = "resultTable";
+        resultTable.classList.add("four-col");
+
+        const thead = document.createElement("thead");
+        const headerRow = document.createElement("tr");
+
+        // 添加表格標題
+        const headers = ["地點", "特徵值", "對應字", "字數/佔比"];
+        headers.forEach(header => {
+            const th = document.createElement("th");
+            th.textContent = header;
+            headerRow.appendChild(th);
+        });
+
+        thead.appendChild(headerRow);
+        resultTable.appendChild(thead);
+
+        const tbody = document.createElement("tbody");
+        resultTable.appendChild(tbody);
+
+        resultPanelContent.appendChild(resultTable);
+    }
+
+    setLoadingMessage("📊 表格整理中…");
+    const renderStart = performance.now();
+    renderResults(latestResults);
+    const renderEnd = performance.now();
+    console.log(`🖥️ 表格渲染耗時：${(renderEnd - renderStart).toFixed(2)} ms`);
+
+    clearLoadingMessage();
+}
 

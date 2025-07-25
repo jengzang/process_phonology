@@ -1,6 +1,8 @@
 // 全局变量记录面板的展开状态
 window.isPanelOpen = false;
 window.plotted = false
+// 初始狀態設定，默認為開啟狀態
+window.isButtonClosed = false; // 默認是開啟狀態（海量數據）
 // 🎛 通用控制：拖曳與最小化/最大化控制
 let currentMode = 1;
 let resultMode = 1;
@@ -142,11 +144,21 @@ window.fetchWithLog = async function(url, options) {
 
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("runBtn")?.addEventListener("click", async () => {
+        // Clear the resultPanelContent div before proceeding with any other logic
+        const resultPanelContent = document.getElementById("resultPanelContent");
+        if (resultPanelContent) {
+            resultPanelContent.innerHTML = ''; // Correct way to clear the content
+        }
         window.latestResults = []
         window.locations_data = []
         window.selectedItem = []
         // await runAnalysis();          // 先送出分析並記錄 log
-        await analysis_from_db();     // 然後渲染表格結果
+        await analysis_from_db();
+        if (window.isButtonClosed) {
+            await js_table_render();     // 然後渲染表格結果
+        }else{
+            await initVue();
+        }
         await create_map1();
         window.mergedData = []
         console.log("重置数据")
@@ -155,4 +167,30 @@ document.addEventListener("DOMContentLoaded", () => {
         // 数据加载完成后执行 mergeData 函数
         await func_mergeData();
     });
+});
+
+
+
+
+document.getElementById('button-masschange').addEventListener('click', async function() {
+    const buttonText = document.getElementById('button-text-masschange');
+    const buttonIcon = document.querySelector('.button-icon-masschange');
+    const button = document.getElementById('button-masschange');
+
+    // 根據全局變量控制按鈕的開關狀態
+    if (window.isButtonClosed) {
+        // 如果當前為關閉狀態，切換為開啟狀態
+        window.isButtonClosed = false;  // 更新全局狀態為開啟
+        buttonText.textContent = '海量數據';  // 顯示開啟狀態的文字
+        buttonIcon.innerHTML = '↻';  // 顯示旋轉圖標
+        button.classList.remove('closed');  // 移除關閉狀態的類
+        console.log("切換到開啟狀態");
+    } else {
+        // 如果當前為開啟狀態，切換為關閉狀態
+        window.isButtonClosed = true;  // 更新全局狀態為關閉
+        buttonText.textContent = '表格模式';  // 顯示關閉狀態的文字
+        buttonIcon.innerHTML = '↺';  // 顯示旋轉圖標
+        button.classList.add('closed');  // 移除關閉狀態的類
+        console.log("切換到關閉狀態");
+    }
 });

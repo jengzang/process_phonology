@@ -355,7 +355,7 @@ async function func_mergeData() {
                 let location = item["地點"];
                 let cha_nums = item["字數"];
 
-                console.log("正在处理 location:", location); // 打印正在处理的地点
+                // console.log("正在处理 location:", location); // 打印正在处理的地点
 
                 // 将数据按 location 和 feature 分组
                 if (!groupedData[location]) {
@@ -383,7 +383,7 @@ async function func_mergeData() {
                     percentage,
                     cha_nums
                 });
-                console.log("处理完成：",location)
+                // console.log("处理完成：",location)
             }
         }
     });
@@ -651,6 +651,10 @@ document.addEventListener("DOMContentLoaded", function() {
     // 填充数据到下拉框或按钮
     function populateFeatureData() {
         const uniqueFeatures = [...new Set(window.latestResults.map(result => result.特徵值))];
+
+        if (document.querySelector('.dropdown')) {
+            return;  // 如果下拉框已经存在，就不再创建
+        }
 
         // 根据 uniqueFeatures 的数量决定是显示下拉框还是按钮
         if (uniqueFeatures.length === 1) {

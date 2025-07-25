@@ -27,12 +27,32 @@
     align-items: center;
 }
 
+/* 炫酷的hover效果 */
+.mode-box:hover, .feature-box:hover {
+    background: #f9f9f9;  /* 背景渐变 */
+    transform: scale(1.1);  /* 增加放大效果 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);  /* 加强阴影效果 */
+}
+
 .mode-label {
     display: flex;
     gap: 10px;
     align-items: flex-start;
     margin-bottom: 10px;
 }
+
+/* mode-label 悬停时的炫酷效果 */
+.mode-label:hover {
+    color: #007aff;  /* 文字颜色变化 */
+    text-shadow: 0 2px 6px gray;  /* 添加文字的阴影效果 */
+    transform: scale(1.05);  /* 悬停时放大文字 */
+    letter-spacing: 1px;  /* 增加字母间距，使文字看起来更加分散 */
+    transition: transform 0.3s ease, color 0.3s ease, letter-spacing 0.3s ease, text-shadow 0.3s ease; /* 平滑过渡 */
+    background-image: linear-gradient(45deg, #007aff, #4cd964); /* 文字背景渐变 */
+    background-clip: text;  /* 背景渐变只应用于文字 */
+    -webkit-background-clip: text;  /* Webkit 支持 */
+}
+
 
 .mode-text {
     display: flex;
@@ -68,12 +88,24 @@
     /*font-size: 14px;*/
 }
 
-/* 🔹 輸入組塊樣式 */
-.input-section {
-    margin-top: 12px;      /* 與上方區塊的距離 */
-    margin-bottom: 10px;   /* 與下方保持呼吸感 */
-    padding: 12px 0;
+.checkbox-group label:hover {
+    color: #007aff;  /* 悬停时文字颜色变化 */
+    transform: scale(1.2); /* 向右滑动效果 */
 }
+
+/* Checkbox 按钮悬停效果 */
+.checkbox-group input[type="checkbox"]:hover + span {
+    background-color: #0051a8;
+    transform: scale(1.1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* 强化阴影 */
+}
+
+/*!* 🔹 輸入組塊樣式 *!*/
+/*.input-section {*/
+/*    margin-top: 12px;      !* 與上方區塊的距離 *!*/
+/*    margin-bottom: 10px;   !* 與下方保持呼吸感 *!*/
+/*    padding: 12px 0;*/
+/*}*/
 
 /* 🔹 中古音分類輸入區塊（左右並排） */
 .input-row {
@@ -99,9 +131,15 @@
 
 /* 通用輸入區塊排版 */
 .input-section {
-    margin-top: 4px;      /* ✅ 往上靠緊一點 */
-    margin-bottom: 8px;   /* 下方略有空隙即可 */
-    padding: 4px 0;       /* 減少上下 padding */
+    margin-top: 0px;      /* ✅ 往上靠緊一點 */
+    margin-bottom: 0px;   /* 下方略有空隙即可 */
+    padding: 0px 0;       /* 減少上下 padding */
+}
+
+/* 增加input-section hover效果 */
+.input-section:hover {
+    background-color: #f9f9f9; /* 悬停时背景颜色变化 */
+    transform: scale(1.02); /* 轻微放大 */
 }
 
 .panel-subtitle {
@@ -112,6 +150,11 @@
     color: #444;
 }
 
+/* 增加panel-subtitle的hover效果 */
+.panel-subtitle:hover {
+    color: #007aff; /* 悬停时文字颜色变化 */
+}
+
 .panel-header {
     background: #f2f2f2;
     padding: 10px;
@@ -120,6 +163,7 @@
     gap: 8px; /* ✅ 讓按鈕間有空隙 */
     border-bottom: 1px solid #ddd;
 }
+
 
 
 /* 地點區排版 */
@@ -154,6 +198,23 @@ label {
     margin-bottom: 2px;
 }
 
+/* 输入框悬停效果 */
+.location-input:hover,
+.region-input:hover {
+    transform: scale(1.05); /* 放大效果 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* 增加阴影 */
+}
+
+/* text area悬停效果 */
+textarea:hover {
+    border-color: #007aff; /* 悬停时边框变为蓝色 */
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.6); /* 添加发光效果 */
+}
+
+/* label悬停效果 */
+label:hover {
+    color: #007aff; /* 悬停时文字颜色变为蓝色 */
+}
 
 .suggest-line {
     padding: 8px 12px;
@@ -162,7 +223,8 @@ label {
 }
 
 .suggest-line:hover {
-    background-color: #e6f2ff !important;
+    background-color: #e6f2ff !important; /* 背景色变化 */
+    transform: scale(1.1); /* 放大效果 */
 }
 
 
@@ -172,14 +234,26 @@ label {
     color: #007aff;
 }
 
+/* success 悬停效果 */
+.success:hover {
+    color: #0051a8; /* 悬停时颜色变化 */
+    transform: scale(1.1); /* 放大效果 */
+}
 
 
 
-/* fancy run 按鈕 */
+
+/* center-btn 保持居中對齊 */
 .center-btn {
     text-align: center;
     margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px; /* 控制按鈕和開關之間的間距 */
 }
+
+
 
 .fancy-run-btn {
     font-size: 18px;
@@ -197,7 +271,7 @@ label {
     overflow: hidden;
 }
 .fancy-run-btn:hover {
-    transform: scale(1.05);
+    transform: scale(1.2);
     box-shadow: 0 0 20px rgba(0, 195, 255, 0.8), 0 0 50px rgba(110, 0, 255, 0.5);
 }
 
@@ -244,7 +318,7 @@ label {
     cursor: pointer;
     color: #1976d2;
     padding: 2px 4px;
-    margin-bottom: 4px;
+    margin-bottom: 0px;
 }
 .text-btn:hover {
     background-color: rgba(0, 0, 0, 0.05);
@@ -360,7 +434,17 @@ label {
 
 .input-section:empty {
     display: none;
+    visibility: hidden;
+    height: 0;
+    width: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+    overflow: hidden;
 }
+
+
+
 
 .partition-list:empty {
     display: none;
@@ -398,3 +482,85 @@ label {
     color: #ff3b30; /* Apple 紅錯誤 */
     font-weight: bold;
 }
+
+
+.switch-container-masschange {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+}
+
+.button-text-masschange {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; /* 黑體字型 */
+    font-size: 11px; /* 增加字體大小 */
+    font-weight: bold; /* 加粗文字 */
+    color: #333; /* 文字顏色 */
+    text-transform: uppercase; /* 使文字變成大寫 */
+    letter-spacing: 1px; /* 增加字間距 */
+    line-height: 1.4; /* 增加行高，讓文字更具空間感 */
+    text-align: center; /* 文字居中 */
+    margin-bottom: 0px; /* 讓文字和按鈕保持一定的距離 */
+    transition: color 0.3s ease, transform 0.3s ease; /* 添加過渡效果 */
+}
+
+.button-text-masschange:hover {
+    color: #1c8dba; /* 懸停時文字顏色變換 */
+    transform: scale(1.2); /* 懸停時文字微放大 */
+}
+
+.button-text-masschange:active {
+    color: #0077cc; /* 點擊時的顏色 */
+    transform: scale(0.9); /* 點擊時輕微縮小 */
+}
+
+
+
+.button-masschange {
+    width: 30px;
+    height: 30px;
+    background-color: #007aff; /* 蘋果藍，開啟狀態 */
+    color: white;
+    border: none;
+    border-radius: 50%; /* 圓形 */
+    font-size: 18px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s ease, filter 0.3s ease;
+}
+
+.button-masschange .button-icon-masschange {
+    font-size: 18px;
+}
+
+.button-masschange:hover {
+    background-color: mediumblue; /* 藍色懸停 */
+    transform: scale(1.4) rotate(60deg); /* 按鈕放大並旋轉 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* 添加陰影 */
+    filter: brightness(1.2); /* 增強亮度 */
+}
+
+.button-masschange:active {
+    transform: scale(0.9); /* 點擊時縮放 */
+}
+
+/* 關閉狀態樣式 */
+.button-masschange.closed {
+    background-color: gray; /* 蘋果灰，關閉狀態 */
+}
+
+/* 關閉狀態懸停效果 */
+.button-masschange.closed:hover {
+    background-color: #444444; /* 蘋果灰，關閉狀態懸停顏色 */
+    transform: scale(1.4) rotate(-60deg); /* 關閉狀態的懸停放大並旋轉 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* 加入微弱陰影 */
+    filter: brightness(1.1); /* 增強亮度 */
+}
+
+
+
+
+

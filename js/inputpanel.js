@@ -20,7 +20,17 @@ function updateVisibility() {
     const mode = document.querySelector('input[name="mode"]:checked')?.value;
     document.getElementById("status_inputs_group").style.display = mode === "s2p" ? "block" : "none";
     document.getElementById("group_inputs_group").style.display = mode === "p2s" ? "block" : "none";
+    // 遍历所有的 .input-section 元素，检查是否为空，空的隐藏
+    document.querySelectorAll('.input-section').forEach(function(section) {
+        if (!section.textContent.trim()) {
+            section.style.display = 'none';  // 如果为空，隐藏元素
+        } else {
+            section.style.display = 'block'; // 如果有内容，显示元素
+        }
+    });
 }
+
+
 document.querySelectorAll('input[name="mode"]').forEach(r => {
     r.addEventListener("change", updateVisibility);
 });
@@ -347,3 +357,5 @@ inputEl.addEventListener("blur", () => {
         suggestion.style.display = "none";
     }, 200);
 });
+
+

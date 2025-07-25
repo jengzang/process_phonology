@@ -168,9 +168,26 @@ def process_all2sql(tsv_paths, db_path, append=False):
     conn.commit()
 
     log_lines = []
+    update_rows = pd.DataFrame()  # 默认空的 DataFrame
 
     def clean_join(series):
         return ", ".join(x.strip() for x in series.dropna().astype(str).unique() if x and x.strip())
+
+    # 只有当 append=True 时，才进行筛选
+    if append:
+        try:
+            df_append = pd.read_excel(APPEND_PATH, sheet_name="檔案")
+            update_rows = df_append[df_append['待更新'] == 1]
+        except:
+            print("读取 APPEND_PATH 文件失败，跳过筛选。")
+
+        # 如果 append 为 True，删除数据库中与待更新行中“簡稱”匹配的记录
+        if not update_rows.empty:
+            # 去除 NaN 和空值，确保只有有效的簡稱列参与删除操作
+            valid_簡稱 = update_rows['簡稱'].dropna()  # 去除 NaN 值
+            for row in valid_簡稱:
+                cursor.execute("DELETE FROM dialects WHERE 簡稱 = ?", (row,))
+            conn.commit()
 
     for path in tsv_paths:
         if path == "_":
@@ -178,6 +195,11 @@ def process_all2sql(tsv_paths, db_path, append=False):
 
         tsv_name = os.path.splitext(os.path.basename(path))[0]
         print(f"\n🔍 正在處理：{tsv_name}")
+
+        # 如果 append 为 True，则进行筛选
+        if append and not update_rows.empty and tsv_name not in update_rows['簡稱'].values:
+            print(f"跳過：{tsv_name} (不在待更新清單中)")
+            continue
 
         try:
             df = extract_all_from_tsv(path)
@@ -409,21 +431,21 @@ def process_phonology_excel(
         print(f"❌ SQLite 寫入失敗: {e}")
 
 
-def write_to_sql(yindian = None, write_chars_db=None):
+def write_to_sql(yindian=None, write_chars_db=None, append=False):
     #  寫檔案表
     print("开始寫入檔案表")
     build_dialect_database()
 
     #  寫總數據表
     if yindian:
-        tsv_paths_yindian,*_ = get_tsvs(output_dir='data/yindian/')
+        tsv_paths_yindian, *_ = get_tsvs(output_dir='data/yindian/')
         tsv_paths_mine, *_ = get_tsvs()
         tsv_paths = tsv_paths_yindian + tsv_paths_mine
     else:
         tsv_paths, *_ = get_tsvs()
     db_path = os.path.join(os.getcwd(), DIALECTS_DB_PATH)
     print("🚀 開始導入資料...")
-    process_all2sql(tsv_paths, db_path)
+    process_all2sql(tsv_paths, db_path, append)
     print("开始处理重复行以及标记多音字")
     process_polyphonic_annotations(DIALECTS_DB_PATH)
     print("开始寫入存儲標記")

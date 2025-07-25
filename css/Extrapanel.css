@@ -28,10 +28,30 @@
     cursor: pointer;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     transition: transform 0.3s ease, background-color 0.3s ease;
+    transform-origin: center; /* 确保旋转围绕圆心 */
 }
 
+/* hover效果 */
 .expand-button:hover {
     background-color: #0051a8;
+    transform: scale(1.2) rotate(20deg) translate(-25%, -25%); /* 放大并微旋转，同时保持中心不动 */
+    box-shadow: 0 0 15px 5px rgba(0, 124, 255, 0.7); /* 环绕发光效果 */
+    filter: brightness(1.3);  /* 增加亮度 */
+
+}
+
+.expand-button.open {
+    transform: translateY(-50%) rotate(45deg); /* 点击后旋转加号 */
+    background-color: #4cd964;  /* 点击后背景变绿 */
+
+}
+
+/* open状态下的hover效果 */
+.expand-button.open:hover {
+    transform: scale(1.2) rotate(45deg)translate(-25%, -25%);; /* 放大并继续旋转 */
+    background-color: #42b043; /* 背景变成稍微深一点的绿色 */
+    box-shadow: 0 0 15px 5px rgba(0, 205, 103, 0.7); /* 环绕发光效果 */
+    filter: brightness(1.3); /* 增加亮度 */
 }
 
 /* 展开面板的动画效果 */
@@ -75,10 +95,6 @@
     right: 0; /* 展开时位于页面右侧 */
 }
 
-.expand-button.open {
-    transform: translateY(-50%) rotate(45deg); /* 点击后旋转加号 */
-    background-color: #4cd964;  /* 点击后背景变绿 */
-}
 
 /* 表單行 */
 .form-row {
@@ -124,10 +140,6 @@
     right: 0; /* 展開時位於頁面右側 */
 }
 
-.expand-button.open {
-    transform: translateY(-50%) rotate(45deg); /* 點擊後旋轉加號 */
-    background-color: #4cd964;  /* 點擊後背景變綠 */
-}
 
 button[type="submit"] {
     width: 100%;
@@ -142,8 +154,18 @@ button[type="submit"] {
     margin-top: auto;  /* 使按鈕緊貼底部 */
 }
 
+/* 炫酷的 hover 效果 */
 button[type="submit"]:hover {
-    background-color: #4cd964;
+    background-color: #42b043;  /* 懸停時背景變為綠色 */
+    transform: scale(1.1) translateY(-3px); /* 按鈕放大並向上移動 */
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2); /* 添加陰影 */
+    filter: brightness(1.2); /* 增加亮度 */
+}
+
+/* 點擊時的效果 */
+button[type="submit"]:active {
+    transform: scale(1) translateY(2px); /* 點擊時縮小並向下移動 */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* 減少陰影 */
 }
 
 
@@ -196,6 +218,34 @@ button[type="submit"]:hover {
 .custom-switch.open .custom-slider:before {
     transform: translateX(20px); /* 小圆点向右移动 */
 }
+
+/* 增加炫酷的hover效果：仅背景变化 */
+.custom-switch:hover {
+    background-color: dimgray; /* 悬停时背景变为绿色渐变 */
+    box-shadow: 0 0 10px 4px rgba(0, 123, 255, 0.7);  /* 添加发光效果 */
+    transform: scale(1.3); /* 悬停时轻微放大 */
+}
+
+/* 悬停时小圆点保持原位置，不移动 */
+.custom-switch:hover .custom-slider:before {
+    background-color: white;  /* 保持白色滑块 */
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);  /* 添加小圆点的发光效果 */
+}
+
+/* 开启状态下的悬停效果：背景颜色变化，不带光环效果 */
+.custom-switch.open:hover {
+    background: linear-gradient(135deg, forestgreen, #4CAF50); /* 背景渐变 */
+    transform: scale(1.3); /* 悬停时按钮放大更大 */
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2); /* 添加较强的阴影效果 */
+}
+
+/* 开启状态下滑块悬停效果 */
+.custom-switch.open:hover .custom-slider:before {
+    /*background-color: #fff;  !* 保持白色滑块 *!*/
+    /*transform: scale(1.1); !* 滑块轻微放大 *!*/
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* 添加阴影 */
+}
+
 
 /* 按钮内的文字 */
 #switch-text {
@@ -320,6 +370,13 @@ button[type="submit"]:hover {
     margin-right: 1px;  /* 给按钮一些间距 */
 }
 
+/* 输入框的炫酷hover效果 */
+.input-search:hover {
+    transform: scale(1.2);  /* 稍微放大 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);  /* 更强的阴影效果 */
+    border-color: #007aff;  /* 聚焦时边框变色 */
+}
+
 .btn-search {
     padding: 6px 10px;
     font-size: 15px;
@@ -334,8 +391,11 @@ button[type="submit"]:hover {
     white-space: nowrap;  /* 禁止按钮文字换行 */
 }
 
+/* 搜索按钮的炫酷hover效果 */
 .btn-search:hover {
-    background-color: #0051a8;
+    background-color: #0051a8;  /* 悬停时背景变色 */
+    transform: scale(1.1);  /* 悬停时放大 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);  /* 更强的阴影效果 */
 }
 
 /* 圆形展开按钮样式 */
@@ -355,8 +415,11 @@ button[type="submit"]:hover {
     transition: background-color 0.3s;
 }
 
+/* 圆形按钮的炫酷hover效果 */
 .btn-search-circle:hover {
-    background-color: #0051a8;
+    background-color: #0051a8;  /* 悬停时背景变色 */
+    transform: scale(1.2) ;  /* 放大并旋转360度 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);  /* 更强的阴影效果 */
 }
 
 .char {

@@ -209,7 +209,7 @@ async def query_location_data(query_params: QueryParams):
 class SearchRequest(BaseModel):
     chars: List[str]  # List of characters to search for
     locations: List[str] = None  # List of locations (optional)
-    regions: List[str]= None  # List of regions (optional)
+    regions: List[str] = None  # List of regions (optional)
 
 
 @app.post("/api/search_chars/")
@@ -227,9 +227,12 @@ async def search_chars(request: SearchRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 class SearchRequest2(BaseModel):
     locations: List[str] = None  # List of locations (optional)
-    regions: List[str]= None  # List of regions (optional)
+    regions: List[str] = None  # List of regions (optional)
+
+
 @app.post("/api/search_tones/")
 async def search_tones_o(request: SearchRequest2):
     try:

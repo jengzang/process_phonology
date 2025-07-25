@@ -1,0 +1,220 @@
+/* 針對 Vue 渲染的內容進行樣式設置 */
+
+/* 對應字的樣式 */
+.char-vue {
+    display: inline-flex;
+    padding: 1px 3px; /* 小的內邊距，避免字之間太擁擠 */
+    margin-right: 2px; /* 右邊間隔 */
+    font-size: 15px; /* 字體大小 */
+    color: #333; /* 普通字顏色 */
+
+    /*cursor: pointer; !* 鼠標懸停時顯示可點擊狀態 *!*/
+}
+
+/* 多音字的特殊樣式 */
+.char-vue.multi-vue {
+    color: darkred; /* 多音字顏色，紅色以區別 */
+    font-weight: bold; /* 讓多音字加粗 */
+    position: relative; /* 使得 tooltip 可相對定位 */
+    cursor: pointer; /* 鼠標懸停時顯示可點擊狀態 */
+}
+
+/* 多音字的 hover 提示樣式 */
+.char-vue.multi-vue:hover {
+    background-color: #f9f9f9; /* 背景色變化 */
+    border-radius: 4px; /* 圓角效果 */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* 輕微陰影 */
+}
+
+/* 提示框樣式 */
+.char-vue.multi-vue[title]:hover::after {
+    content: attr(title); /* 顯示 title 屬性的內容 */
+    position: absolute;
+    bottom: 100%; /* 顯示在字上方 */
+    left: 50%;
+    transform: translateX(-50%); /* 水平居中 */
+    background-color: #333; /* 提示框背景 */
+    color: #fff; /* 文字顏色 */
+    padding: 5px 10px;
+    border-radius: 4px;
+    white-space: nowrap; /* 防止文本換行 */
+    font-size: 12px; /* 提示框的字體 */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease; /* 動畫效果 */
+}
+
+
+
+/* 鼠標懸停時顯示提示框 */
+.char-vue.multi-vue[title]:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* 針對整體的字體和排版 */
+.data-row-vue {
+    margin-bottom: 15px; /* 行間距 */
+    display: block; /* 默認使用垂直排列 */
+    text-align: center
+}
+
+
+/* feature-row 设置为 flex 确保在同一行显示 */
+.data-row-vue .feature-row {
+    display: block;  /* 确保整个行显示 */
+    justify-content: space-between; /* 左右分开 */
+    align-items: center; /* 垂直居中 */
+    width: 100%; /* 占满一整行 */
+    flex-wrap: nowrap; /* 防止换行 */
+    white-space: nowrap;  /* 确保所有子元素都在一行显示 */
+}
+
+/* 子元素（p）使用 inline-block 排列，避免换行 */
+.data-row-vue .feature-row p {
+    display: inline-block;
+}
+
+/* 特徵和值的顯示 */
+.data-row-vue .feature-row p:nth-child(1) {
+    width: 70%;  /* 特徵-值占据 80% 的宽度 */
+    font-size: 18px;
+    text-align: left;  /* 字數/佔比靠右 */
+    font-weight: bold; /* 讓特徵-值加粗 */
+    color: #007bff; /* 使用藍色顯示特徵-值 */
+    margin: 1px;
+}
+
+.data-row-vue .feature-row p:nth-child(2) {
+    font-size: 13px;
+    font-style: italic; /* 讓字數/佔比顯示為斜體 */
+    text-align: right;  /* 字數/佔比靠右 */
+    width: 30%;  /* 字數/佔比占据 20% 的宽度 */
+    /*margin-left: auto;*/
+    color: #6c757d; /* 較淡的顏色 */
+    margin: 1px;
+}
+
+.characters-vue {
+    text-align: center;
+    font-size: 15px;
+    border: 2px solid #333; /* 添加边框，2px 宽度，颜色为 #333 */
+    padding: 5px; /* 增加内边距，让边框更清晰 */
+    display: inline-block; /*隱藏模式改這裡！！ */
+    margin-top: 0; /* 设置上边距为 0，确保没有额外的空间 */
+}
+
+.characters-vue-condensed {
+    text-align: center;
+    font-size: 15px;
+    border-bottom: 2px solid #333; /* 添加边框，2px 宽度，颜色为 #333 */
+    padding: 5px; /* 增加内边距，让边框更清晰 */
+    display: flex; /*隱藏模式改這裡！！ */
+    margin-top: 0; /* 设置上边距为 0，确保没有额外的空间 */
+}
+
+.locations-vue{
+    font-size: 20px;
+    font-family: "SimHei", "黑体", sans-serif;
+    font-weight: bold;
+    margin-top: 20px; /* 设置上边距加大为 20px，可以根据需要调整 */
+    margin-bottom: 0; /* 设置下边距为 0，确保没有额外的空间 */
+}
+
+#resultPanelContent {
+    overflow-y: auto;
+    height: 500px;
+}
+
+/* sticky 標籤 */
+.sticky-label2 {
+    position: absolute;  /* 固定定位，使元素浮动 */
+    bottom: 0;        /* 固定在页面底部 */
+    background: rgba(255, 255, 255, 0.3); /* 半透明背景 */
+    left: 0;         /* 左对齐 */
+    right: 0;        /* 右对齐 */
+    /*width: 100%;     !* 让它充满整个父元素的宽度 *!*/
+    backdrop-filter: blur(2px); /* 毛玻璃效果 */
+    padding: 9px 18px;
+    font-size: 14px;
+    font-weight: bold;
+    border-bottom: 1px solid rgba(204, 204, 204, 0.6); /* 边框颜色稍微透明 */
+    z-index: 999;
+    color: #333;
+    display: flex;              /* 让内容横向排列 */
+    align-items: center;        /* 垂直置中 */
+    justify-content: space-between;  /* 左右分散，或用 start + margin-left 可微调 */
+    border-radius: 10px;        /* 增加圆角效果 */
+    transition: background 0.3s ease, box-shadow 0.3s ease; /* 动画过渡效果 */
+}
+
+/* hover 效果 */
+.sticky-label2:hover {
+    background: rgba(240, 240, 240, 0.9); /* 改变背景色，增加透明度 */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 增加阴影效果 */
+    /*transform: scale(1.05); !* 微小放大效果 *!*/
+}
+
+/* 滚动时透明度变化 */
+.sticky-label2.sticky-scrolled {
+    background: rgba(255, 255, 255, 0.1); /* 滚动时增加透明度 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5); /* 滚动时阴影更强 */
+}
+
+/* 让毛玻璃效果更加明显 */
+.sticky-label2::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: inherit;
+    z-index: -1; /* 使背景色和毛玻璃效果在内容后面 */
+}
+
+/*!* 左侧 20% 的 span *!*/
+/*.sticky-label2 span {*/
+/*    position: absolute;  !* 绝对定位 *!*/
+/*    left: 0;             !* 将它固定在左侧 *!*/
+/*    width: 15%;          !* 限制宽度为父元素的 20% *!*/
+/*    padding: 6px 12px;   !* 填充 *!*/
+/*    border: 2px solid rgba(204, 204, 204, 0.6);  !* 边框 *!*/
+/*    border-radius: 5px;  !* 圆角效果 *!*/
+/*    background: rgba(255, 255, 255, 1);  !* 半透明背景 *!*/
+/*    color: #333;         !* 文字颜色 *!*/
+/*    display: flex;*/
+/*    justify-content: center;*/
+/*    align-items: center;*/
+/*    transition: background 0.3s, border-color 0.3s;  !* hover 效果的平滑过渡 *!*/
+/*}*/
+
+/* 苹果风格的按钮 */
+.apple-button2 {
+    background: linear-gradient(145deg, #f6f6f6, #e6e6e6);
+    position: absolute;
+    top: 0;
+    right: 20px;
+    border: 1px solid #ccc;
+    border-radius: 18px;
+    color: #333;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    margin-left: auto; /* 将按钮推到父容器的右侧 */
+}
+
+/* 鼠标悬停时的效果 */
+.apple-button2:hover {
+    background: linear-gradient(145deg, #e6e6e6, #f6f6f6);
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* 鼠标点击时的效果 */
+.apple-button2:active {
+    background: linear-gradient(145deg, #ddd, #f1f1f1);
+    box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.1);
+}
