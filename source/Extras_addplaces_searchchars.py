@@ -473,7 +473,7 @@ def search_tones(locations=None, regions=None):
                             match_found.append(f"T{j}")  # 如果匹配，则加入匹配列表
 
                 # 打印调试输出：当前 T[i] 在其它 T 的 match 中找到了什么
-                print(f"Searching for matches for T{i}: Found {match_found}")
+                # print(f"Searching for matches for T{i}: Found {match_found}")
 
                 if match_found:
                     row_data[f"T{i}"]['match'] = ','.join(match_found)  # 填充匹配的 T

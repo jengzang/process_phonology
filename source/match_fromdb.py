@@ -21,9 +21,10 @@ custom_variant_dict = {
     # 如需可再擴充
 }
 
-def get_tsvs(partition_name = '全部'):
-    # === 自動讀取 processed 路徑下的 .tsv 檔案 ===
-    output_dir = Path("data/processed")
+
+def get_tsvs(output_dir='data/processed', partition_name='全部'):
+    # Use the Path object for the directory
+    output_dir = Path(output_dir)
     file_paths = [
         str(f) for f in output_dir.glob("*.tsv") if f.is_file()
     ]
@@ -141,7 +142,7 @@ def get_tsvs(partition_name = '全部'):
     sorted_matched = [
         abbr for abbr in sort_order_abbr
         if abbr in matched_set and (
-            partition_filter_set is None or partition_map.get(abbr, '') in partition_filter_set
+                partition_filter_set is None or partition_map.get(abbr, '') in partition_filter_set
         )
     ]
 
@@ -162,7 +163,7 @@ def get_tsvs(partition_name = '全部'):
 
     # print("\n=== 最終排序結果 ===")
     # for loc, part in zip(locations, partitions):
-        # print(f"{loc}\t{part}")
+    # print(f"{loc}\t{part}")
 
     # print("\n=== 匹配成功 ===")
     # print(matched_locations)
@@ -180,4 +181,3 @@ if __name__ == "__main__":
     # print(partitions)
     # for path, name, part in zip(sorted_paths, locations, partitions):
     #     print(f"{part}\t{name}\t{path}")
-

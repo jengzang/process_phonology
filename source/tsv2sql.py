@@ -338,7 +338,7 @@ def sync_dialects_flags(all_db_path=DIALECTS_DB_PATH,
         # 寫入成功存儲訊息，每 10 個換行
         lines = []
         for i in range(0, len(matched), 10):
-            lines.append(", ".join(matched[i:i+10]))
+            lines.append(", ".join(matched[i:i + 10]))
         success_message = "成功存儲：\n" + "\n".join(lines)
         f.write(success_message + "\n")
 
@@ -346,10 +346,10 @@ def sync_dialects_flags(all_db_path=DIALECTS_DB_PATH,
 
 
 def process_phonology_excel(
-    excel_file=PHO_TABLE_PATH,
-    sheet_name="層級",
-    db_file=CHARACTERS_DB_PATH,
-    log_file="logs/dialects_log.txt"
+        excel_file=PHO_TABLE_PATH,
+        sheet_name="層級",
+        db_file=CHARACTERS_DB_PATH,
+        log_file="logs/dialects_log.txt"
 ):
     os.makedirs("data", exist_ok=True)
 
@@ -407,13 +407,19 @@ def process_phonology_excel(
     except Exception as e:
         print(f"❌ SQLite 寫入失敗: {e}")
 
-def write_to_sql():
+
+def write_to_sql(yindian = None, write_chars_db=None):
     #  寫檔案表
     print("开始寫入檔案表")
     build_dialect_database()
 
     #  寫總數據表
-    tsv_paths, *_ = get_tsvs()
+    if yindian:
+        tsv_paths_yindian,*_ = get_tsvs(output_dir='data/yindian/')
+        tsv_paths_mine, *_ = get_tsvs()
+        tsv_paths = tsv_paths_yindian + tsv_paths_mine
+    else:
+        tsv_paths, *_ = get_tsvs()
     db_path = os.path.join(os.getcwd(), DIALECTS_DB_PATH)
     print("🚀 開始導入資料...")
     process_all2sql(tsv_paths, db_path)
@@ -422,10 +428,12 @@ def write_to_sql():
     print("开始寫入存儲標記")
     sync_dialects_flags()
 
-    #  寫漢字地位表
-    print("开始寫入漢字地位表")
-    process_phonology_excel()
+    if write_chars_db:
+        #  寫漢字地位表
+        print("开始寫入漢字地位表")
+        process_phonology_excel()
     # print("✅ 測試完成。")
+
 
 if __name__ == "__main__":
     write_to_sql()
