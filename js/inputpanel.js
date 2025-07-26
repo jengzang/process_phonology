@@ -18,7 +18,7 @@ function getSelectedFeatures() {
 
 function updateVisibility() {
     const mode = document.querySelector('input[name="mode"]:checked')?.value;
-    document.getElementById("status_inputs_group").style.display = mode === "s2p" ? "block" : "none";
+    document.getElementById("status_input_button").style.display = mode === "s2p" ? "flex" : "none";
     document.getElementById("group_inputs_group").style.display = mode === "p2s" ? "block" : "none";
     // 遍历所有的 .input-section 元素，检查是否为空，空的隐藏
     document.querySelectorAll('.input-section').forEach(function(section) {
@@ -103,7 +103,13 @@ document.getElementById("testBackendBtn").addEventListener("click", async () => 
 
 function getSubregions(parentLabel) {
     return fetch(`http://127.0.0.1:5000/api/partitions?parent=${encodeURIComponent(parentLabel)}`)
-        .then(res => res.json());
+        .then(res => res.json())
+        .then(data => {
+                // 根據返回的數據格式，提取出嶺東的分區列表
+                const regionData = data[parentLabel];
+                return regionData ? regionData.partitions : [];  // 如果有partitions，返回它，否則返回空數組
+            });
+        // .then(data => data.partitions);
 }
 
 window.showPartitionSelector = function (textarea) {
@@ -122,10 +128,11 @@ window.showPartitionSelector = function (textarea) {
     container.style.border = '1px solid #ccc';
     container.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
     container.style.display = 'flex';
-    container.style.gap = '10px';
-    container.style.padding = '10px';
+    container.style.gap = '0px';
+    container.style.padding = '0px';
     container.style.pointerEvents = 'auto';
-
+    container.style.borderRadius =' 50px';
+    // container.style.display='none'
     const lvl1 = document.createElement('div');
     const lvl2 = document.createElement('div');
     const lvl3 = document.createElement('div');

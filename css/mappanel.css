@@ -287,7 +287,7 @@
     padding: 6px 6px;  /* 减小 padding，减少字与边框的间距 */
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    z-index: 9999;
+    z-index: 99999;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease, transform 0.3s ease;
@@ -297,7 +297,15 @@
 
 .popup.active {
     opacity: 1;
-    visibility: visible;
+    z-index: 99999;
+    visibility: visible!important;
+    transform: translateX(-50%) translateY(20px); /* 适当的偏移量 */
+}
+
+.popup.active2 {
+    opacity: 1;
+    z-index: 99999;
+    visibility: visible!important;
     transform: translateX(-50%) translateY(20px); /* 适当的偏移量 */
 }
 
@@ -317,7 +325,7 @@
 .popup p {
     margin: 2px 0;
     font-size: 13px;  /* 调整字体大小 */
-    background-color: rgba(255, 204, 153, 1);   /* 灰色底色，30% 不透明 */
+    /*background-color: rgba(255, 204, 153, 1);   !* 灰色底色，30% 不透明 *!*/
     padding: 0;  /* 去掉内边距，确保底色紧贴文字 */
     border-radius: 5px;  /* 圆角效果 */
     font-weight: bold;
@@ -333,7 +341,7 @@
 .popup li {
     margin: 2px 0;  /* 缩小上下间距 */
     font-size: 12px;  /* 调整字体大小，稍微缩小 */
-    background-color: rgba(173, 216, 230, 1);  /* 灰色底色，30% 不透明 */
+    background-color: rgba(230, 230, 230, 1);  /* 灰色底色，30% 不透明 */
     padding: 0;  /* 去掉内边距，确保底色紧贴文字 */
     border-radius: 5px;  /* 圆角效果 */
     font-weight: bold;

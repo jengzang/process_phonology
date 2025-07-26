@@ -72,6 +72,7 @@ from collections import defaultdict
 RU_FINALS = set("ptkʔˀᵖᵏᵗbdg")
 SUPER_TO_NORMAL = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹", "0123456789")
 
+
 def 處理自定義編輯指令(df, col_hanzi, col_ipa, command):
     import re
 
@@ -135,9 +136,7 @@ def 處理自定義編輯指令(df, col_hanzi, col_ipa, command):
     return results, errors
 
 
-
-def 檢查資料格式(df, col_hanzi, col_ipa,  display=False,col_note=None):
-
+def 檢查資料格式(df, col_hanzi, col_ipa, display=False, col_note=None):
     def is_single_chinese(char):
         return len(char) == 1 and '\u4e00' <= char <= '\u9fff'
 
@@ -157,7 +156,7 @@ def 檢查資料格式(df, col_hanzi, col_ipa,  display=False,col_note=None):
         "異常音標": [],
         "缺聲調": []
     }
-
+    # print(df)
     for i, row in df.iterrows():
         hanzi = str(row.get(col_hanzi, "")).strip()
         ipa = str(row.get(col_ipa, "")).strip()
@@ -203,8 +202,6 @@ def 檢查資料格式(df, col_hanzi, col_ipa,  display=False,col_note=None):
             print(f"[{i}] {hanzi}｜{ipa}｜{note}")
 
 
-
-
 def 整理並顯示調值(df_xlsx, actual_cols):
     ru_rawtone_to_hanzi = defaultdict(set)
     shu_tone_to_hanzi = defaultdict(set)
@@ -244,7 +241,8 @@ def 整理並顯示調值(df_xlsx, actual_cols):
     for t in sorted(shu_tone_to_hanzi.keys(), key=lambda x: int(x)):
         print(f"{t}: {''.join(sorted(shu_tone_to_hanzi[t]))}")
 
-def 主程序():
+
+def main():
     root = tk.Tk()
     root.withdraw()
 
@@ -279,7 +277,7 @@ def 主程序():
             print("❌ 找不到音標或漢字欄位")
             continue
 
-        檢查資料格式(df_xlsx, actual_cols['漢字'], actual_cols['音標'],False)
+        檢查資料格式(df_xlsx, actual_cols['漢字'], actual_cols['音標'], False)
 
         # 🔁 第一階段：處理自定義編輯指令
         while True:
@@ -294,7 +292,7 @@ def 主程序():
             if results:
                 df_xlsx.to_excel(path, index=False)
                 print(f"✅ 已更新 Excel：{path}")
-                檢查資料格式(df_xlsx, actual_cols['漢字'], actual_cols['音標'],False)
+                檢查資料格式(df_xlsx, actual_cols['漢字'], actual_cols['音標'], False)
 
         # 🔁 第二階段：處理 tone 替換指令
         # 初次顯示調值
@@ -367,6 +365,6 @@ def 主程序():
             print("\n📊 當前調值整理：")
             整理並顯示調值(df_xlsx, actual_cols)
 
-if __name__ == "__main__":
-    主程序()
 
+if __name__ == "__main__":
+    main()

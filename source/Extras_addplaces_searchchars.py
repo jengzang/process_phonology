@@ -26,12 +26,23 @@ def fetch_dialect_region(input_data: Union[str, List[str]]) -> dict:
     conn = sqlite3.connect(QUERY_DB_PATH)
     cursor = conn.cursor()
 
-    print(f"Executing query to fetch dialect region for: {query_str}")  # Debug output
+    # 連接資料庫並查詢
+    # 連接資料庫並查詢
+    def query_database(db_path: str, table_name: str) -> tuple:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        query = f"SELECT 音典分區 FROM {table_name} WHERE 簡稱 = ?"
+        cursor.execute(query, (query_str,))
+        result = cursor.fetchone()
+        conn.close()
+        return result
 
-    cursor.execute("SELECT 音典分區 FROM dialects WHERE 簡稱 = ?", (query_str,))
-    result = cursor.fetchone()
+    # 首先查詢主資料庫的表
+    result = query_database(QUERY_DB_PATH, 'dialects')  # 假設主資料庫表名為 'dialects'
 
-    conn.close()
+    # 如果在主資料庫中找不到結果，則查詢補充資料庫的表
+    if not result:
+        result = query_database(SUPPLE_DB_PATH, 'informations')  # 假設補充資料庫表名為 'informations'
 
     # 如果找到結果，返回音典分區；否則返回錯誤消息
     if result:

@@ -468,6 +468,7 @@ def query_dialect_abbreviations(
         location_sequence=None,
         db_path=QUERY_DB_PATH,
         tables="dialects",
+        need_storage_flag=True,  # 新增參數
         debug=False
 ):
     """
@@ -518,8 +519,10 @@ def query_dialect_abbreviations(
         query = f"""
             SELECT 音典分區, 簡稱 
             FROM {tables} 
-            WHERE 存儲標記 IS NOT NULL AND 存儲標記 != ''
+            WHERE 1=1
         """
+        if need_storage_flag:
+            query += " AND 存儲標記 IS NOT NULL AND 存儲標記 != ''"
         cursor.execute(query)
         all_rows = cursor.fetchall()
 
@@ -587,6 +590,10 @@ def get_coordinates_from_db(abbreviation_list, supplementary_abbreviation_list=N
         # 如果沒有找到合適的值（通常不會發生）
         return 10
 
+    if supplementary_abbreviation_list:
+        # 刪除 supplementary_abbreviation_list 中已經在 abbreviation_list 中的元素
+        supplementary_abbreviation_list = [abbr for abbr in supplementary_abbreviation_list if
+                                           abbr not in abbreviation_list]
     abbreviation_list = [abbreviation for abbreviation in abbreviation_list if abbreviation]
 
     # 連接到查詢數據庫
@@ -731,26 +738,65 @@ def read_partition_hierarchy(parent_regions=None, db_path=QUERY_DB_PATH):
                 if parts[2] not in hierarchy[parts[0]][parts[1]]:
                     hierarchy[parts[0]][parts[1]].append(parts[2])
 
+    # print("完整的 hierarchy 結構:")
+    # import json
+    # print(json.dumps(hierarchy, ensure_ascii=False, indent=4))
     # 處理 parent_regions 輸入
     if isinstance(parent_regions, str):
         parent_regions = [parent_regions]
     elif not parent_regions:
         return dict(hierarchy)  # 無輸入時返回整體結構
 
-    # 對每個 parent_region 查詢其下層
+    # 對每個 parent_region 查詢其下層及層級
     result = {}
     for region in parent_regions:
+        print(f"處理區域: {region}")  # 顯示當前處理的區域
+
         if region in hierarchy:
+            # print(f"找到一級分區: {region}")
             result[region] = sorted(hierarchy[region].keys())
+            level = 1  # 一級的層級為 1
+            # print(f"一級分區的下層分區: {sorted(hierarchy[region].keys())}, 層級: {level}")
         else:
             found = False
+            # print(f"在一級分區中未找到: {region}，開始查找二級分區")
+
             for level1, level2_dict in hierarchy.items():
+                # print(f"檢查一級分區 {level1} 下的二級分區")
                 if region in level2_dict:
+                    # print(f"找到二級分區: {region} 在 {level1} 下")
                     result[region] = sorted(hierarchy[level1][region])
+                    level = 2  # 二級的層級為 2
+                    # print(f"二級分區的下層分區: {sorted(hierarchy[level1][region])}, 層級: {level}")
                     found = True
                     break
+
             if not found:
+                # print(f"未找到二級分區 {region}，開始查找三級分區")
                 result[region] = []
+
+                # 確保三級分區返回空列表並設置層級為 3
+                for level1, level2_dict in hierarchy.items():
+                    # print(f"檢查一級分區 {level1} 下的二級分區")
+                    for level2, level3_list in level2_dict.items():
+                        if isinstance(level3_list, list):  # 確保該二級分區擁有三級分區
+                            if region in level3_list:
+                                # print(f"找到三級分區: {region} 在 {level1}-{level2} 下，設置層級為 3")
+                                result[region] = []  # 返回空列表
+                                level = 3  # 設置層級為 3
+                                found = True
+                                break
+                    if found:
+                        break
+
+                if not found:
+                    level = 0  # 無法匹配，層級為 0
+                    # print(f"未找到三級分區 {region}，層級設置為 0")
+
+        # print(f"最終結果: {region} -> {result[region]}")
+
+        # 保留原來的結構，並加上 level
+        result[region] = {"partitions": result[region], "level": level}
 
     return result
 

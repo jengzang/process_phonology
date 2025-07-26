@@ -13,9 +13,12 @@
     <link rel="stylesheet" href="css/mappanel.css" />
     <link rel="stylesheet" href="css/Extrapanel.css" />
     <link rel="stylesheet" href="css/vue.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
     <!-- 加載 Vue 3 的 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.js"></script>
     <script src="https://webapi.amap.com/loader.js"></script>
+
 </head>
 
 <body>
@@ -80,9 +83,19 @@
 
         <!-- 中古音輸入 -->
         <div class="input-section">
-            <div id="status_inputs_group">
-                <h4 class="panel-subtitle">中古音地位</h4>
-                <textarea id="status_inputs" placeholder="請輸入待查中古音地位 支持-全匹配"></textarea>
+            <div  id="status_input_button"  class="group-row2">
+                <div id="status_inputs_group">
+                    <h4 class="panel-subtitle" >中古音地位</h4>
+                    <textarea id="status_inputs" placeholder="請輸入待查中古音地位 支持-全匹配"></textarea>
+                </div>
+                <div class="button-container-map">
+                    <button id="allmap-first" class="allmap-first">
+                        🌍繪圖
+                    </button>
+                    <div class="button-description-map">
+                        繪製所選的<br>所有方言點
+                    </div>
+                </div>
             </div>
         </div>
 

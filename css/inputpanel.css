@@ -5,7 +5,10 @@
     display: flex;
     gap: 16px;
     margin-bottom: 12px;
+    width: 100%; /* 父容器寬度會根據頁面寬度來調整 */
     align-items: stretch;
+    max-width: 100%; /* 防止容器寬度超出父元素 */
+    /*overflow: hidden; !* 防止橫向滾動條出現 *!*/
 }
 
 .mode-box,
@@ -71,6 +74,13 @@
     margin-left: -24px;
 }
 
+.mode-title,
+.mode-desc {
+    white-space: nowrap;  /* 防止文字換行 */
+    overflow: hidden;     /* 如果文字過長，會隱藏超出部分 */
+    text-overflow: ellipsis; /* 顯示省略號 (...)，當文字過長時 */
+}
+
 /* Checkbox 組群 */
 .checkbox-group {
     display: flex;
@@ -84,6 +94,9 @@
     font-weight: bold;
     align-items: center;
     gap: 6px;
+    white-space: nowrap;  /* 防止文字換行 */
+    overflow: hidden;     /* 如果文字過長，會隱藏超出部分 */
+    text-overflow: ellipsis; /* 顯示省略號 (...)，當文字過長時 */
     /*font-weight: 500;*/
     /*font-size: 14px;*/
 }
@@ -148,7 +161,10 @@
     font-size: 14px;
     font-weight: 600;
     color: #444;
+    /*width: 70%;*/
 }
+
+
 
 /* 增加panel-subtitle的hover效果 */
 .panel-subtitle:hover {
@@ -330,7 +346,7 @@ label:hover {
     padding: 4px 0;
     background: #fff;
     border: 1px solid #ccc;
-    border-radius: 4px;
+    border-radius: 30px;
     min-width: 120px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
@@ -352,6 +368,7 @@ label:hover {
     padding: 6px;
     display: flex;
     flex-direction: column;
+
 }
 
 /* 各層級容器最小寬度 */
@@ -359,19 +376,25 @@ label:hover {
 .partition-popup.partition-lvl2,
 .partition-popup.partition-lvl3 {
     min-width: 140px;
+    border-radius: 10px;
+    /*justify-content: center;  !* 水平居中 *!*/
 }
 
 /* 列表項目 */
 .partition-popup div {
     padding: 6px 12px;
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: 30px;
     transition: background 0.2s;
+
 }
 .partition-popup div:hover {
-    background: rgba(0, 0, 0, 0.05);
+    background: rgba(180, 223, 244, 0.72);
 }
 
+/*.partition-popup.partition-lvl1 div {*/
+/*    justify-content: center;  !* 水平居中 *!*/
+/*}*/
 /* 第三級內容捲動區樣式 */
 .partition-popup.partition-lvl3 {
     max-height: 240px;
@@ -398,6 +421,12 @@ label:hover {
     display: flex;
     gap: 16px;
     margin-top: 10px;
+}
+.group-row2 {
+    display: flex;
+    gap: 16px;
+    margin-top: 10px;
+    flex: 0 0 auto;
 }
 
 .group-row > div {
@@ -561,6 +590,63 @@ label:hover {
 }
 
 
+/* 設置蘋果風格的按鈕 */
+.allmap-first {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(90deg, #007aff,  mediumblue); /* 漸變藍色背景 */
+    border: none;
+    border-radius: 50px; /* 圓角 */
+    width: 60px;
+    height: 35px;
+    padding: 4px 10px;
+    color: white;
+    font-size: 14px;
+    white-space: nowrap; /* 防止文字換行 */
+    font-weight: 600;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease; /* 平滑過渡效果 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.19); /* 投影陰影效果 */
+}
 
+/* 懸停效果 */
+.allmap-first:hover {
+    background: linear-gradient(145deg, #4e5d5b, #212d2b); /* 改變漸變色 */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3), 0 12px 32px rgba(0, 0, 0, 0.25); /* 更強的陰影效果 */
+    transform: translateY(-3px); /* 鼠標懸停時按鈕向上漂浮 */
+}
 
+/* 內部圖標 */
+.allmap-first i {
+    margin-right: 10px; /* 圖標與文字間距 */
+}
 
+/* 點擊效果 */
+.allmap-first:active {
+    transform: translateY(2px); /* 點擊時向下 */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.15); /* 收縮陰影 */
+}
+
+/* 容器設置 */
+.button-container-map {
+    display: flex;
+    flex-direction: column; /* 垂直排列 */
+    align-items: center; /* 使元素緊貼容器的上部 */
+    justify-content: flex-start; /* 讓元素緊貼容器上部 */
+
+    gap: 8px; /* 控制按鈕和文字之間的間距 */
+    flex: 0 0 30%; /* 確保寬度為父容器的 30% */
+    max-width: 240px; /* 最大寬度，防止過度擴展 */
+    margin: 0 auto; /* 水平居中 */
+}
+
+/* 文字描述部分 */
+.button-description-map {
+    text-align: center;
+    color: #333; /* 深色文字 */
+    font-size: 12px; /* 較小的文字 */
+    font-weight: 400; /* 普通字重 */
+    line-height: 1; /* 行高，讓文字顯得更清晰 */
+}

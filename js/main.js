@@ -194,3 +194,4 @@ document.getElementById('button-masschange').addEventListener('click', async fun
         console.log("切換到關閉狀態");
     }
 });
+

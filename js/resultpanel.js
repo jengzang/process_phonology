@@ -112,6 +112,7 @@ function toggleColumnVisibility(hideMode = true) {
 }
 
 document.getElementById('toggleColumnsBtn').addEventListener('click', () => {
+
     const table = document.getElementById('resultTable');
 
     // ⛔ 沒有資料就不要執行（避免報錯）
@@ -539,7 +540,6 @@ async function analysis_from_db() {
 
     try {
         log("📦 發送 Payload", payload);
-
         const fetchStart = performance.now();
         setLoadingMessage("📡 數據讀取中…");
         const res = await window.fetchWithLog("http://127.0.0.1:5000/api/phonology", {

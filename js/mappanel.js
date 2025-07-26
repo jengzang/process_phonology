@@ -216,7 +216,7 @@ async function create_map1(){
 
         // 解析返回的数据
         window.locations_data = await res.json();
-        console.log("✅ 后端返回数据:", locations_data);  // 打印接收到的所有数据
+        // console.log("✅ 后端返回数据:", locations_data);  // 打印接收到的所有数据
 
 // 如果数据存在，动态更新地图
         if (locations_data) {
@@ -229,12 +229,12 @@ async function create_map1(){
 
             // 遍历后端返回的地点数据，进行坐标处理并创建标记
             locations_data.coordinates_locations.forEach(([locationName, coordinates]) => {
-                console.log("坐标", coordinates);
+                // console.log("坐标", coordinates);
 
                 // 直接使用原始经纬度数据（假设 coordinates 是 [lng, lat]）
                 const lng = coordinates[0];
                 const lat = coordinates[1];
-                console.log("原始经纬度：", lng, lat);
+                // console.log("原始经纬度：", lng, lat);
 
                 // 确保坐标是有效的并可以用来绘制标记
                 if (lng && lat) {
@@ -751,12 +751,12 @@ async function triggerDrawingFunction() {
     document.getElementById("feature-input").value = selectedItem;
     // 等待 mergedData 填充完成
     if (!window.mergedData) {
-        console.log("fuck", window.mergedData);
+        // console.log("fuck", window.mergedData);
         await func_mergeData()
     }
 
     if (window.mergedData) {
-        console.log("绘图正常运行")
+        // console.log("绘图正常运行")
         // 更新地图中心点和缩放级别
         map.setCenter(window.mergedData[0].centerCoordinate);
         map.setZoom(window.mergedData[0].zoomLevel);
@@ -776,7 +776,7 @@ async function triggerDrawingFunction() {
                 const detailContent = dataItem.detailContent; // 假设你有一个 detailContent 数组
                 const feature = dataItem.feature;
 
-                console.log("处理:", locationName);
+                // console.log("处理:", locationName);
 
                 try {
                     // 检查坐标是否有效
@@ -791,7 +791,7 @@ async function triggerDrawingFunction() {
                                 cursor: 'pointer',
                                 angle: 10,
                                 className: 'amap-overlay-text-container',  // 应用 CSS 类
-                                position: coordinates,  // 使用转换后的高德坐标
+                                position: coordinates,
                                 clickable: true,
                                 style: {
                                     padding: '.05rem .1rem',           // 调整 padding，更加紧凑
@@ -839,6 +839,7 @@ async function triggerDrawingFunction() {
 
                                 // 清空旧的详细内容并插入新内容
                                 detailContentEl.innerHTML = ""; // 清空之前的内容
+                                detailContent.sort((a, b) => b.percentage - a.percentage); // 改为降序
                                 // 使用 <ul> 和 <li> 显示详细内容
                                 const ul = document.createElement("ul");
 
@@ -995,17 +996,266 @@ async function triggerDrawingFunction() {
     }
 }
 
+//繪製總的點圖
+async function create_dot_all() {
+    const locations = document.getElementById('locations').value.trim().split(/\s+/);  // 获取地點，并拆分成数组
+    const regions = document.getElementById('regions').value.trim().split(/\s+/);  // 获取分區，并拆分成数组
+    let maxLevel = 0;  // 存储最大 level
+
+    // 如果 locations 或 regions 其中之一为空
+    if (!locations && !regions) {
+        alert("請輸入地點或分區中的一個！");
+        return;
+    }
+
+    // 获取最大 level
+    for (const region of regions) {
+        try {
+            const response = await fetch(`http://127.0.0.1:5000/api/partitions?parent=${encodeURIComponent(region)}`);
+            const data = await response.json();
+
+            const regionData = data[region];
+            const level = regionData ? regionData.level : 3;  // 如果有partitions，返回它的 level，否則返回 0
+
+            maxLevel = Math.max(maxLevel, level);  // 更新最大 level
+        } catch (error) {
+            console.error(`❌ 获取分区 ${region} 失败:`, error);
+            maxLevel = Math.max(maxLevel, 3);
+        }
+    }
+
+    if (maxLevel === 0) {
+        maxLevel = 3;
+    }
+
+    // 定义颜色数组（20种颜色）
+    const colorPalette = [
+        "#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4",
+        "#42d4f4", "#f032e6", "#bfe745", "#fabed4", "#469990", "#dcbaff",
+        "#9a6324", "#fffac8", "#800000", "#aaffc3", "#808000", "#ffd8b1",
+        "#000075", "#a9a9a9"
+    ];
+
+    // 发送请求获取数据
+    const url = new URL("http://127.0.0.1:5000/api/get_coordinates");
+    url.searchParams.append('locations', locations);
+    url.searchParams.append('regions', regions);
+    url.searchParams.append('iscustom', 'true');
+    url.searchParams.append('flag', 'False');
+
+    const debugLog = document.getElementById("debug-log");
+    debugLog.textContent = "📡 發送請求中...";
+
+    try {
+        const res = await fetch(url, { method: "GET" });
+        if (!res.ok) {
+            console.error("❌ 请求失败:", res.status);
+            alert("後端錯誤！請稍後重試。");
+            debugLog.textContent = "❌ 请求失败";
+            return;
+        }
+
+        let all_locations_dot = await res.json();
+        const mapParams = {
+            center_coordinate: all_locations_dot.center_coordinate,
+            zoom_level: all_locations_dot.zoom_level,
+            max_level: maxLevel
+        };
+        let result = [];
+
+        // 根据 mapParams.max_level 的值决定使用哪个 level
+        const levelToUse = mapParams.max_level === 1 ? "level1" :
+            mapParams.max_level === 2 ? "level2" : "level3";
+
+        // 为当前使用的 level 创建一个颜色映射
+        const uniqueLevels = new Set();  // 用来存储唯一的 level 值
+        for (const [locationName, coordinates] of all_locations_dot.coordinates_locations) {
+            // 获取每个地点的 regions_data
+            let regionsData = await fetch(`http://127.0.0.1:5000/api/get_regions?input_data=${locationName}`)
+                .then(response => response.json())
+                .then(data => data.音典分區)
+                .catch(error => {
+                    console.error(`❌ 获取地区数据失败: ${locationName}`, error);
+                    return null;
+                });
+
+            if (regionsData) {
+                let originalRegionsData = regionsData;
+                let regions = regionsData.split('-');
+                let level1 = regions[0];
+                let level2 = regions[1] || level1;
+                let level3 = regions[2] || level2;
+
+                // 将所有 level 的唯一值加入 Set 中
+                uniqueLevels.add(level1);
+                uniqueLevels.add(level2);
+                uniqueLevels.add(level3);
+
+                result.push({
+                    locationName: locationName,
+                    original_regions_data: originalRegionsData,
+                    regions_data: {
+                        level1: level1,
+                        level2: level2,
+                        level3: level3
+                    },
+                    coordinates: coordinates,
+                    color: ""  // 初始化颜色字段
+                });
+            }
+        }
+
+        // 将颜色分配到 result 中
+        const uniqueLevelsArray = Array.from(uniqueLevels);
+        const levelColorMap = {};
+
+        uniqueLevelsArray.forEach((level, index) => {
+            levelColorMap[level] = colorPalette[index % 20];  // 循环分配颜色
+        });
+
+        // 给 result 添加颜色
+        result.forEach(item => {
+            // 根据 mapParams.max_level 确定当前 level，给对应的 level 添加颜色
+            item.color = levelColorMap[item.regions_data[levelToUse]];  // 将颜色添加到 item 中
+        });
+
+        //如果数据存在，动态更新地图
+        if (result) {
+            // 更新地图中心点和缩放级别
+            map.setCenter(mapParams.center_coordinate);
+            map.setZoom(mapParams.zoom_level);
+
+            // 清除旧的标记
+            map.clearMap();
+
+            // 遍历后端返回的地点数据，进行坐标处理并创建标记
+            result.forEach(item => {
+                // 提取地点名称和坐标
+                const locationName = item.locationName;
+                const coordinates = item.coordinates;
+                const lng = coordinates[0];
+                const lat = coordinates[1];
+                const regions_detailed = item.original_regions_data;
+                const color = item.color;
+
+                // 确保坐标是有效的并可以用来绘制标记
+                if (lng && lat) {
+
+
+                    const circleMarker = new AMap.CircleMarker({
+                        center: [lng, lat],
+                        radius:7,//3D视图下，CircleMarker半径不要超过64px
+                        strokeColor: '#000000',  // 设置边框颜色为黑色
+                        strokeWeight: 2,  // 边框的宽度
+                        strokeOpacity:1,
+                        fillColor:color,
+                        draggable: false,
+                        fillOpacity:0.6,
+                        zIndex:10,
+                        bubble:true,
+                        cursor:'pointer',
+                        clickable: true,
+                        className: 'amap-overlay-text-container',
+                        extData :{
+                          locationName,
+                          regions_detailed,
+                        }
+                    })
+                    circleMarker.setMap(map)
+
+                    circleMarker.on('click', (e) => {
+                        const popup = document.getElementById('popup');  // 确保弹窗的 id 或类名正确
+                        const {locationName, regions_detailed} = circleMarker._opts.extData;
+                        // 确保获取到正确的元素
+                        const locationName2El = document.getElementById("location-name");
+                        const feature2El = document.getElementById("feature");
+
+                        // 设置弹窗内容
+                        locationName2El.textContent = ` ${locationName}`;
+                        feature2El.textContent = ` ${regions_detailed}`;
+
+                        // 获取原生事件对象
+                        const nativeEvent = e.originalEvent || e;  // 获取原生事件对象
+                        const mouseY = nativeEvent.originEvent.clientY;  // 获取鼠标点击位置
+                        const mouseX = nativeEvent.originEvent.clientX;  // 获取鼠标的水平位置
+                        const popupWidth = popup.offsetWidth;
+                        const popupHeight = popup.offsetHeight;
+
+                        if (popupHeight === 0) {
+                            console.log("Popup height is 0! Make sure the popup is rendered correctly.");
+                        }
+
+                        // 设置弹窗初始位置，根据鼠标点击的位置来确定
+                        const offsetTop = 5;  // 增加的垂直偏移量，控制弹窗离鼠标点击位置更远
+                        const offsetLeft = 10; // 增加的水平偏移量，控制弹窗向左移动
+
+                        // 垂直位置计算
+                        const popupTop = mouseY - popupHeight - offsetTop; // 通过增加偏移量向上移动
+                        const maxTop = 20; // 限制弹窗距离顶部的最小距离
+                        popup.style.top = `${Math.max(popupTop, maxTop)}px`; // 确保弹窗不会超出页面顶部
+
+                        // 水平位置计算
+                        const popupLeft = mouseX - popupWidth / 2 - offsetLeft; // 通过增加偏移量让弹窗向左偏移
+                        const maxLeft = 20;  // 限制弹窗距离页面左侧的最小距离
+                        const maxRight = window.innerWidth - popupWidth - 20;  // 限制弹窗右侧不能超出屏幕
+                        popup.style.left = `${Math.min(Math.max(popupLeft, maxLeft), maxRight)}px`;  // 确保弹窗不会超出页面左右边界
+
+                        // 确保弹窗具有正确的定位
+                        // popup.style.position = 'fixed'; // 确保弹窗使用绝对定位
+                        // // 弹窗显示并滑动效果
+                        // popup.style.opacity = '1';  // 设置弹窗为可见
+                        // popup.style.visibility = 'visible';  // 显示弹窗
+                        // 弹窗显示并滑动效果
+                        popup.classList.add("active2");
+                        // popup.style.opacity = '1';            // 显示弹窗（完全可见）
+                        // popup.style.visibility = 'visible';   // 弹窗可见
+                        // console.log('Popup class after activation:', popup.classList);
+                        // 阻止事件冒泡，避免点击弹窗外的地方关闭弹窗
+                        if (nativeEvent && typeof nativeEvent.stopPropagation === 'function') {
+                            nativeEvent.stopPropagation();
+                        }
+                    });
+
+                }
+            });
+        }
+
+    } catch (error) {
+        console.error("❌ 错误:", error);
+        alert("請求後端錯誤：" + error.message);
+    }
+}
+
+document.getElementById("allmap-first").addEventListener("click", create_dot_all);
+
+
 // 监听点击事件，点击外部关闭弹窗
 document.addEventListener('click', (e) => {
+    // const popup = document.getElementById('popup');  // 确保弹窗的 id 或类名正确/
     // 如果点击的不是弹窗和按钮，就关闭弹窗
     if (!popup.contains(e.target) && !e.target.closest('.amap-overlay-text-container')) {
         closePopup();
     }
 });
 
+
 // 关闭弹窗的函数
 function closePopup() {
-    popup.classList.remove("active");
+    popup.classList.remove("active", "active2");
+    // popup.style.opacity = '0';            // 隐藏弹窗
+    // popup.style.visibility = 'hidden';    // 确保弹窗不可见
+    // popup.style.display = 'none';         // 确保弹窗隐藏
+    // 清空弹窗内容
+    const locationNameEl = document.getElementById("location-name");
+    const featureEl = document.getElementById("feature");
+    const detailContentEl = document.getElementById("detail-content");
+    const noteEl = document.getElementById("notes1");
+
+    // 清空内容
+    if (locationNameEl) locationNameEl.textContent = '';
+    if (featureEl) featureEl.textContent = '';
+    if (detailContentEl) detailContentEl.innerHTML = '';  // 清空HTML内容
+    if (noteEl) noteEl.innerHTML = '';  // 清空HTML内容
 }
 
 //轉換坐標函數，暫時不用

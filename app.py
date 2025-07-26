@@ -136,7 +136,8 @@ async def get_regions(input_data: Union[str, List[str]] = Query(..., alias="inpu
 async def get_coordinates(
         regions: str = Query(...),
         locations: str = Query(...),
-        iscustom: bool = None  # 默认值为 None
+        iscustom: bool = None,  # 默认值为 None
+        flag: bool = True
 ):
     # 处理传入的字符串，转化为列表
     locations_list = locations.split(',')  # 用逗号分隔字符串，转换为列表
@@ -147,7 +148,7 @@ async def get_coordinates(
         # 在这里添加自定义处理逻辑
         abbreviations_list1 = query_dialect_abbreviations(regions_list, locations_list,
                                                           db_path=SUPPLE_DB_PATH, tables="informations")
-        abbreviations_list2 = query_dialect_abbreviations(regions_list, locations_list)
+        abbreviations_list2 = query_dialect_abbreviations(regions_list, locations_list, need_storage_flag=flag)
         result = get_coordinates_from_db(abbreviations_list2, abbreviations_list1,
                                          use_supplementary_db=True)
 
