@@ -1,6 +1,6 @@
+import os
 import tkinter as tk
 from tkinter import filedialog
-import os
 
 from format_convert import process_音典
 from get_new import extract_all_from_tsv
