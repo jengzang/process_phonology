@@ -1,8 +1,10 @@
-import sqlite3
-import pandas as pd
 import re
-from source.process_input import auto_convert_batch, match_locations_batch, query_dialect_abbreviations
+import sqlite3
+
+import pandas as pd
+
 from source.config import CHARACTERS_DB_PATH, DIALECTS_DB_PATH
+from source.process_input import auto_convert_batch, match_locations_batch, query_dialect_abbreviations
 
 """
 本腳本提供一組函數用於從語音描述詞查詢對應漢字，並根據不同地點與語音特徵進行統計分析。
@@ -12,7 +14,7 @@ from source.config import CHARACTERS_DB_PATH, DIALECTS_DB_PATH
    ➤ 將使用者輸入（如「知組三」）解析為篩選語法並查詢 characters.db，回傳漢字與多地位字。
 
 2. query_characters_by_path：
-   ➤ 支援解析 [值]{欄位} 語法，執行資料庫查詢並判定多地位。
+   ➤ 解析 [值]{欄位} 語法，執行資料庫查詢並判定多地位。
 
 3. query_by_status：
    ➤ 根據查得漢字，在指定地點與語音特徵下計算統計資訊與多音字詳情。
@@ -21,7 +23,6 @@ from source.config import CHARACTERS_DB_PATH, DIALECTS_DB_PATH
    ➤ 整合 run_status 與 query_by_status，批次處理多組輸入與地點，進行完整分析流程。
 
 """
-
 
 # 可用於分層篩選的欄位
 HIERARCHY_COLUMNS = ["攝", "呼", "等", "韻", "入", "調", "清濁", "系", "組", "聲"]
@@ -41,7 +42,7 @@ def query_characters_by_path(path_string, db_path=CHARACTERS_DB_PATH, table="cha
     - 多地位的漢字清單
     """
 
-    print(f"\n📥 查詢語法輸入：{path_string}")
+    # print(f"\n📥 查詢語法輸入：{path_string}")
 
     # 解析語法：[值]{欄位}
     pattern = r"\[([^\[\]]+)\]\{([^\{\}]+)\}"
@@ -117,11 +118,11 @@ def query_by_status(char_list, locations, features, user_input, db_path=DIALECTS
     回傳：
     - 每筆統計結果以字典方式輸出，最終轉為 DataFrame
     """
-    print(f"📦 連接資料庫：{db_path}")
+    # print(f"📦 連接資料庫：{db_path}")
     conn = sqlite3.connect(db_path)
     df = pd.read_sql_query(f"SELECT * FROM {table}", conn)
     conn.close()
-    print(f"✅ 資料總筆數：{len(df)}")
+    # print(f"✅ 資料總筆數：{len(df)}")
 
     results = []
 
@@ -179,9 +180,8 @@ def query_by_status(char_list, locations, features, user_input, db_path=DIALECTS
                     "多音字詳情": "; ".join(poly_details) if poly_details else ""
                 })
 
-    print("\n✅ 分析完成！")
+    # print("\n✅ 分析完成！")
     return pd.DataFrame(results)
-
 
 
 def run_status(
@@ -217,9 +217,9 @@ def run_status(
     results_summary = []
 
     for s in input_strings:
-        print(f"\n🔹 測試輸入：{s}")
+        # print(f"\n🔹 測試輸入：{s}")
         batch_result = auto_convert_batch(s)
-        print(f"  🧪 auto_convert_batch ➤ {batch_result}")
+        # print(f"  🧪 auto_convert_batch ➤ {batch_result}")
 
         if not isinstance(batch_result, list):
             results_summary.append((s, False, False))
@@ -294,7 +294,7 @@ def sta2pho(
         for feat in features:
             if feat == "聲母":
                 unique_vals = sorted(df_char["聲"].dropna().unique())
-                auto_inputs.extend([f"{v}母" for v in unique_vals])
+                auto_inputs.extend([f"{v}聲" for v in unique_vals])
                 auto_features.extend(["聲母"] * len(unique_vals))
 
             elif feat == "韻母":
@@ -315,15 +315,15 @@ def sta2pho(
 
         test_inputs = auto_inputs
         features = auto_features
-
-        print(f"🔧 產生輸入條件 {len(test_inputs)} 筆 ➤ 前5項：{test_inputs[:5]}")
+        # print(test_inputs)
+        # print(f"🔧 產生輸入條件 {len(test_inputs)} 筆 ➤ 前5項：{test_inputs[:5]}")
 
     all_results = []
 
     if len(features) == 1:
         for user_input in test_inputs:
             print("\n" + "═" * 60)
-            print(f"📘📘 分析輸入：{user_input} 對應特徵：{features[0]}")
+            # print(f"📘📘 分析輸入：{user_input} 對應特徵：{features[0]}")
 
             summary = run_status([user_input], db_path=db_path_char)
 
@@ -341,7 +341,8 @@ def sta2pho(
 
                     print(f"\n🔧 開始分析『{path_str}』的特徵分布 ({features[0]})...\n")
                     simplified_input = ''.join(re.findall(r'\[(.*?)\]', path_str))
-                    df = query_by_status(path_chars, unique_abbrs, [features[0]], simplified_input, db_path=db_path_dialect)
+                    df = query_by_status(path_chars, unique_abbrs, [features[0]], simplified_input,
+                                         db_path=db_path_dialect)
 
                     all_results.append(df)
 
@@ -370,7 +371,6 @@ def sta2pho(
                     all_results.append(df)
 
     return all_results
-
 
 
 # 這函數沒啥用

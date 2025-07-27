@@ -6,7 +6,7 @@ import pandas as pd
 
 from source.change_coordinates import bd09togcj02
 from source.config import HAN_PATH, APPEND_PATH, QUERY_DB_PATH, DIALECTS_DB_PATH, CHARACTERS_DB_PATH, PHO_TABLE_PATH
-from source.get_new import extract_all_from_tsv
+from source.get_new import extract_all_from_files
 from source.match_fromdb import get_tsvs
 
 
@@ -202,7 +202,7 @@ def process_all2sql(tsv_paths, db_path, append=False):
             continue
 
         try:
-            df = extract_all_from_tsv(path)
+            df = extract_all_from_files(path)
             print(f"  📄 提取資料表：{len(df)} 行")
 
             df = df.fillna("")
@@ -440,7 +440,19 @@ def write_to_sql(yindian=None, write_chars_db=None, append=False):
     if yindian:
         tsv_paths_yindian, *_ = get_tsvs(output_dir='data/yindian/')
         tsv_paths_mine, *_ = get_tsvs()
-        tsv_paths = tsv_paths_yindian + tsv_paths_mine
+        # 用字典来保存最终的路径，并按文件名进行合并
+        merged_paths = {}
+        # 将 tsv_paths_yindian 中的文件路径添加到字典中，使用文件名作为键
+        for path in tsv_paths_yindian:
+            filename = path.split('/')[-1]  # 提取文件名
+            merged_paths[filename] = path
+        # 遍历 tsv_paths_mine，如果文件名已存在，更新为 mine 中的路径
+        for path in tsv_paths_mine:
+            filename = path.split('/')[-1]  # 提取文件名
+            merged_paths[filename] = path  # 直接覆盖已有路径
+        # 合并完成后的路径列表
+        tsv_paths = list(merged_paths.values())
+        # tsv_paths = tsv_paths_yindian + tsv_paths_mine
     else:
         tsv_paths, *_ = get_tsvs()
     db_path = os.path.join(os.getcwd(), DIALECTS_DB_PATH)

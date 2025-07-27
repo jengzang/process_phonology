@@ -62,20 +62,24 @@
 ✅ 若所有資料皆正常，會顯示「格式檢查通過，無異常」
 
 """
-
-import tkinter as tk
-from tkinter import filedialog
-import pandas as pd
+import os
 import re
+import sys
+import tkinter as tk
 from collections import defaultdict
+from tkinter import filedialog
+
+import pandas as pd
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))  # 添加项目根目录到 sys.path
+from check.maybe_error_chars import check_get_chars
+from source.get_new import extract_all_from_files
 
 RU_FINALS = set("ptkʔˀᵖᵏᵗbdg")
 SUPER_TO_NORMAL = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹", "0123456789")
 
 
 def 處理自定義編輯指令(df, col_hanzi, col_ipa, command):
-    import re
-
     results = []
     errors = []
 
@@ -181,8 +185,13 @@ def 檢查資料格式(df, col_hanzi, col_ipa, display=False, col_note=None):
     for k, v in errors.items():
         if v:
             print(f"\n⚠️ [{k}] 發現 {len(v)} 項：")
+            count = 0  # 用於控制每行最多顯示4個錯誤
             for item in v:
-                print(item)
+                if count == 4:  # 每4个错误换行
+                    print()  # 换行
+                    count = 0  # 重置计数器
+                print(item, end="   ")  # 不换行，条目之间加空格
+                count += 1
 
     if not any(errors.values()):
         print("✅ 格式檢查通過，無異常")
@@ -242,6 +251,24 @@ def 整理並顯示調值(df_xlsx, actual_cols):
         print(f"{t}: {''.join(sorted(shu_tone_to_hanzi[t]))}")
 
 
+def 查找出韻字(df_xlsx, actual_cols, chars_list):
+    # 查找并输出指定的漢字的讀音
+    print("\n📝 以下字可能有誤（出韻）：")
+    count = 0
+    for i, row in df_xlsx.iterrows():
+        hanzi = str(row.get(actual_cols['漢字'], "")).strip()
+        ipa = str(row.get(actual_cols['音標'], "")).strip()
+        note = str(row.get(actual_cols['解釋'], "")).strip()
+
+        # 只查找在指定列表中的漢字
+        if hanzi in chars_list:
+            if count == 4:  # 每4个条目换行
+                print()  # 换行
+                count = 0  # 重置计数器
+            print(f"[{i}] {hanzi}｜{ipa}｜{note}", end=" \t\t ")  # 不换行
+            count += 1
+
+
 def main():
     root = tk.Tk()
     root.withdraw()
@@ -264,6 +291,7 @@ def main():
         column_map = {
             '漢字': ['漢字_程序改名', '單字', '单字', '漢字', 'phrase'],
             '音標': ['IPA_程序改名', 'IPA', 'ipa', '音標', 'syllable'],
+            '解釋': ['注釋_程序改名', '注释', '注釋', '解釋', 'notes']
         }
 
         actual_cols = {}
@@ -364,6 +392,37 @@ def main():
             # 再次顯示調值
             print("\n📊 當前調值整理：")
             整理並顯示調值(df_xlsx, actual_cols)
+
+        df = extract_all_from_files(path)
+        results1 = check_get_chars(df, "声母")
+        results2 = check_get_chars(df, "韵母")
+        results = results1 + results2
+        all_unique_chars = set()
+        for result_df in results:
+            if not result_df.empty:
+                # 提取"對應字"列并将所有字合并到一个集合中
+                for chars_list in result_df['對應字']:
+                    all_unique_chars.update(chars_list)  # 将每个字添加到集合中
+
+        # 将集合转换为列表，去重后的字将成为列表的元素
+        chars_list = list(all_unique_chars)
+        # print(chars_list)
+        查找出韻字(df_xlsx, actual_cols, chars_list)
+
+        # 🔁 第三階段：處理出韻字
+        while True:
+            edit_input = input("\n✏️ 輸入編輯指令 ，按 Enter 跳過：").strip()
+            if not edit_input:
+                break
+            results, errors = 處理自定義編輯指令(df_xlsx, actual_cols['漢字'], actual_cols['音標'], edit_input)
+            for line in results:
+                print(line)
+            for line in errors:
+                print(line)
+            if results:
+                df_xlsx.to_excel(path, index=False)
+                print(f"✅ 已更新 Excel：{path}")
+                查找出韻字(df_xlsx, actual_cols, chars_list)
 
 
 if __name__ == "__main__":

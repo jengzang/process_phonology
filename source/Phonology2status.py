@@ -1,4 +1,5 @@
 import sqlite3
+
 import pandas as pd
 
 from source.config import DIALECTS_DB_PATH, CHARACTERS_DB_PATH
@@ -43,11 +44,11 @@ def query_dialect_features(locations, features, db_path=DIALECTS_DB_PATH, table=
     }
     """
     # 連接資料庫
-    print(f"📦 連接資料庫：{db_path}")
+    # print(f"📦 連接資料庫：{db_path}")
     conn = sqlite3.connect(db_path)
     df = pd.read_sql_query(f"SELECT * FROM {table}", conn)
     conn.close()
-    print(f"✅ 資料總筆數：{len(df)}")
+    # print(f"✅ 資料總筆數：{len(df)}")
     # print("1111")
     # 過濾輸入的地點
     df = df[df["簡稱"].isin(locations)]
@@ -110,7 +111,7 @@ def analyze_characters_from_db(
         "韻母": ["韻"],
         "聲調": ["清濁", "調"]
     }
-    print(f"特徵值{feature_value}")
+    # print(f"特徵值{feature_value}")
     if not group_fields:
         group_fields = default_grouping.get(feature_type)
         if not group_fields:
@@ -219,7 +220,7 @@ def pho2sta(locations, regions, features, status_inputs,
         return []
 
     unique_abbrs = list({abbr for res in match_results for abbr in res[0]})
-    print(f"\n📍 確認匹配地點：{unique_abbrs}")
+    # print(f"\n📍 確認匹配地點：{unique_abbrs}")
 
     results = []
     dialect_output = query_dialect_features(unique_abbrs, features, db_path=dialect_db_path)

@@ -650,3 +650,64 @@ label:hover {
     font-weight: 400; /* 普通字重 */
     line-height: 1; /* 行高，讓文字顯得更清晰 */
 }
+
+/* 主要容器樣式 */
+.dropdown-container-map {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    width: 50px; /* 可以調整寬度 */
+    margin-left: 0; /* 確保容器從左邊開始 */
+    /* 防止選項內容撐開 */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+/* 下拉選框樣式 */
+.dropdown-map {
+    width: 50px; /* 固定寬度 */
+    padding: 2px 3px;
+    font-size: 10px; /* 自動縮小文字字號 */
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    color: #333;
+    outline: none;
+    transition: all 0.3s ease;
+    text-align: center; /* 文字居中 */
+}
+
+
+/* 展開下拉框的箭頭 */
+.dropdown-map::-ms-expand {
+    display: none; /* 去除 IE 和 Edge 中的默認箭頭 */
+}
+
+/* 展開時的樣式 */
+.dropdown-map option {
+    padding: 8px; /* 給選項適當的內邊距 */
+    font-size: 13px;
+    background-color: #f9f9f9; /* 輕微的背景色 */
+    color: #333;
+    text-align: center; /* 文字居中 */
+    transition: all 0.3s ease; /* 平滑過渡效果 */
+    border-radius: 8px; /* 設置選項圓角 */
+}
+
+/* 當用戶懸停在選項時，背景顏色改變 */
+.dropdown-map option:hover {
+    background-color: #007aff; /* 蘋果藍的高亮效果 */
+    color: white;
+}
+
+/* focus 和 hover 時的樣式 */
+.dropdown-map:hover,
+.dropdown-map:focus {
+    border-color: #007aff; /* 蘋果藍 */
+    background-color: #e1f3ff; /* 輕微的藍色背景 */
+    box-shadow: 0 4px 10px rgba(0, 122, 255, 0.2);
+}

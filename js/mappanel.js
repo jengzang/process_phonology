@@ -1007,25 +1007,32 @@ async function create_dot_all() {
         alert("請輸入地點或分區中的一個！");
         return;
     }
-
-    // 获取最大 level
-    for (const region of regions) {
-        try {
-            const response = await fetch(`http://127.0.0.1:5000/api/partitions?parent=${encodeURIComponent(region)}`);
-            const data = await response.json();
-
-            const regionData = data[region];
-            const level = regionData ? regionData.level : 3;  // 如果有partitions，返回它的 level，否則返回 0
-
-            maxLevel = Math.max(maxLevel, level);  // 更新最大 level
-        } catch (error) {
-            console.error(`❌ 获取分区 ${region} 失败:`, error);
-            maxLevel = Math.max(maxLevel, 3);
-        }
+    // 获取用户选择的 maxLevel，如果用户选择了某个值
+    const userSelectedLevel = document.getElementById('max-level').value;
+    if (userSelectedLevel) {
+        maxLevel = parseInt(userSelectedLevel);  // 使用用户选择的 level
     }
+    // 如果用户没有选择 maxLevel，则通过 regions 进行计算
+    if (!userSelectedLevel) {
+        // 获取最大 level
+        for (const region of regions) {
+            try {
+                const response = await fetch(`http://127.0.0.1:5000/api/partitions?parent=${encodeURIComponent(region)}`);
+                const data = await response.json();
 
-    if (maxLevel === 0) {
-        maxLevel = 3;
+                const regionData = data[region];
+                const level = regionData ? regionData.level : 3;  // 如果有partitions，返回它的 level，否則返回 0
+
+                maxLevel = Math.max(maxLevel, level);  // 更新最大 level
+            } catch (error) {
+                console.error(`❌ 获取分区 ${region} 失败:`, error);
+                maxLevel = Math.max(maxLevel, 3);
+            }
+        }
+
+        if (maxLevel === 0) {
+            maxLevel = 3;
+        }
     }
 
     // 定义颜色数组（20种颜色）
@@ -1227,6 +1234,27 @@ async function create_dot_all() {
 }
 
 document.getElementById("allmap-first").addEventListener("click", create_dot_all);
+// 监听用户选择 max-level 时的变化
+document.getElementById('max-level').addEventListener('change', async function() {
+    await create_dot_all();  // 用户选择时调用 create_dot_all
+});
+// 隐藏 "請選擇" 在下拉框展开时
+document.getElementById('max-level').addEventListener('focus', function() {
+    const dropdown = this;
+    const firstOption = dropdown.querySelector('option[value=""]');
+    if (firstOption) {
+        firstOption.style.display = 'none';  // 隐藏 "請選擇" 选项
+    }
+});
+
+// 当下拉框失去焦点时，恢复显示 "請選擇" 选项
+document.getElementById('max-level').addEventListener('blur', function() {
+    const dropdown = this;
+    const firstOption = dropdown.querySelector('option[value=""]');
+    if (firstOption) {
+        firstOption.style.display = '';  // 恢复显示 "請選擇" 选项
+    }
+});
 
 
 // 监听点击事件，点击外部关闭弹窗

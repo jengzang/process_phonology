@@ -1,10 +1,13 @@
-import pandas as pd
-import re
 import math
+import os
+import re
+
+import pandas as pd
 
 
-def extract_all_from_tsv(tsv_file_path: str) -> pd.DataFrame:
+def extract_all_from_files(file_path: str) -> pd.DataFrame:
     vowel_pattern = r"[iyɨʉɯuɪʏɿʅʅɭıɪſɩɷʮɥʯʊeɘɵəɤoɛεɝɚᴇœɜɞʌɔæaɶɑɒᴀɐãẽĩỹõúαᵘᶷᶤᶶᵚʸᶦᵊⁱ◌∅ø]"
+    # print(file_path)
 
     tone_map_yindian = {
         "1": "陰平", "1a": "陰平甲", "1b": "陰平乙", "1A": "陰平甲", "1B": "陰平乙",
@@ -22,9 +25,39 @@ def extract_all_from_tsv(tsv_file_path: str) -> pd.DataFrame:
     #     "7": "上陰入", "8": "下陰入", "9": "陽入", "10": "下陽入", "0": "變調"
     # }
 
-    df = pd.read_csv(tsv_file_path, sep="\t", dtype=str)
-    df.columns = [col.lstrip("#").strip() for col in df.columns]
+    # 定義列名映射
+    col_map = {
+        '漢字': ['漢字_程序改名', '單字', '#漢字', '单字', '漢字', 'phrase', '汉字'],
+        '音標': ['IPA_程序改名', 'IPA', 'ipa', '音標', 'syllable'],
+        '解釋': ['注釋_程序改名', '注释', '注釋', '解釋', 'notes']
+    }
+
+    def get_standard_column_name(col_name, col_map):
+        """
+        根據 col_map 返回標準化的列名。
+        :param col_name: 當前列名
+        :param col_map: 列名映射
+        :return: 返回對應的標準化列名
+        """
+        for standard_col, possible_names in col_map.items():
+            if col_name in possible_names:
+                return standard_col
+        return col_name  # 如果找不到對應的列名，返回原列名
+
+    # 檢查文件的副檔名來決定使用哪種方法
+    file_extension = os.path.splitext(file_path)[1].lower()
+    # print(file_extension)
+    if file_extension == ".tsv":
+        df = pd.read_csv(file_path, sep="\t", dtype=str)
+    elif file_extension in [".xls", ".xlsx"]:
+        df = pd.read_excel(file_path, dtype=str)
+    else:
+        raise ValueError("Unsupported file format. Please provide a TSV or Excel file.")
+
+        # 處理欄位名稱，根據 col_map 進行模糊對應
+    df.columns = [get_standard_column_name(col, col_map) for col in df.columns]
     df = df.fillna("")
+
 
     # 判斷 tone 系統
     # def extract_tone_number(df, char):
@@ -84,7 +117,7 @@ def extract_all_from_tsv(tsv_file_path: str) -> pd.DataFrame:
                         consonant += char
             else:
                 if re.match(vowel_pattern, phon[0]):
-                    consonant = "∅"
+                    consonant = "/"
                 elif 'j' in phon[1:] or 'ʲ' in phon[1:]:
                     for char in phon:
                         if re.match(vowel_pattern, char) or char in ('j', 'ʲ'):
