@@ -72,7 +72,7 @@ from tkinter import filedialog
 import pandas as pd
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))  # 添加项目根目录到 sys.path
-from check.maybe_error_chars import check_get_chars
+from maybe_error_chars import check_get_chars
 from source.get_new import extract_all_from_files
 
 RU_FINALS = set("ptkʔˀᵖᵏᵗbdg")
@@ -148,7 +148,7 @@ def 檢查資料格式(df, col_hanzi, col_ipa, display=False, col_note=None):
         allowed = set(
             "abcdefghijklmnopqrstuvwxyz"
             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-            "ɑɐɒɓʙβɔɕçðɖɗɘəɚɛɜɞɟʄɡɢʛɣʰɥʜɦɪʝɭɬɫʟɮɰɱɲɳɴɵøœɶɸɹɻʁʀɽɾʃʂʈʊʋʌʍχʎʑʐʒʔʕʡʢʘʞθʼˈˌːˑ⁰¹²³⁴⁵⁶⁷⁸⁹ⁿˡʲʳˀ"
+            "ŋɑɐɒɓʙβɔɕçðɖɗɘəɚɛɜɞɟʄɡɢʛɣʰɥʜɦɪʝɭɬɫʟɮɰɱɲȵɳŋɳɴɵøœɶɸɹɻʁʀɽɾʃʂʈʊʋʌʍχʎʑʐʒʔʕʡʢʘʞθʼˈˌːˑ⁰¹²³⁴⁵⁶⁷⁸⁹ⁿˡʲʳˀ"
             "ʦʧʨʂʐʑʒʮʰʲː˞ˠˤ̩̯̝̞̤̰̹̻̃̍̽̚=~^"
             "ıſɩɷʅɥʯεɝɚᴇãẽĩỹõúαᵘᶷᶤᶶᵚʸᶦᵊⁱ◌∅"
             "0123456789"
@@ -177,9 +177,13 @@ def 檢查資料格式(df, col_hanzi, col_ipa, display=False, col_note=None):
             continue
 
         if any(sep in ipa for sep in ",.;'/=-"):
+            # 如果包含分隔符，拆分成多个部分
             parts = re.split(r"[,\.;'/=\-]", ipa)
-            if not all(is_normal_ipa(p.strip()) for p in parts if p.strip()):
-                errors["異常音標"].append((i, hanzi, ipa))
+        else:
+            # 如果没有分隔符，直接将 ipa 字符串作为一个整体检查
+            parts = [ipa]
+        if not all(is_normal_ipa(p.strip()) for p in parts if p.strip()):
+            errors["異常音標"].append((i, hanzi, ipa))
 
     # 錯誤輸出
     for k, v in errors.items():
@@ -252,8 +256,9 @@ def 整理並顯示調值(df_xlsx, actual_cols):
 
 
 def 查找出韻字(df_xlsx, actual_cols, chars_list):
+    num = len(chars_list)
     # 查找并输出指定的漢字的讀音
-    print("\n📝 以下字可能有誤（出韻）：")
+    print(f"\n📝 以下字可能有誤(出韻),共有{num}個：")
     count = 0
     for i, row in df_xlsx.iterrows():
         hanzi = str(row.get(actual_cols['漢字'], "")).strip()
@@ -393,7 +398,27 @@ def main():
             print("\n📊 當前調值整理：")
             整理並顯示調值(df_xlsx, actual_cols)
 
+        print("🔁開始分別提取聲母韻母")
         df = extract_all_from_files(path)
+        filtered_df = df[(df["声母"] == "/") & (df["韵母"].isin(["i", "y", "u"]))]
+        print(filtered_df)
+        # 🔁 第三階段：處理零聲母
+        while True:
+            edit_input = input("\n✏️ 輸入編輯指令 ，按 Enter 跳過：").strip()
+            if not edit_input:
+                break
+            results, errors = 處理自定義編輯指令(df_xlsx, actual_cols['漢字'], actual_cols['音標'], edit_input)
+            for line in results:
+                print(line)
+            for line in errors:
+                print(line)
+            if results:
+                df_xlsx.to_excel(path, index=False)
+                print(f"✅ 已更新 Excel：{path}")
+                df = extract_all_from_files(path)
+                filtered_df = df[(df["声母"] == "/") & (df["韵母"].isin(["i", "y", "u"]))]
+                print(filtered_df)
+
         results1 = check_get_chars(df, "声母")
         results2 = check_get_chars(df, "韵母")
         results = results1 + results2
@@ -409,7 +434,7 @@ def main():
         # print(chars_list)
         查找出韻字(df_xlsx, actual_cols, chars_list)
 
-        # 🔁 第三階段：處理出韻字
+        # 🔁 第四階段：處理出韻字
         while True:
             edit_input = input("\n✏️ 輸入編輯指令 ，按 Enter 跳過：").strip()
             if not edit_input:
