@@ -267,7 +267,7 @@ def process_all2sql(tsv_paths, db_path, append=False):
 
 
 # 舊版代碼，直接刪除整個數據庫並更新
-def process_polyphonic_annotations(db_path: str):
+def process_polyphonic_annotations_old(db_path: str):
     conn = sqlite3.connect(db_path)
     df = pd.read_sql_query("SELECT * FROM dialects", conn)
 
@@ -303,7 +303,7 @@ def process_polyphonic_annotations(db_path: str):
     print(f"✅ 合併後剩餘 {len(merged_df)} 筆")
 
     # 二階段：標記多音字（音節不同）
-    final = []
+    # final = []
     grouped2 = merged_df.groupby(["簡稱", "漢字"])
 
     # for (short_name, char), group in grouped2:
@@ -321,7 +321,7 @@ def process_polyphonic_annotations(db_path: str):
     merged_df['多音字'] = grouped2['音節'].transform(lambda x: '1' if x.nunique() > 1 else '')
     final_df = merged_df
 
-    print(f"💾 清空並重建資料表 dialects，共 {len(final_df)} 筆")
+    # print(f"💾 清空並重建資料表 dialects，共 {len(final_df)} 筆")
     cursor = conn.cursor()
     cursor.execute("DROP TABLE IF EXISTS dialects")
     final_df.to_sql("dialects", conn, index=False)
@@ -331,73 +331,75 @@ def process_polyphonic_annotations(db_path: str):
     print("✅ 多音字處理完成")
 
 
-# 新代碼，更改數據庫，加快運行速度(不能用，多音字标记有问题）
-def process_polyphonic_annotations_new(db_path: str):
+# 新代碼，實時更改數據庫，加快運行速度
+def process_polyphonic_annotations(db_path: str):
     conn = sqlite3.connect(db_path)
     df = pd.read_sql_query("SELECT * FROM dialects", conn)
 
     print(f"🔍 資料庫讀取完成，共 {len(df)} 筆")
 
-    # 一階段：合併同音節註釋（聲母、韻母、聲調一致）
-    grouped = df.groupby(["簡稱", "漢字", "音節"])
+    grouped = df.groupby(["簡稱", "漢字"])
 
     previous_short_name = None  # 用来保存上一次的地点信息
-    for (short_name, char, syllable), group in grouped:
+    for (short_name, char), group in grouped:
         if short_name != previous_short_name:  # 当地点变化时触发
             print(f"正在處理： {short_name}")  # 输出调试信息，地点发生变化
 
-        unique_phonetics = group[["聲母", "韻母", "聲調"]].drop_duplicates()
-        if len(unique_phonetics) == 1:
-            notes = group["註釋"].dropna().astype(str).str.strip().unique()
-            notes = [n for n in notes if n]
-            combined_note = ";".join(notes) if notes else ""
+        # 一階段：處理註釋
+        grouped_syllables = group.groupby("音節")
+        for syllable, syllable_group in grouped_syllables:
+            unique_phonetics = syllable_group[["聲母", "韻母", "聲調"]].drop_duplicates()
+            if len(unique_phonetics) == 1:
+                notes = syllable_group["註釋"].dropna().astype(str).str.strip().unique()
+                notes = [n for n in notes if n]
+                combined_note = ";".join(notes) if notes else ""
 
-            base_row = group.iloc[0].copy()
-            base_row["註釋"] = combined_note
-            # 更新資料庫中的註釋
-            cursor = conn.cursor()
-            cursor.execute("""
-                UPDATE dialects
-                SET 註釋 = ?
-                WHERE 簡稱 = ? AND 漢字 = ? AND 音節 = ?
-            """, (combined_note, short_name, char, syllable))
+                base_row = syllable_group.iloc[0].copy()
+                base_row["註釋"] = combined_note
 
-            # 刪除除第一行外的其他重複行
-            cursor.execute("""
-                DELETE FROM dialects
-                WHERE (簡稱 = ? AND 漢字 = ? AND 音節 = ?)
-                  AND rowid NOT IN (
-                    SELECT MIN(rowid)
-                    FROM dialects
-                    WHERE 簡稱 = ? AND 漢字 = ? AND 音節 = ?
-                  )
-            """, (short_name, char, syllable, short_name, char, syllable))
-
-        else:
-            print(f"⚠️ 音節相同但聲韻調不同：{char} / {syllable}")
-            for _, row in group.iterrows():
+                # 更新資料庫中的註釋
                 cursor = conn.cursor()
                 cursor.execute("""
                     UPDATE dialects
                     SET 註釋 = ?
                     WHERE 簡稱 = ? AND 漢字 = ? AND 音節 = ?
-                """, (row["註釋"], short_name, char, syllable))
+                """, (combined_note, short_name, char, syllable))
+
+                # 刪除除第一行外的其他重複行
+                cursor.execute("""
+                    DELETE FROM dialects
+                    WHERE (簡稱 = ? AND 漢字 = ? AND 音節 = ?)
+                      AND rowid NOT IN (
+                        SELECT MIN(rowid)
+                        FROM dialects
+                        WHERE 簡稱 = ? AND 漢字 = ? AND 音節 = ?
+                      )
+                """, (short_name, char, syllable, short_name, char, syllable))
+
+            else:
+                print(f"⚠️ 音節相同但聲韻調不同：{char} / {syllable}")
+                for _, row in syllable_group.iterrows():
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        UPDATE dialects
+                        SET 註釋 = ?
+                        WHERE 簡稱 = ? AND 漢字 = ? AND 音節 = ?
+                    """, (row["註釋"], short_name, char, syllable))
+
+        # 二階段：標記多音字（音節不同）
+        syllables_count = len(group["音節"].unique())
+        if syllables_count > 1:
+            cursor = conn.cursor()
+            cursor.execute("""
+                UPDATE dialects
+                SET 多音字 = '1'
+                WHERE 簡稱 = ? AND 漢字 = ?
+            """, (short_name, char))
 
         previous_short_name = short_name  # 更新之前的地点
 
-    # 二階段：標記多音字（音節不同）
-    cursor.execute("""
-        UPDATE dialects
-        SET 多音字 = CASE
-            WHEN 漢字 IN (SELECT 漢字 FROM dialects GROUP BY 漢字 HAVING COUNT(DISTINCT 音節) > 1)
-            THEN '1'
-            ELSE ''
-        END
-    """)
-
-    # 提交更改並關閉資料庫
     conn.commit()
-    print("✅ 多音字處理完成")
+    print("🔨 資料庫更新完成！")
 
     conn.close()
 
@@ -407,6 +409,11 @@ def sync_dialects_flags(all_db_path=DIALECTS_DB_PATH,
                         log_path=CHARACTERS_DB_PATH):
     # 讀取 dialects_all.db 中所有唯一簡稱
     conn_all = sqlite3.connect(all_db_path)
+    # 創建索引，加快查詢速度
+    print("※ 開始創建索引 ※")
+    conn_all.execute("CREATE INDEX IF NOT EXISTS idx_loc ON dialects(簡稱);")
+    conn_all.execute("CREATE INDEX IF NOT EXISTS idx_char ON dialects(漢字);")
+    conn_all.commit()
     cursor_all = conn_all.cursor()
     cursor_all.execute("SELECT DISTINCT 簡稱 FROM dialects")
     all_tags = set(row[0] for row in cursor_all.fetchall())

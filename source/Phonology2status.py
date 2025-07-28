@@ -44,23 +44,27 @@ def query_dialect_features(locations, features, db_path=DIALECTS_DB_PATH, table=
     }
     """
     # 連接資料庫
-    # print(f"📦 連接資料庫：{db_path}")
     conn = sqlite3.connect(db_path)
-    df = pd.read_sql_query(f"SELECT * FROM {table}", conn)
+
+    # 優化：只選擇需要的欄位並添加過濾條件
+    query = f"""
+    SELECT 簡稱, 漢字, {', '.join(features)}, 音節, 多音字
+    FROM {table}
+    WHERE 簡稱 IN ({','.join(f"'{loc}'" for loc in locations)})
+    """
+    df = pd.read_sql_query(query, conn)
     conn.close()
-    # print(f"✅ 資料總筆數：{len(df)}")
-    # print("1111")
-    # 過濾輸入的地點
-    df = df[df["簡稱"].isin(locations)]
 
     result = {}
 
+    # 針對每個特徵進行處理
     for feature in features:
+        # 只保留該特徵的資料並丟棄缺失值
         sub_df = df[["簡稱", "漢字", feature, "音節", "多音字"]].dropna(subset=[feature])
         feature_dict = {}
 
+        # 查詢每個特徵值的所有漢字
         for value in sorted(sub_df[feature].unique()):
-            # 找出所有對應的漢字
             chars = sub_df[sub_df[feature] == value]["漢字"].unique().tolist()
             feature_dict[value] = {
                 "漢字": chars,
@@ -68,16 +72,20 @@ def query_dialect_features(locations, features, db_path=DIALECTS_DB_PATH, table=
                 "多音字詳情": []
             }
 
-            # 多音字查詢
-            for loc in locations:
-                poly_df = sub_df[(sub_df["多音字"] == "1") & (sub_df["簡稱"] == loc) & (sub_df[feature] == value)]
-                for hz in poly_df["漢字"].unique():
-                    all_pron = df[(df["漢字"] == hz) & (df["簡稱"] == loc)]["音節"].unique().tolist()
-                    detail = f"{hz}:{';'.join(all_pron)}"
-                    feature_dict[value]["多音字詳情"].append(detail)
+            # 查詢多音字：只查詢多音字標註為 "1" 的資料
+            poly_df = sub_df[(sub_df["多音字"] == "1") & (sub_df[feature] == value)]
+            poly_dict = {}
+
+            # 儲存該特徵下的所有多音字
+            for hz in poly_df["漢字"].unique():
+                poly_dict[hz] = poly_df[poly_df["漢字"] == hz]["音節"].unique().tolist()
+
+            # 存儲多音字詳情
+            for hz, pron_list in poly_dict.items():
+                detail = f"{hz}:{';'.join(pron_list)}"
+                feature_dict[value]["多音字詳情"].append(detail)
 
         result[feature] = feature_dict
-    # print(result)
 
     return result
 
@@ -108,7 +116,7 @@ def analyze_characters_from_db(
 
     default_grouping = {
         "聲母": ["聲"],
-        "韻母": ["韻"],
+        "韻母": ["攝"],
         "聲調": ["清濁", "調"]
     }
     # print(f"特徵值{feature_value}")
@@ -173,7 +181,7 @@ def analyze_characters_from_db(
             summary = []
             for _, row in sub.iterrows():
                 parts = f"{row['攝']}{row['呼']}{row['等']}{row['韻']}{row['調']}"
-                meta = f"{row['系']}「系」{row['組']}「組」{row['聲']}「母」"
+                meta = f"{row['系']}-{row['組']}-{row['聲']}"
                 summary.append(f"{parts},{meta}")
             poly_details.append(f"{hz}: {' | '.join(summary)}")
         # print(f"🧩 當前分析地點：{loc}")
@@ -200,6 +208,22 @@ def pho2sta(locations, regions, features, status_inputs,
             character_db_path=CHARACTERS_DB_PATH):
 
     HIERARCHY_COLUMNS = ["攝", "呼", "等", "韻", "入", "調", "清濁", "系", "組", "聲"]
+    simplified_to_traditional = {
+        "摄": "攝",  # 簡體 -> 繁體
+        "呼": "呼",  # 已經是繁體
+        "等": "等",  # 已經是繁體
+        "韵": "韻",  # 簡體 -> 繁體
+        "入": "入",  # 已經是繁體
+        "调": "調",  # 簡體 -> 繁體
+        "清浊": "清濁",  # 簡體 -> 繁體
+        "系": "系",  # 已經是繁體
+        "组": "組",  # 簡體 -> 繁體
+        "声": "聲",  # 簡體 -> 繁體
+    }
+
+    def convert_simplified_to_traditional(simplified_text):
+        return "".join([simplified_to_traditional.get(ch, ch) for ch in simplified_text])
+
     pho_values = split_pho_input(pho_values or [])
 
     grouping_columns_map = {}
@@ -207,8 +231,21 @@ def pho2sta(locations, regions, features, status_inputs,
         user_input = status_inputs[idx] if idx < len(status_inputs) else ""
         user_columns = [col for col in HIERARCHY_COLUMNS if col in user_input]
         if not user_columns:
-            print(f"⚠️ 無有效欄位於輸入「{user_input}」中 → 將使用預設分組欄位")
-            grouping_columns_map[feature] = None
+            # print(f"⚠️ 無有效欄位於輸入「{user_input}」中 → 將使用簡體轉繁體後重新匹配")
+
+            # 進行簡體轉繁體操作
+            user_input_traditional = convert_simplified_to_traditional(user_input)
+            # print(f"🔄 簡體轉繁體：{user_input} → {user_input_traditional}")
+
+            # 嘗試用繁體字重新匹配
+            user_columns = [col for col in HIERARCHY_COLUMNS if col in user_input_traditional]
+
+            if user_columns:
+                # print(f"✅ 繁體匹配成功，特徵【{feature}】使用分組欄位：{user_columns}")
+                grouping_columns_map[feature] = user_columns
+            else:
+                print(f"❌ 繁體匹配仍然失敗，特徵【{feature}】將使用預設分組欄位")
+                grouping_columns_map[feature] = None
         else:
             print(f"✅ 特徵【{feature}】使用分組欄位：{user_columns}")
             grouping_columns_map[feature] = user_columns
@@ -249,7 +286,7 @@ def pho2sta(locations, regions, features, status_inputs,
                 # print(f"     ➤ 運算特徵值：{feature_value}（字數：{len(loc_chars)}）")
 
                 if not loc_chars:
-                    print("        ⚠️ 該特徵值在此地點無資料，略過")
+                    # print("        ⚠️ 該特徵值在此地點無資料，略過")
                     continue
 
                 result = analyze_characters_from_db(

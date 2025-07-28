@@ -259,7 +259,7 @@ def s2t_pro(字組, level=1):
 
         if 對應字串 is None and level == 2:
             對應字串 = opencc_s2t.convert(原字)
-            print(f"【OpenCC】{原字} → {對應字串}")  # Debug 用
+            # print(f"【OpenCC】{原字} → {對應字串}")  # Debug 用
         elif 對應字串 is None:
             對應字串 = 原字
 

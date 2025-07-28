@@ -4,14 +4,13 @@ import re
 import sqlite3
 from collections import defaultdict
 from itertools import product
-
-from pypinyin import lazy_pinyin
-import Levenshtein
-
-from source.format_convert import s2t_pro
 from typing import Tuple, Union, List, Optional
 
+import Levenshtein
+from pypinyin import lazy_pinyin
+
 from source.config import QUERY_DB_PATH, SUPPLE_DB_PATH
+from source.format_convert import s2t_pro
 
 # 可用於分層篩選的欄位
 HIERARCHY_COLUMNS = ["攝", "呼", "等", "韻", "入", "調", "清濁", "系", "組", "聲"]
@@ -58,7 +57,7 @@ def match_locations(user_input, filter_valid_abbrs_only=True):
         max_len = max(len(a), len(b))
         return 1 - Levenshtein.distance(a, b) / max_len >= threshold
 
-    print(f"[DEBUG] 使用者輸入：{user_input}")
+    # print(f"[DEBUG] 使用者輸入：{user_input}")
 
     def generate_strict_candidates(mapping, input_len):
         # 每個位置逐字取候選值組合（不產生交叉混用）
@@ -91,10 +90,10 @@ def match_locations(user_input, filter_valid_abbrs_only=True):
     # 根據 filter_valid_abbrs_only 決定是否過濾掉非存儲標記為1的數據
 
     if filter_valid_abbrs_only:
-        print("過濾！！")
+        # print("過濾！！")
         cursor.execute("SELECT 簡稱 FROM dialects WHERE 存儲標記 = 1")
     else:
-        print("不過濾存儲標記")
+        # print("不過濾存儲標記")
         cursor.execute("SELECT 簡稱 FROM dialects")
     valid_abbrs_set = set(row[0] for row in cursor.fetchall())
 
@@ -107,7 +106,7 @@ def match_locations(user_input, filter_valid_abbrs_only=True):
             cursor.execute("SELECT 簡稱 FROM dialects WHERE 簡稱 = ?", (term,))
         exact = cursor.fetchall()
         matched_abbrs.update([row[0] for row in exact])
-        print(f"[DEBUG] 完全匹配【{term}】：{exact}")
+        # print(f"[DEBUG] 完全匹配【{term}】：{exact}")
 
     if matched_abbrs:
         return list(matched_abbrs), 1, [], [], [], [], [], []
@@ -121,7 +120,7 @@ def match_locations(user_input, filter_valid_abbrs_only=True):
             cursor.execute("SELECT 簡稱 FROM dialects WHERE 簡稱 LIKE ?", (term + "%",))
         fuzzy = cursor.fetchall()
         fuzzy_abbrs.update([row[0] for row in fuzzy])
-        print(f"[DEBUG] 模糊簡稱匹配【{term}】：{fuzzy}")
+        # print(f"[DEBUG] 模糊簡稱匹配【{term}】：{fuzzy}")
 
     geo_matches = set()
     geo_abbr_map = {}
@@ -156,12 +155,12 @@ def match_locations(user_input, filter_valid_abbrs_only=True):
             continue
 
         if is_similar(user_input, name):
-            print(f"[DEBUG] 相似匹配: '{user_input}' ≈ '{name}' (abbr: {abbr})")
+            # print(f"[DEBUG] 相似匹配: '{user_input}' ≈ '{name}' (abbr: {abbr})")
             fuzzy_geo_matches.add(name)
             fuzzy_geo_abbrs.add(abbr)
 
         if is_pinyin_similar(user_input, name):
-            print(f"[DEBUG] 拼音匹配: '{user_input}' ≈ '{name}' (abbr: {abbr})")
+            # print(f"[DEBUG] 拼音匹配: '{user_input}' ≈ '{name}' (abbr: {abbr})")
             sound_like_matches.add(name)
             sound_like_abbrs.add(abbr)
 
@@ -384,7 +383,7 @@ def auto_convert_single(user_input: str) -> Union[Tuple[str, int], Tuple[bool, i
 
         # 簡體轉繁體邏輯（保留您的原來邏輯）
         clean_str, _ = s2t_pro(user_input, level=2)
-        print(f"[DEBUG] 原輸入：{user_input} → 繁體轉換後再嘗試：{clean_str}")
+        # print(f"[DEBUG] 原輸入：{user_input} → 繁體轉換後再嘗試：{clean_str}")
         user_input = clean_str
 
         # 取得每個欄位的合法值
@@ -415,7 +414,7 @@ def auto_convert_single(user_input: str) -> Union[Tuple[str, int], Tuple[bool, i
 
         # ▶ 簡體沒匹配，嘗試繁體
         clean_str, _ = s2t_pro(user_input, level=2)
-        print(f"[DEBUG] 原輸入：{user_input} → 繁體轉換後再嘗試：{clean_str}")
+        # print(f"[DEBUG] 原輸入：{user_input} → 繁體轉換後再嘗試：{clean_str}")
         return process(clean_str)
 
 

@@ -542,7 +542,7 @@ async function analysis_from_db() {
         log("📦 發送 Payload", payload);
         const fetchStart = performance.now();
         setLoadingMessage("📡 數據讀取中…");
-        const res = await window.fetchWithLog("http://127.0.0.1:5000/api/phonology", {
+        const res = await window.fetch("http://127.0.0.1:5000/api/phonology", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)

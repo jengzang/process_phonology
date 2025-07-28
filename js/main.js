@@ -26,22 +26,36 @@ function makeDraggable(el, handle, getMode) {
 
 function bindPanel(minBtn, maxBtn, restoreBtn, el, getMode, setMode) {
     minBtn.addEventListener("click", () => {
-        setMode(0);
-        el.className = "panel panel-minimized";
-        restoreBtn.style.display = "block";
+        setMode(0);  // 设置为最小化模式
+        el.className = "panel panel-minimized";  // 设置面板为最小化状态
+        restoreBtn.style.display = "block";  // 显示恢复按钮
     });
 
     maxBtn.addEventListener("click", () => {
-        const newMode = getMode() === 2 ? 1 : 2;
-        setMode(newMode);
-        el.className = "panel " + (newMode === 2 ? "panel-fullscreen" : "panel panel-medium");
-        restoreBtn.style.display = "none";
+        const newMode = getMode() === 2 ? 1 : 2;  // 如果是最大化，切换到中等状态，反之切换到最大化
+        setMode(newMode);  // 设置面板的模式为最大化或中等
+        el.className = "panel " + (newMode === 2 ? "panel-fullscreen" : "panel panel-medium");  // 更新面板的类名
+
+        // 最大化时，置顶面板并确保它位于最前面
+        if (newMode === 2) {
+            el.style.position = "fixed";  // 固定在视口上
+            el.style.top = "0";  // 置顶
+            el.style.left = "0";  // 左对齐
+            el.style.zIndex = "9999";  // 让面板在最前面
+        } else {
+            el.style.position = "";  // 恢复默认定位
+            el.style.top = "";  // 恢复默认位置
+            el.style.left = "";  // 恢复默认位置
+            el.style.zIndex = "";  // 恢复默认 z-index
+        }
+
+        restoreBtn.style.display = "none";  // 隐藏恢复按钮
     });
 
     restoreBtn.addEventListener("click", () => {
-        setMode(1);
-        el.className = "panel panel-medium";
-        restoreBtn.style.display = "none";
+        setMode(1);  // 设置为中等模式
+        el.className = "panel panel-medium";  // 设置面板为中等状态
+        restoreBtn.style.display = "none";  // 隐藏恢复按钮
     });
 }
 

@@ -120,11 +120,51 @@ def query_by_status(char_list, locations, features, user_input, db_path=DIALECTS
     """
     # print(f"📦 連接資料庫：{db_path}")
     conn = sqlite3.connect(db_path)
-    df = pd.read_sql_query(f"SELECT * FROM {table}", conn)
-    conn.close()
-    # print(f"✅ 資料總筆數：{len(df)}")
 
+    # 1. 只選擇需要的欄位並添加過濾條件，減少資料庫加載量
+    query = f"""
+    SELECT 簡稱, 漢字, {', '.join(features)}, 多音字, 音節
+    FROM {table}
+    WHERE 簡稱 IN ({','.join(f"'{loc}'" for loc in locations)}) 
+    AND 漢字 IN ({','.join(f"'{char}'" for char in char_list)})
+    """
+    try:
+        df = pd.read_sql_query(query, conn)
+        print(f"✅ 查詢結果：載入 {len(df)} 條資料")
+    except Exception as e:
+        print(f"❌ 查詢失敗：{e}")
+    conn.close()
+
+    # 2. 為每個地點分別查詢多音字資料，並構建多音字字典
+    poly_dicts = {}  # 存儲每個地點的多音字字典
+    for loc in locations:
+        # 針對每個地點進行查詢
+        # print(f"🔍 查詢地點：{loc}")
+        conn = sqlite3.connect(db_path)
+        try:
+            # 查詢該地點的多音字資料
+            query = f"""
+            SELECT 漢字, 音節 
+            FROM {table} 
+            WHERE 多音字 = '1' 
+            AND 簡稱 = '{loc}' 
+            AND 漢字 IN ({','.join(f"'{char}'" for char in char_list)})
+            """
+            poly_data = pd.read_sql_query(query, conn)
+            # print(f"✅ 地點 {loc} 的多音字資料載入完成，共 {len(poly_data)} 條")
+        except Exception as e:
+            print(f"❌ 查詢地點 {loc} 的多音字資料失敗：{e}")
+        conn.close()
+
+        # 構建該地點的多音字字典
+        poly_dict = poly_data.groupby("漢字")["音節"].apply(lambda x: '|'.join(x)).to_dict()
+        poly_dicts[loc] = poly_dict
+        print(f"✅ 地點 {loc} 的多音字字典建構完成，共 {len(poly_dict)} 條")
+
+    # 3. 開始處理資料
     results = []
+
+    # print("🔍 開始處理地點和特徵...")
 
     for loc in locations:
         print(f"\n🔍 處理地點：{loc}")
@@ -149,9 +189,10 @@ def query_by_status(char_list, locations, features, user_input, db_path=DIALECTS
             continue
 
         total_chars = len(loc_chars_df["漢字"].unique())
+        print(f"   - 總共字數：{total_chars}")
 
         for feature in features:
-            # print(f"   🔎 特徵欄位：{feature}")
+            print(f"   🔎 處理特徵：{feature}")
             feature_groups = loc_chars_df.groupby(feature)
 
             for fval, sub_df in feature_groups:
@@ -159,28 +200,29 @@ def query_by_status(char_list, locations, features, user_input, db_path=DIALECTS
                 unique_chars = list(set(all_chars))
                 count = len(unique_chars)
 
-                # print(f"     ▶︎ {feature} = {fval}，字數：{count}，字例：{unique_chars[:5]}...")
+                print(f"     ▶︎ {feature} = {fval}，字數：{count}，字例：{unique_chars[:5]}...")
 
-                poly_df = sub_df[sub_df.get("多音字") == "1"]
                 poly_details = []
-
-                for hz in poly_df["漢字"].unique():
-                    all_pron = df[(df["漢字"] == hz) & (df["簡稱"] == loc)]["音節"].unique().tolist()
-                    # print(f"       ⤷ 多音字：{hz}，音節：{all_pron}")
-                    poly_details.append(f"{hz}:{'|'.join(all_pron)}")
+                # 使用該地點的多音字字典
+                poly_dict = poly_dicts.get(loc, {})
+                for hz in unique_chars:
+                    if hz in poly_dict:
+                        poly_details.append(f"{hz}:{poly_dict[hz]}")
 
                 results.append({
                     "地點": loc,
                     "特徵類別": feature,
                     "特徵值": user_input,
-                    "分組值": {user_input: fval},  # 將 user_input 加入分組值
+                    "分組值": {user_input: fval},
                     "字數": count,
                     "佔比": round(count / total_chars, 4) if total_chars else 0.0,
                     "對應字": unique_chars,
                     "多音字詳情": "; ".join(poly_details) if poly_details else ""
                 })
 
-    # print("\n✅ 分析完成！")
+    print("\n✅ 分析完成！")
+
+    # 返回結果
     return pd.DataFrame(results)
 
 

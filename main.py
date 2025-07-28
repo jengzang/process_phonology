@@ -72,7 +72,7 @@ def main():
     # convert_all_to_tsv()
 
     # tsv寫入數據庫
-    write_to_sql(yindian=True, write_chars_db=False, append=False)
+    write_to_sql(yindian=False, write_chars_db=False, append=False)
 
     # # 呼叫分析函數
     # results = run_phonology_analysis(

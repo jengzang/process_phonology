@@ -97,6 +97,7 @@ html, body {
     height: 48px !important;
     background: transparent;
     border: none;
+    display: none;
 }
 .panel-minimized .panel-content,
 .panel-minimized .mode-btn:not(#panelRestoreBtn):not(#resultRestoreBtn),
