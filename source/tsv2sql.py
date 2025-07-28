@@ -11,7 +11,8 @@ from source.match_fromdb import get_tsvs
 
 
 def build_dialect_database():
-    han_file = Path(HAN_PATH)  # 使用固定路徑
+    # han_file = Path(HAN_CSV_PATH)
+    han_file = Path(HAN_PATH)
     other_file = Path(APPEND_PATH)
     sqlite_db = Path(QUERY_DB_PATH)
 
@@ -56,7 +57,8 @@ def build_dialect_database():
     df_other = df_other.rename(columns=rename_map)
 
     # --- 讀取 漢字音典表，跳過第 2 行（即 index 0）---
-    df_han = pd.read_excel(han_file, sheet_name="檔案", header=0)
+    df_han = pd.read_excel(han_file, sheet_name="檔案", header=0, engine='openpyxl', keep_default_na=False)
+    # df_han = pd.read_csv(han_file)
     df_han = df_han.drop(index=0).reset_index(drop=True)
     df_han.columns = df_han.columns.str.strip()
     df_han["存儲標記"] = ""  # ✅ 補上這一列
@@ -130,7 +132,7 @@ def build_dialect_database():
                 print(f"\n🟡 簡稱: {name}")
                 for _, row in group.iterrows():
                     count, cols = get_nonnull_info(row)
-                    print(f"  ➤ 來源：{row['_來源']}，非空欄位 {count} 個：{', '.join(cols)}")
+                    # print(f"  ➤ 來源：{row['_來源']}，非空欄位 {count} 個：{', '.join(cols)}")
 
                 print(f"  ✅ 最終選中來源：{selected['_來源']}")
             else:
@@ -194,7 +196,10 @@ def process_all2sql(tsv_paths, db_path, append=False):
             continue
 
         tsv_name = os.path.splitext(os.path.basename(path))[0]
-        print(f"\n🔍 正在處理：{tsv_name}")
+        now_process = f"\n🔍 正在處理：{tsv_name}"
+        print(now_process)
+        with open("logs/缺資料.txt", "a", encoding="utf-8") as f:
+            f.write("\n" + now_process + "\n")
 
         # 如果 append 为 True，则进行筛选
         if append and not update_rows.empty and tsv_name not in update_rows['簡稱'].values:
@@ -226,7 +231,10 @@ def process_all2sql(tsv_paths, db_path, append=False):
                     continue
 
                 if not all([cons, vow, tone]):
-                    print(f"❗ 缺資料：char={char}, 音節={phonetic}, 聲母='{cons}', 韻母='{vow}', 聲調='{tone}'")
+                    log_message = f"❗ 缺資料：char={char}, 音節={phonetic}, 聲母='{cons}', 韻母='{vow}', 聲調='{tone}'"
+                    # print(log_message)
+                    with open("logs/缺資料.txt", "a", encoding="utf-8") as f:
+                        f.write(log_message + "\n")
 
                 cursor.execute('''
                     INSERT INTO dialects (簡稱, 漢字, 音節, 聲母, 韻母, 聲調, 註釋, 多音字)
@@ -239,25 +247,26 @@ def process_all2sql(tsv_paths, db_path, append=False):
 
             conn.commit()
             log_lines.append(f"{tsv_name} 寫入了 {insert_count} 筆。")
-            print(f"✅ {tsv_name} 完成：共寫入 {insert_count} 筆。")
+            # print(f"✅ {tsv_name} 完成：共寫入 {insert_count} 筆。")
 
         except Exception as e:
-            log_lines.append(f"{tsv_name} 寫入失敗：{e}")
+            log_lines.append(f"❌ {tsv_name} 寫入失敗：{e}")
             print(f"❌ 錯誤處理 {tsv_name}：{e}")
 
     conn.close()
     print(f"\n📦 所有資料已寫入：{db_path}")
 
-    print("\n📊 寫入總結：")
-    for line in log_lines:
-        print("   " + line)
+    # print("\n📊 寫入總結：")
+    # for line in log_lines:
+    # print("   " + line)
 
-    log_path = os.path.splitext(db_path)[0] + "_log.txt"
-    with open(log_path, "w", encoding="utf-8") as f:
+    # log_path = os.path.splitext(db_path)[0] + "_log.txt"
+    with open("logs/dialects_logs.txt", "w", encoding="utf-8") as f:
         f.write("\n".join(log_lines))
     # print(f"\n📝 已寫入紀錄至：{log_path}")
 
 
+# 舊版代碼，直接刪除整個數據庫並更新
 def process_polyphonic_annotations(db_path: str):
     conn = sqlite3.connect(db_path)
     df = pd.read_sql_query("SELECT * FROM dialects", conn)
@@ -268,7 +277,11 @@ def process_polyphonic_annotations(db_path: str):
     merged = []
     grouped = df.groupby(["簡稱", "漢字", "音節"])
 
+    previous_short_name = None  # 用来保存上一次的地点信息
     for (short_name, char, syllable), group in grouped:
+        if short_name != previous_short_name:  # 当地点变化时触发
+            print(f"正在處理： {short_name}")  # 输出调试信息，地点发生变化
+
         unique_phonetics = group[["聲母", "韻母", "聲調"]].drop_duplicates()
         if len(unique_phonetics) == 1:
             notes = group["註釋"].dropna().astype(str).str.strip().unique()
@@ -276,14 +289,15 @@ def process_polyphonic_annotations(db_path: str):
             combined_note = ";".join(notes) if notes else ""
 
             base_row = group.iloc[0].copy()
-            if base_row["註釋"] != combined_note:
-                print(f"📝 合併註釋：{char} / {syllable} → 「{combined_note}」")
+            # if base_row["註釋"] != combined_note:
+            #     print(f"📝 合併註釋：{char} / {syllable} → 「{combined_note}」")
             base_row["註釋"] = combined_note
             merged.append(base_row)
         else:
             print(f"⚠️ 音節相同但聲韻調不同：{char} / {syllable}")
             for _, row in group.iterrows():
                 merged.append(row)
+        previous_short_name = short_name  # 更新之前的地点
 
     merged_df = pd.DataFrame(merged)
     print(f"✅ 合併後剩餘 {len(merged_df)} 筆")
@@ -292,17 +306,20 @@ def process_polyphonic_annotations(db_path: str):
     final = []
     grouped2 = merged_df.groupby(["簡稱", "漢字"])
 
-    for (short_name, char), group in grouped2:
-        if len(group["音節"].unique()) > 1:
-            print(f"🔁 多音字標記：{short_name} / {char}")
-            group["多音字"] = "1"
-            # for _, row in group.iterrows():
-            # print("  ➤", dict(row))
-        else:
-            group["多音字"] = ""
-        final.append(group)
+    # for (short_name, char), group in grouped2:
+    #     if len(group["音節"].unique()) > 1:
+    #         # print(f"🔁 多音字標記：{short_name} / {char}")
+    #         group["多音字"] = "1"
+    #         # for _, row in group.iterrows():
+    #         # print("  ➤", dict(row))
+    #     else:
+    #         group["多音字"] = ""
+    #     final.append(group)
+    # final_df = pd.concat(final).reset_index(drop=True)
 
-    final_df = pd.concat(final).reset_index(drop=True)
+    # 使用 `transform()` 判断是否多音字
+    merged_df['多音字'] = grouped2['音節'].transform(lambda x: '1' if x.nunique() > 1 else '')
+    final_df = merged_df
 
     print(f"💾 清空並重建資料表 dialects，共 {len(final_df)} 筆")
     cursor = conn.cursor()
@@ -312,6 +329,77 @@ def process_polyphonic_annotations(db_path: str):
     conn.commit()
     conn.close()
     print("✅ 多音字處理完成")
+
+
+# 新代碼，更改數據庫，加快運行速度(不能用，多音字标记有问题）
+def process_polyphonic_annotations_new(db_path: str):
+    conn = sqlite3.connect(db_path)
+    df = pd.read_sql_query("SELECT * FROM dialects", conn)
+
+    print(f"🔍 資料庫讀取完成，共 {len(df)} 筆")
+
+    # 一階段：合併同音節註釋（聲母、韻母、聲調一致）
+    grouped = df.groupby(["簡稱", "漢字", "音節"])
+
+    previous_short_name = None  # 用来保存上一次的地点信息
+    for (short_name, char, syllable), group in grouped:
+        if short_name != previous_short_name:  # 当地点变化时触发
+            print(f"正在處理： {short_name}")  # 输出调试信息，地点发生变化
+
+        unique_phonetics = group[["聲母", "韻母", "聲調"]].drop_duplicates()
+        if len(unique_phonetics) == 1:
+            notes = group["註釋"].dropna().astype(str).str.strip().unique()
+            notes = [n for n in notes if n]
+            combined_note = ";".join(notes) if notes else ""
+
+            base_row = group.iloc[0].copy()
+            base_row["註釋"] = combined_note
+            # 更新資料庫中的註釋
+            cursor = conn.cursor()
+            cursor.execute("""
+                UPDATE dialects
+                SET 註釋 = ?
+                WHERE 簡稱 = ? AND 漢字 = ? AND 音節 = ?
+            """, (combined_note, short_name, char, syllable))
+
+            # 刪除除第一行外的其他重複行
+            cursor.execute("""
+                DELETE FROM dialects
+                WHERE (簡稱 = ? AND 漢字 = ? AND 音節 = ?)
+                  AND rowid NOT IN (
+                    SELECT MIN(rowid)
+                    FROM dialects
+                    WHERE 簡稱 = ? AND 漢字 = ? AND 音節 = ?
+                  )
+            """, (short_name, char, syllable, short_name, char, syllable))
+
+        else:
+            print(f"⚠️ 音節相同但聲韻調不同：{char} / {syllable}")
+            for _, row in group.iterrows():
+                cursor = conn.cursor()
+                cursor.execute("""
+                    UPDATE dialects
+                    SET 註釋 = ?
+                    WHERE 簡稱 = ? AND 漢字 = ? AND 音節 = ?
+                """, (row["註釋"], short_name, char, syllable))
+
+        previous_short_name = short_name  # 更新之前的地点
+
+    # 二階段：標記多音字（音節不同）
+    cursor.execute("""
+        UPDATE dialects
+        SET 多音字 = CASE
+            WHEN 漢字 IN (SELECT 漢字 FROM dialects GROUP BY 漢字 HAVING COUNT(DISTINCT 音節) > 1)
+            THEN '1'
+            ELSE ''
+        END
+    """)
+
+    # 提交更改並關閉資料庫
+    conn.commit()
+    print("✅ 多音字處理完成")
+
+    conn.close()
 
 
 def sync_dialects_flags(all_db_path=DIALECTS_DB_PATH,
@@ -444,14 +532,28 @@ def write_to_sql(yindian=None, write_chars_db=None, append=False):
         merged_paths = {}
         # 将 tsv_paths_yindian 中的文件路径添加到字典中，使用文件名作为键
         for path in tsv_paths_yindian:
-            filename = path.split('/')[-1]  # 提取文件名
+            filename = os.path.basename(path)
             merged_paths[filename] = path
         # 遍历 tsv_paths_mine，如果文件名已存在，更新为 mine 中的路径
         for path in tsv_paths_mine:
-            filename = path.split('/')[-1]  # 提取文件名
+            filename = os.path.basename(path)
             merged_paths[filename] = path  # 直接覆盖已有路径
+        # print(merged_paths)
         # 合并完成后的路径列表
-        tsv_paths = list(merged_paths.values())
+        # tsv_paths = list(merged_paths.values())
+        exclude_files = [
+            "鄭張上古", "白-沙上古", "新最小上古", "廣韻", "盛唐", "中唐", "北宋", "蒙古字韻",
+            "中原音韻", "洪武正韻", "西儒耳目資", "普通話", "党項", "1561越葡拉", "越南", "中世朝鮮", "朝鮮",
+            "日語吳音", "日語漢音", "日語其他", "崑曲", "京劇", "黃梅戲", "黃梅採茶戲", "隨州花鼓戏",
+            "淮劇", "越劇", "贛劇", "南昌採茶戲", "撫州採茶戲", "吉安採茶戲", "星子西河戲", "巴陵戲",
+            "湘劇", "長沙花鼓戲", "邕劇", "潮劇", "古腔粵劇", "邵武三角戲", "政和楊源四平戲", "蘇州評彈",
+            "香港", "東干甘肅話", "臺灣"
+        ]
+        tsv_paths = [
+            path for file, path in merged_paths.items()
+            if os.path.splitext(file)[0] not in exclude_files
+        ]
+        # print(tsv_paths)
         # tsv_paths = tsv_paths_yindian + tsv_paths_mine
     else:
         tsv_paths, *_ = get_tsvs()

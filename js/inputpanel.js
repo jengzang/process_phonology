@@ -115,7 +115,7 @@ function getSubregions(parentLabel) {
 window.showPartitionSelector = function (textarea) {
     const topLevel = [
         '華北','西北','官話','中上江','下江','兩浙','浙南','湘贛','嶺東','廣中',
-        '嶺南','嶺西','閩','湘南','道州','鄕話','白語','蔡家話','民語漢字音','域外方音'
+        '嶺南','嶺西','閩','湘南','道州','鄕話','白語','蔡家話','民語漢字音'
     ];
 
     const container = document.createElement('div');

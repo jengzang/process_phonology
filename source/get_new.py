@@ -6,7 +6,7 @@ import pandas as pd
 
 
 def extract_all_from_files(file_path: str) -> pd.DataFrame:
-    vowel_pattern = r"[iyɨʉɯuɪʏɿʅʅɭıɪſɩɷʮɥʯʊeɘɵəɤoɛεɝɚᴇœɜɞʌɔæaɶɑɒᴀɐãẽĩỹõúαᵘᶷᶤᶶᵚʸᶦᵊⁱ◌∅ø]"
+    vowel_pattern = r"[iyɨʉɯuɪʏɿʅʅɭıɪſɩɷʮɥʯʊeɘɵəɤoοоɛεɝɚᴇœɜɞʌɔæaɶɑɒᴀɐãẽĩỹõúαᵘᶷᶤᶶᵚʸᶦᵊⁱ◌∅øɻβʝɹǝуеṃṇīā]"
     # print(file_path)
 
     tone_map_yindian = {
@@ -94,22 +94,32 @@ def extract_all_from_files(file_path: str) -> pd.DataFrame:
         phonetic_variants = phonetic.split("/") if "/" in phonetic and phonetic.strip() != '/' else [phonetic]
 
         for phon in phonetic_variants:
+            if re.match(r'^[\d\/?\'"’”、|；：，。:;,.]+$', phon):
+                continue
             phon = phon.strip()
             # 提取聲調
-            tone_match = re.search(r"(\d+[a-zA-Z]?)$", phon)
-            tone_code = tone_match.group(1).lstrip("0") if tone_match else ""
-            tone = tone_map.get(tone_code, tone_map_yindian.get(tone_code, "未知")) if tone_code else ""
+            if "輕聲" in phon:
+                tone = "輕聲"
+            else:
+                tone_match = re.search(r"([A-Da-d0-9]+)", phon[::-1])
+                tone_code = tone_match.group(1) if tone_match else ""
+                if tone_code:
+                    # 使用正則表達式刪除末尾的字母，直到遇到數字
+                    tone_code = re.sub(r'[a-dA-D]+$', '', tone_code)
+                tone_code = tone_code[::-1] if tone_code else ""
+                tone = tone_map.get(tone_code, tone_map.get(tone_code, "未知")) if tone_code else ""
 
             # 提取聲母
             consonant = ""
             if not re.search(vowel_pattern, re.split(r"\d", phon)[0]):
-                vowel_fallback = r"([mnŋȵƞʋvʒlf])"
-                if phon[0] in ['l', 'f']:
-                    consonant = phon[0]
-                elif re.match(vowel_fallback, phon[0]):
-                    consonant = "∅"
+                vowel_fallback = r"([ʐɣmnŋȵƞʋvʒlḷfzr])"
+                # if phon[0] in ['l', 'f']:
+                #     consonant = phon[0]
+                if re.match(vowel_fallback, phon[0]):
+                    consonant = "/"
                 elif not re.search(vowel_fallback, phon):
-                    consonant = f"報錯：{phon}"
+                    # consonant = f"報錯：{phon}"
+                    consonant = ""
                 else:
                     for char in phon:
                         if re.match(vowel_fallback, char) or re.match(r'\d', char):
@@ -133,7 +143,7 @@ def extract_all_from_files(file_path: str) -> pd.DataFrame:
             # 韻母提取
             all_rhymes = []
             tmp_phon = phon[1:] if phon.startswith("∅") else phon
-            if ('j' not in tmp_phon[1:] and 'ʲ' not in tmp_phon[1:]):
+            if 'j' not in tmp_phon[1:] and 'ʲ' not in tmp_phon[1:]:
                 vowel_found = False
                 for c in tmp_phon:
                     if re.match(vowel_pattern, c) and not vowel_found:
@@ -143,8 +153,8 @@ def extract_all_from_files(file_path: str) -> pd.DataFrame:
                         break
                     elif vowel_found:
                         all_rhymes.append(c)
-                if not vowel_found and any(c in tmp_phon for c in "mnŋȵƞʋvʒ"):
-                    match = re.search(r".*?([mnŋȵƞʋvʒ].*?)(?=\d|\s|$)", tmp_phon)
+                if not vowel_found and any(c in tmp_phon for c in "ʐzflḷɣmnŋȵƞʋvʒr"):
+                    match = re.search(r".*?([ʐzflḷɣrmnŋȵƞʋvʒ].*?)(?=\d|\s|$)", tmp_phon)
                     if match:
                         all_rhymes += list(match.group(1))
             else:
@@ -154,8 +164,8 @@ def extract_all_from_files(file_path: str) -> pd.DataFrame:
 
             rhyme = ''.join(c for c in all_rhymes if not (c.isdigit() or re.match(r'[一-鿿]', c)))
             for old, new in {
-                'ε': 'ɛ', "α": "ɑ", "ʯ": "ʮ", "∅": "ø",
-                "ã": "ã", "ẽ": "ẽ", "ĩ": "ĩ", "ỹ": "ỹ", "õ": "õ", "ʱ": "ʰ"
+                'ε': 'ɛ', "α": "ɑ", "ʯ": "ʮ", "∅": "ø", "ο": "o", "ǝ": "ə", "о": "o", "у": "y", "е": "e",
+                "ã": "ã", "ẽ": "ẽ", "ĩ": "ĩ", "ī": "ĩ", "ā": "ã",  "ỹ": "ỹ", "õ": "õ", "ʱ": "ʰ"
             }.items():
                 rhyme = rhyme.replace(old, new)
 

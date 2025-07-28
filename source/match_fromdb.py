@@ -1,8 +1,9 @@
 import os
-import pandas as pd
-import opencc
 import sqlite3
 from pathlib import Path
+
+import opencc
+import pandas as pd
 
 from source.config import QUERY_DB_PATH
 
@@ -91,7 +92,7 @@ def get_tsvs(output_dir='data/processed', partition_name='全部'):
         if loc in sort_order_abbr:
             matched_locations.append(loc)
             matched_set.add(loc)
-            print(f"Step1 匹配：{loc} -> 簡簿")
+            # print(f"Step1 匹配：{loc} -> 簡簿")
         else:
             unmatched_locations_step1.append(loc)
 
@@ -101,7 +102,7 @@ def get_tsvs(output_dir='data/processed', partition_name='全部'):
         if loc in sort_order_abbr_trad:
             matched_locations.append(loc)
             matched_set.add(loc)
-            print(f"Step2 匹配：{loc} -> 簡簿(簡轉繁)")
+            # print(f"Step2 匹配：{loc} -> 簡簿(簡轉繁)")
         else:
             unmatched_locations_step2.append(loc)
 
@@ -112,7 +113,7 @@ def get_tsvs(output_dir='data/processed', partition_name='全部'):
         if loc_simp in sort_order_abbr_simp:
             matched_locations.append(loc)
             matched_set.add(loc)
-            print(f"Step3 匹配：{loc}(轉簡體) -> 簡簿(轉簡體)")
+            # print(f"Step3 匹配：{loc}(轉簡體) -> 簡簿(轉簡體)")
         else:
             unmatched_locations_step3.append(loc)
 
@@ -123,7 +124,7 @@ def get_tsvs(output_dir='data/processed', partition_name='全部'):
         if loc_var in abbr_variant_set:
             matched_locations.append(loc)
             matched_set.add(loc)
-            print(f"Step4 匹配：{loc}(異體簡化為 {loc_var}) -> 簡簿(異體簡化)")
+            # print(f"Step4 匹配：{loc}(異體簡化為 {loc_var}) -> 簡簿(異體簡化)")
         else:
             unmatched_locations_step4.append(loc)
 
@@ -134,10 +135,10 @@ def get_tsvs(output_dir='data/processed', partition_name='全部'):
         if loc_custom in abbr_custom_set:
             matched_locations.append(loc)
             matched_set.add(loc)
-            print(f"Step5 匹配：{loc}(自定義轉為 {loc_custom}) -> 簡簿(自定義)")
+            # print(f"Step5 匹配：{loc}(自定義轉為 {loc_custom}) -> 簡簿(自定義)")
         else:
             unmatched_locations.append(loc)
-            print(f"未匹配：{loc}(自定義轉為 {loc_custom})")
+            # print(f"未匹配：{loc}(自定義轉為 {loc_custom})")
 
     sorted_matched = [
         abbr for abbr in sort_order_abbr
