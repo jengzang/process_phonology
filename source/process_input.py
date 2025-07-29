@@ -189,7 +189,7 @@ def match_locations_batch(input_string: str, filter_valid_abbrs_only=True):
     for idx, part in enumerate(parts):
         part = part.strip()
         if part:
-            print(f"\n🔹 處理第 {idx + 1} 個地名：{part}")
+            # print(f"\n🔹 處理第 {idx + 1} 個地名：{part}")
             try:
                 res = match_locations(part, filter_valid_abbrs_only)
                 print(f"   ⮡ 結果: {res}")
@@ -616,7 +616,15 @@ def get_coordinates_from_db(abbreviation_list, supplementary_abbreviation_list=N
             lat_lon_str = row[0]
             try:
                 # 解析經緯度字符串，將其轉換為浮點數元組
-                latitude, longitude = map(float, lat_lon_str.split(','))
+                # latitude, longitude = map(float, re.split(r'[,，\s;]+', lat_lon_str))
+                if lat_lon_str:
+                    latitude, longitude = map(float, re.split(r'[,，\s;]+', lat_lon_str))
+                    # print(latitude, longitude)
+                else:
+                    # 处理 lat_lon_str 为 None 或空字符串的情况
+                    print("错误：lat_lon_str 为空或为 None！")
+                    # 你可以根据需要返回默认值，或者抛出异常
+                    latitude, longitude = None, None
                 result.append((latitude, longitude))
                 latitudes.append(latitude)
                 longitudes.append(longitude)
@@ -655,37 +663,41 @@ def get_coordinates_from_db(abbreviation_list, supplementary_abbreviation_list=N
 
         conn_supplementary.close()
 
-    # 計算中心經緯度
-    if latitudes and longitudes:
-        center_latitude = (max(latitudes) + min(latitudes)) / 2
-        center_longitude = (max(longitudes) + min(longitudes)) / 2
+    valid_latitudes = [lat for lat in latitudes if lat is not None]
+    valid_longitudes = [lon for lon in longitudes if lon is not None]
 
-        # 保留6位小數
+    if valid_latitudes and valid_longitudes:
+        # 计算中心经纬度
+        center_latitude = (max(valid_latitudes) + min(valid_latitudes)) / 2
+        center_longitude = (max(valid_longitudes) + min(valid_longitudes)) / 2
+
+        # 保留6位小数
         center_coordinate = [round(center_latitude, 6), round(center_longitude, 6)]
 
-        # 計算橫向最大距離（經度差）
+        # 计算横向最大距离（经度差）
         max_lon_distance = 0
         max_lat_distance = 0
 
-        # 計算最大經度距離（橫向）
-        for i in range(len(longitudes)):
-            for j in range(i + 1, len(longitudes)):
+        # 计算最大经度距离（横向）
+        for i in range(len(valid_longitudes)):
+            for j in range(i + 1, len(valid_longitudes)):
                 max_lon_distance = max(max_lon_distance,
-                                       haversine(latitudes[i], longitudes[i], latitudes[j], longitudes[i]))
+                                       haversine(valid_latitudes[i], valid_longitudes[i], valid_latitudes[j],
+                                                 valid_longitudes[i]))
 
-        # 計算最大緯度距離（縱向）
-        for i in range(len(latitudes)):
-            for j in range(i + 1, len(latitudes)):
+        # 计算最大纬度距离（纵向）
+        for i in range(len(valid_latitudes)):
+            for j in range(i + 1, len(valid_latitudes)):
                 max_lat_distance = max(max_lat_distance,
-                                       haversine(latitudes[i], longitudes[i], latitudes[i], longitudes[j]))
+                                       haversine(valid_latitudes[i], valid_longitudes[i], valid_latitudes[i],
+                                                 valid_longitudes[j]))
 
-        # 保留2位小數
+        # 保留2位小数
         max_lat_distance = round(max_lat_distance, 2)
         max_lon_distance = round(max_lon_distance, 2)
 
-        # 根據最大距離計算合適的zoom層級
+        # 根据最大距离计算合适的 zoom 层级
         zoom_level = get_optimal_zoom(max_lat_distance, max_lon_distance)
-
     else:
         center_coordinate = None
         max_lat_distance = max_lon_distance = 0

@@ -655,6 +655,9 @@ document.addEventListener("DOMContentLoaded", function() {
         if (document.querySelector('.dropdown')) {
             return;  // 如果下拉框已经存在，就不再创建
         }
+        if(document.querySelector('.single-button')){
+            return;
+        }
 
         // 根据 uniqueFeatures 的数量决定是显示下拉框还是按钮
         if (uniqueFeatures.length === 1) {
@@ -1151,13 +1154,13 @@ async function create_dot_all() {
 
                     const circleMarker = new AMap.CircleMarker({
                         center: [lng, lat],
-                        radius:7,//3D视图下，CircleMarker半径不要超过64px
+                        radius:5,//3D视图下，CircleMarker半径不要超过64px
                         strokeColor: '#000000',  // 设置边框颜色为黑色
                         strokeWeight: 2,  // 边框的宽度
                         strokeOpacity:1,
                         fillColor:color,
                         draggable: false,
-                        fillOpacity:0.6,
+                        fillOpacity:0.7,
                         zIndex:10,
                         bubble:true,
                         cursor:'pointer',

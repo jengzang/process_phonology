@@ -200,7 +200,7 @@ def query_by_status(char_list, locations, features, user_input, db_path=DIALECTS
                 unique_chars = list(set(all_chars))
                 count = len(unique_chars)
 
-                print(f"     ▶︎ {feature} = {fval}，字數：{count}，字例：{unique_chars[:5]}...")
+                # print(f"     ▶︎ {feature} = {fval}，字數：{count}，字例：{unique_chars[:5]}...")
 
                 poly_details = []
                 # 使用該地點的多音字字典

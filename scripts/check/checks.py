@@ -149,8 +149,8 @@ def 檢查資料格式(df, col_hanzi, col_ipa, display=False, col_note=None):
             "abcdefghijklmnopqrstuvwxyz"
             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
             "ŋɑɐɒɓʙβɔɕçðɖɗɘəɚɛɜɞɟʄɡɢʛɣʰɥʜɦɪʝɭɬɫʟɮɰɱɲȵɳŋɳɴɵøœɶɸɹɻʁʀɽɾʃʂʈʊʋʌʍχʎʑʐʒʔʕʡʢʘʞθʼˈˌːˑ⁰¹²³⁴⁵⁶⁷⁸⁹ⁿˡʲʳˀ"
-            "ʦʧʨʂʐʑʒʮʰʲː˞ˠˤ̩̯̝̞̤̰̹̻̃̍̽̚=~^"
-            "ıſɩɷʅɥʯεɝɚᴇãẽĩỹõúαᵘᶷᶤᶶᵚʸᶦᵊⁱ◌∅"
+            "ʦʧʨʂʐʑʒʮʰʲː˞ˠˤ=~^"
+            "ıſɩɷʅɥʯεɝɚᴇãẽĩỹõúαᵘᶷᶤᶶᵚʸᶦᵊⁱ◌∅ɯʦʒɿ"
             "0123456789"
         )
         return all(c in allowed for c in s)

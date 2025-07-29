@@ -143,19 +143,26 @@ async def get_coordinates(
     locations_list = locations.split(',')  # 用逗号分隔字符串，转换为列表
     regions_list = regions.split(',')  # 同样处理 regions
 
+    locations_processed = []
+    for location in locations_list:
+        # print(f"location:{location}")
+        matched_locations = match_locations_batch(location)
+        extracted_locations = [res[0][0] for res in matched_locations if res[0]]  # 只提取非空的地名
+        locations_processed.extend(extracted_locations)  # 使用 extend 扩展到 locations_processed 列表中
+
     # Step 2: 如果 iscustom 为 True，则进行特殊处理
     if iscustom:  # 如果 iscustom 被设置为 True
         # 在这里添加自定义处理逻辑
         abbreviations_list1 = query_dialect_abbreviations(regions_list, locations_list,
                                                           db_path=SUPPLE_DB_PATH, tables="informations")
-        abbreviations_list2 = query_dialect_abbreviations(regions_list, locations_list, need_storage_flag=flag)
+        abbreviations_list2 = query_dialect_abbreviations(regions_list, locations_processed, need_storage_flag=flag)
         result = get_coordinates_from_db(abbreviations_list2, abbreviations_list1,
                                          use_supplementary_db=True)
 
     else:
         # 默认行为，调用数据库获取坐标
         # Step 1: 查询方言缩写列表，基于 regions 和 locations
-        abbreviations_list = query_dialect_abbreviations(regions_list, locations_list)
+        abbreviations_list = query_dialect_abbreviations(regions_list, locations_processed)
         result = get_coordinates_from_db(abbreviations_list)
 
     return result
@@ -194,7 +201,7 @@ class QueryParams(BaseModel):
 @app.post("/api/get_custom")
 async def query_location_data(query_params: QueryParams):
     try:
-        print("嘗試自用數據庫")
+        # print("嘗試自用數據庫")
         # 调用数据库查询函数
         result = get_from_submission(query_params.locations, query_params.regions, query_params.need_features)
         print("自用數據庫讀取成功！")
@@ -220,8 +227,14 @@ async def search_chars(request: SearchRequest):
     # print(request.regions)
     # print("开始运行")
     try:
+        locations_processed = []
+        for location in request.locations:
+            # print(f"location:{location}")
+            matched_locations = match_locations_batch(location)
+            extracted_locations = [res[0][0] for res in matched_locations if res[0]]  # 只提取非空的地名
+            locations_processed.extend(extracted_locations)  # 使用 extend 扩展到 locations_processed 列表中
         # Call the search_characters function with the provided parameters
-        result = search_characters(chars=request.chars, locations=request.locations, regions=request.regions)
+        result = search_characters(chars=request.chars, locations=locations_processed, regions=request.regions)
 
         # Return the result
         return {"result": result}
@@ -237,8 +250,14 @@ class SearchRequest2(BaseModel):
 @app.post("/api/search_tones/")
 async def search_tones_o(request: SearchRequest2):
     try:
+        locations_processed = []
+        for location in request.locations:
+            # print(f"location:{location}")
+            matched_locations = match_locations_batch(location)
+            extracted_locations = [res[0][0] for res in matched_locations if res[0]]  # 只提取非空的地名
+            locations_processed.extend(extracted_locations)  # 使用 extend 扩展到 locations_processed 列表中
         # Call the search_characters function with the provided parameters
-        result = search_tones(locations=request.locations, regions=request.regions)
+        result = search_tones(locations=locations_processed, regions=request.regions)
 
         # Return the result
         return {"tones_result": result}

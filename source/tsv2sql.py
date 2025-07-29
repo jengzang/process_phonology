@@ -115,24 +115,37 @@ def build_dialect_database():
 
         # 最終保留資料列表
         final_rows = []
+
+        def get_nonnull_info(row):
+            if row.empty:
+                return 0, []
+            # count = int(row["_non_null_count"])
+            cols = [col for col in renamed_required_columns if pd.notna(row[col]) and row[col] != ""]
+            count = len(cols)
+            return count, cols
         print("\n📊 重複簡稱選擇詳情如下：")
         for name, group in merged.groupby("簡稱"):
             if len(group) > 1:
-                group = group.sort_values(by=["_non_null_count", "_來源優先"], ascending=[False, False])
-                selected = group.iloc[0]
-                final_rows.append(selected)
+                # 计算每行的非空列数并添加为新列
+                group["count"] = group.apply(
+                    lambda row: len([col for col in renamed_required_columns if pd.notna(row[col]) and row[col] != ""]),
+                    axis=1)
 
-                def get_nonnull_info(row):
-                    if row.empty:
-                        return 0, []
-                    count = int(row["_non_null_count"])
-                    cols = [col for col in renamed_required_columns if pd.notna(row[col]) and row[col] != ""]
-                    return count, cols
+                # 选择 count 最大的行，如果 count 相同则优先选择 "漢字音典表"
+                selected = None
+                for _, row in group.iterrows():
+                    count, cols = get_nonnull_info(row)
+                    if selected is None or count > selected["count"] or (
+                            count == selected["count"] and row["_來源"] == "漢字音典表"):
+                        selected = row
+                        selected["count"] = count  # 更新 selected 的 count
+
+                final_rows.append(selected)
 
                 print(f"\n🟡 簡稱: {name}")
                 for _, row in group.iterrows():
                     count, cols = get_nonnull_info(row)
-                    # print(f"  ➤ 來源：{row['_來源']}，非空欄位 {count} 個：{', '.join(cols)}")
+                    print(f"  ➤ 來源：{row['_來源']}，非空欄位 {count} 個：{', '.join(cols)}")
 
                 print(f"  ✅ 最終選中來源：{selected['_來源']}")
             else:

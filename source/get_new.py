@@ -172,7 +172,7 @@ def extract_all_from_files(file_path: str) -> pd.DataFrame:
             for old, new in {
                 '∫': 'ʃ', 'th': 'tʰ', 'kh': 'kʰ', 'ph': 'pʰ',
                 'tsh': 'tsʰ', "ς": "ɕ", 'ts': 'ʦ', 'tʃ': 'ʧ', 'tɕ': 'ʨ',
-                "∨": "v", "ł": "ɬ", "tʰs": "ʦʰ", "(ʔ)": "ʔ", "∅": "ʔ"
+                "∨": "v", "ł": "ɬ", "tʰs": "ʦʰ", "(ʔ)": "ʔ", "∅": "ʔ", "Ǿ": "ʔ"
             }.items():
                 consonant = consonant.replace(old, new)
 

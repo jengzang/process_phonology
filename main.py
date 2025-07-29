@@ -2,7 +2,7 @@ import pandas as pd
 
 from source.Phonology2status import pho2sta
 from source.status_arrange_pho import sta2pho
-from source.tsv2sql import write_to_sql
+from source.tsv2sql import write_to_sql, build_dialect_database, sync_dialects_flags
 
 
 def run_phonology_analysis(
@@ -72,7 +72,7 @@ def main():
     # convert_all_to_tsv()
 
     # tsv寫入數據庫
-    write_to_sql(yindian=False, write_chars_db=False, append=False)
+    # write_to_sql(yindian=False, write_chars_db=False, append=False)
 
     # # 呼叫分析函數
     # results = run_phonology_analysis(
