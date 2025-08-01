@@ -333,7 +333,7 @@ def search_characters(chars, locations=None, regions=None):
     return result
 
 
-def search_tones(locations=None, regions=None):
+def search_tones(locations=None, regions=None, get_raw: bool = False):
     # 假设 query_dialect_abbreviations 函数返回一个地点简称的列表
     all_locations = query_dialect_abbreviations(regions, locations)
 
@@ -449,12 +449,15 @@ def search_tones(locations=None, regions=None):
                 # 去重 match_list
                 match_list = list(set(match_list))
 
+                bracket_nums = re.findall(r'\[(\d+)\]', matched)
+
                 # 将结果保存到 row_data 字典中
                 row_data[f"T{i}"] = {
                     'raw': raw_value,
                     'value': value_list,
                     'name': name_list,
-                    'match': match_list
+                    'match': match_list,
+                    'num': bracket_nums
                 }
 
                 # 更新 tones 列表
@@ -466,7 +469,8 @@ def search_tones(locations=None, regions=None):
                     'raw': '',
                     'value': [],
                     'name': [],
-                    'match': []
+                    'match': [],
+                    'num': []
                 }
 
                 new_row['tones'].append({f"T{i}": '無'})  # 初步处理为无匹配
@@ -494,14 +498,16 @@ def search_tones(locations=None, regions=None):
                     new_row['tones'][i - 1] = {f"T{i}": '無'}  # 更新 tones 为无
 
         # 添加到 result 和 new_result 中
-        result.append(row_data)
+        if get_raw:
+            result.append(row_data)
+            return result
         new_result.append(new_row)
 
     return new_result
 
 # result = process_dialect_data()
 # print(result)
-# locations = ['東莞莞城', '雲浮富林']
+# locations = ['藤縣']
 # chars = ['干']
-# result = search_characters(chars, locations)
+# result = search_tones(locations, get_raw=True)
 # print(result)

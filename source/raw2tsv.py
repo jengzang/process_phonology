@@ -126,7 +126,7 @@ def choose_files():
     root = tk.Tk()
     root.withdraw()
     return filedialog.askopenfilenames(filetypes=[
-        ("支持格式", "*.tsv *.xlsx *.xls *.docx"),
+        ("支持格式", "*.tsv *.xlsx *.xls *.docx" "*.doc"),
         ("所有文件", "*.*")
     ])
 
@@ -138,10 +138,16 @@ def match_files_from_excel(meta_df, data_folder):
 
     返回 dict: { pattern_name_in_excel: full_path_to_file }
     """
+    # print(meta_df)
     all_files = glob.glob(os.path.join(data_folder, "*"))
     result = {}
+    # ✅ 僅保留「已做」的行，且文件名非空
+    filtered_df = meta_df[
+        meta_df["是否有人在做"].astype(str).str.strip() == "已做"
+    ].copy()
+    filtered_df = filtered_df[filtered_df["文件名"].notna()]
 
-    for pattern_name in meta_df["文件名"]:
+    for pattern_name in filtered_df["文件名"]:
         match_prefix = pattern_name.split("*")[0]
         expected_ext = os.path.splitext(pattern_name)[1].lower()
         matched_path = None

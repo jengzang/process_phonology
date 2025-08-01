@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import traceback
 from pathlib import Path
 
 import pandas as pd
@@ -263,11 +264,18 @@ def process_all2sql(tsv_paths, db_path, append=False):
             # print(f"✅ {tsv_name} 完成：共寫入 {insert_count} 筆。")
 
         except Exception as e:
-            log_lines.append(f"❌ {tsv_name} 寫入失敗：{e}")
-            print(f"❌ 錯誤處理 {tsv_name}：{e}")
+            error_detail = traceback.format_exc()
+            log_lines.append(f"❌ {tsv_name} 寫入失敗：\n{error_detail}")
+            print(f"❌ 錯誤處理 {tsv_name}：\n{error_detail}")
 
     conn.close()
     print(f"\n📦 所有資料已寫入：{db_path}")
+    conn_all = sqlite3.connect(db_path)
+    # 創建索引，加快查詢速度
+    print("※ 開始創建索引 ※")
+    conn_all.execute("CREATE INDEX IF NOT EXISTS idx_loc ON dialects(簡稱);")
+    conn_all.execute("CREATE INDEX IF NOT EXISTS idx_char ON dialects(漢字);")
+    conn_all.commit()
 
     # print("\n📊 寫入總結：")
     # for line in log_lines:
@@ -279,10 +287,10 @@ def process_all2sql(tsv_paths, db_path, append=False):
     # print(f"\n📝 已寫入紀錄至：{log_path}")
 
 
-# 舊版代碼，直接刪除整個數據庫並更新
-def process_polyphonic_annotations_old(db_path: str):
+# 舊版代碼，直接刪除整個數據庫並更新(快，但是电脑会特别卡）
+def process_polyphonic_annotations(db_path: str):
     conn = sqlite3.connect(db_path)
-    df = pd.read_sql_query("SELECT * FROM dialects", conn)
+    df = pd.read_sql_query("SELECT * FROM dialects ORDER BY 簡稱, 漢字", conn)
 
     print(f"🔍 資料庫讀取完成，共 {len(df)} 筆")
 
@@ -291,9 +299,11 @@ def process_polyphonic_annotations_old(db_path: str):
     grouped = df.groupby(["簡稱", "漢字", "音節"])
 
     previous_short_name = None  # 用来保存上一次的地点信息
+    count_num = 1
     for (short_name, char, syllable), group in grouped:
         if short_name != previous_short_name:  # 当地点变化时触发
-            print(f"正在處理： {short_name}")  # 输出调试信息，地点发生变化
+            print(f"正在處理：{short_name}(第{count_num}個)")  # 输出调试信息，地点发生变化
+            count_num += 1
 
         unique_phonetics = group[["聲母", "韻母", "聲調"]].drop_duplicates()
         if len(unique_phonetics) == 1:
@@ -344,19 +354,37 @@ def process_polyphonic_annotations_old(db_path: str):
     print("✅ 多音字處理完成")
 
 
-# 新代碼，實時更改數據庫，加快運行速度
-def process_polyphonic_annotations(db_path: str):
+# 新代碼，實時更改數據庫，加快運行速度(实际上还变慢了。。）
+def process_polyphonic_annotations_new(db_path: str, append: bool = False):
     conn = sqlite3.connect(db_path)
-    df = pd.read_sql_query("SELECT * FROM dialects", conn)
+    df = pd.read_sql_query("SELECT * FROM dialects ORDER BY 簡稱, 漢字", conn)
+    # 如果 append 模式開啟，只保留指定簡稱
+    if append:
+        try:
+            df_append = pd.read_excel(APPEND_PATH, sheet_name="檔案")
+            update_rows = df_append[df_append['待更新'] == 1]
+            valid_簡稱 = update_rows['簡稱'].dropna().unique().tolist()
 
-    print(f"🔍 資料庫讀取完成，共 {len(df)} 筆")
+            if valid_簡稱:
+                df = df[df["簡稱"].isin(valid_簡稱)]
+                print(f"📌 只處理待更新簡稱：{valid_簡稱}")
+            else:
+                print("⚠️ APPEND_PATH 中未發現任何待更新簡稱，跳過處理。")
+                conn.close()
+                return
+        except Exception as e:
+            print(f"❗ 無法讀取 APPEND_PATH：{e}，將處理全部資料。")
+
+    print(f"🔍 待處理資料筆數：{len(df)}")
 
     grouped = df.groupby(["簡稱", "漢字"])
 
     previous_short_name = None  # 用来保存上一次的地点信息
+    count_num = 1
     for (short_name, char), group in grouped:
         if short_name != previous_short_name:  # 当地点变化时触发
-            print(f"正在處理： {short_name}")  # 输出调试信息，地点发生变化
+            print(f"正在處理：{short_name}(第{count_num}個)")  # 输出调试信息，地点发生变化
+            count_num += 1
 
         # 一階段：處理註釋
         grouped_syllables = group.groupby("音節")
@@ -422,11 +450,6 @@ def sync_dialects_flags(all_db_path=DIALECTS_DB_PATH,
                         log_path=CHARACTERS_DB_PATH):
     # 讀取 dialects_all.db 中所有唯一簡稱
     conn_all = sqlite3.connect(all_db_path)
-    # 創建索引，加快查詢速度
-    print("※ 開始創建索引 ※")
-    conn_all.execute("CREATE INDEX IF NOT EXISTS idx_loc ON dialects(簡稱);")
-    conn_all.execute("CREATE INDEX IF NOT EXISTS idx_char ON dialects(漢字);")
-    conn_all.commit()
     cursor_all = conn_all.cursor()
     cursor_all.execute("SELECT DISTINCT 簡稱 FROM dialects")
     all_tags = set(row[0] for row in cursor_all.fetchall())
@@ -581,7 +604,10 @@ def write_to_sql(yindian=None, write_chars_db=None, append=False):
     print("🚀 開始導入資料...")
     process_all2sql(tsv_paths, db_path, append)
     print("开始处理重复行以及标记多音字")
-    process_polyphonic_annotations(DIALECTS_DB_PATH)
+    if append:
+        process_polyphonic_annotations_new(DIALECTS_DB_PATH, append=True)
+    else:
+        process_polyphonic_annotations(DIALECTS_DB_PATH)
     print("开始寫入存儲標記")
     sync_dialects_flags()
 

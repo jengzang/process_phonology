@@ -4,22 +4,50 @@ import re
 
 import pandas as pd
 
+from source.Extras_addplaces_searchchars import search_tones
 
-def extract_all_from_files(file_path: str) -> pd.DataFrame:
-    vowel_pattern = r"[iyɨʉɯuɪʏɿʅʅɭıɪſɩɷʮɥʯʊeɘɵəɤoοоɛεɝɚᴇœɜɞʌɔæaɶɑɒᴀɐãẽĩỹõúαᵘᶷᶤᶶᵚʸᶦᵊⁱ◌∅øɻβʝɹǝуеṃṇīā]"
+
+def extract_all_from_files(file_path: str, get_tone: bool = True, preserve_empty_rows: bool = False) -> pd.DataFrame:
+    vowel_pattern = r"[iyɨʉɯuɪʏɿʅʅɭıɪſɩɷʮɥʯʊeɘɵəɤoοоɛεɝɚᴇœɜɞʌɔæaɶɑɒᴀɐãẽĩỹõúαᵘᶷᶤᶶᵚʸᶦᵊⁱ◌øɻβʝɹǝуеṃṇīā]"
+
     # print(file_path)
+    def build_tone_map_yindian(result):
+        tone_map = {}
 
-    tone_map_yindian = {
-        "1": "陰平", "1a": "陰平甲", "1b": "陰平乙", "1A": "陰平甲", "1B": "陰平乙",
-        "2": "陽平", "2a": "陽平甲", "2b": "陽平乙", "2A": "陽平甲", "2B": "陽平乙",
-        "3": "陰上", "3a": "陰上甲", "3b": "陰上乙", "3A": "陰上甲", "3B": "陰上乙",
-        "4": "陽上", "4a": "陽上甲", "4b": "陽上乙", "4A": "陽上甲", "4B": "陽上乙",
-        "5": "陰去", "5a": "陰去甲", "5b": "陰去乙", "5A": "陰去甲", "5B": "陰去乙",
-        "6": "陽去", "6a": "陽去甲", "6b": "陽去乙", "6A": "陽去甲", "6B": "陽去乙",
-        "7": "陰入", "7a": "上陰入", "7b": "下陰入", "7c": "陰入丙", "7A": "上陰入", "7B": "下陰入",
-        "8": "陽入", "8a": "上陽入", "8b": "下陽入", "8A": "上陽入", "8B": "下陽入",
-        "9": "變調", "9a": "變調1", "9b": "變調2", "0": "變調", "10": "輕聲", "輕聲": "輕聲"
-    }
+        for row in result:
+            total_data = row.get("總數據", [])
+
+            for cell in total_data:
+                if not cell:
+                    continue
+
+                # 提取所有 [tag]字 的形式，如 [1a]陰平、[7B]上陰入
+                tag_value_pairs = re.findall(r"\[([0-9]{1,2}[a-zA-Z]?)\](?:\d{1,3})?([^\[\],\d]*)", cell)
+
+                for tag, name in tag_value_pairs:
+                    name = name.strip()
+                    if tag and name and tag not in tone_map:
+                        tone_map[tag] = name
+
+        return tone_map
+
+    if get_tone:
+        shortname = os.path.splitext(os.path.basename(file_path))[0]
+        result = search_tones(locations=[shortname], regions=None, get_raw=True)
+        tone_map_yindian = build_tone_map_yindian(result)
+    else:
+        tone_map_yindian = {
+            "1": "陰平", "1a": "陰平甲", "1b": "陰平乙", "1A": "陰平甲", "1B": "陰平乙",
+            "2": "陽平", "2a": "陽平甲", "2b": "陽平乙", "2A": "陽平甲", "2B": "陽平乙",
+            "3": "陰上", "3a": "陰上甲", "3b": "陰上乙", "3A": "陰上甲", "3B": "陰上乙",
+            "4": "陽上", "4a": "陽上甲", "4b": "陽上乙", "4A": "陽上甲", "4B": "陽上乙",
+            "5": "陰去", "5a": "陰去甲", "5b": "陰去乙", "5A": "陰去甲", "5B": "陰去乙",
+            "6": "陽去", "6a": "陽去甲", "6b": "陽去乙", "6A": "陽去甲", "6B": "陽去乙",
+            "7": "陰入", "7a": "上陰入", "7b": "下陰入", "7c": "陰入丙", "7A": "上陰入", "7B": "下陰入",
+            "8": "陽入", "8a": "上陽入", "8b": "下陽入", "8A": "上陽入", "8B": "下陽入",
+            "9": "變調", "9a": "變調1", "9b": "變調2", "0": "變調", "10": "輕聲", "輕聲": "輕聲"
+        }
+
     # tone_map_jyutping = {
     #     "1": "陰平", "2": "陰上", "3": "陰去", "4": "陽平", "5": "陽上", "6": "陽去",
     #     "7": "上陰入", "8": "下陰入", "9": "陽入", "10": "下陽入", "0": "變調"
@@ -58,7 +86,6 @@ def extract_all_from_files(file_path: str) -> pd.DataFrame:
     df.columns = [get_standard_column_name(col, col_map) for col in df.columns]
     df = df.fillna("")
 
-
     # 判斷 tone 系統
     # def extract_tone_number(df, char):
     #     row = df[df['漢字'] == char]
@@ -81,38 +108,70 @@ def extract_all_from_files(file_path: str) -> pd.DataFrame:
         hanzi = row.get("漢字", "").strip()
         phonetic = row.get("音標", "").strip()
         note = row.get("解釋", "").strip()
-
+        if isinstance(phonetic, str):
+            phonetic = phonetic.strip()
         if not hanzi or not phonetic or phonetic == "0" or hanzi == "0":
+            if preserve_empty_rows:
+                results.append({
+                    '汉字': '',
+                    '音标': '',
+                    '声母': '',
+                    '韵母': '',
+                    '声调': '',
+                    '註釋': ''
+                })
+                continue
             continue
         if re.search(r"[□■⬜⬛☐☑☒▯▢▣█�]", hanzi):
+            if preserve_empty_rows:
+                results.append({
+                    '汉字': '',
+                    '音标': '',
+                    '声母': '',
+                    '韵母': '',
+                    '声调': '',
+                    '註釋': ''
+                })
+                continue
             continue
         if phonetic and (isinstance(phonetic, float) and math.isnan(phonetic)):
+            if preserve_empty_rows:
+                results.append({
+                    '汉字': '',
+                    '音标': '',
+                    '声母': '',
+                    '韵母': '',
+                    '声调': '',
+                    '註釋': ''
+                })
+                continue
             continue
         if isinstance(phonetic, str) and phonetic and phonetic[0].isdigit():
+            if preserve_empty_rows:
+                results.append({
+                    '汉字': '',
+                    '音标': '',
+                    '声母': '',
+                    '韵母': '',
+                    '声调': '',
+                    '註釋': ''
+                })
+                continue
             continue
 
         phonetic_variants = phonetic.split("/") if "/" in phonetic and phonetic.strip() != '/' else [phonetic]
 
         for phon in phonetic_variants:
+            phon = phon.strip()  # 先清乾淨
+            if not phon:  # 若為空，跳過（這一步是關鍵防炸）
+                continue
             if re.match(r'^[\d\/?\'"’”、|；：，。:;,.]+$', phon):
                 continue
-            phon = phon.strip()
-            # 提取聲調
-            if "輕聲" in phon:
-                tone = "輕聲"
-            else:
-                tone_match = re.search(r"([A-Da-d0-9]+)", phon[::-1])
-                tone_code = tone_match.group(1) if tone_match else ""
-                if tone_code:
-                    # 使用正則表達式刪除末尾的字母，直到遇到數字
-                    tone_code = re.sub(r'[a-dA-D]+$', '', tone_code)
-                tone_code = tone_code[::-1] if tone_code else ""
-                tone = tone_map.get(tone_code, tone_map.get(tone_code, "未知")) if tone_code else ""
 
             # 提取聲母
             consonant = ""
             if not re.search(vowel_pattern, re.split(r"\d", phon)[0]):
-                vowel_fallback = r"([ʐɣmnŋȵƞʋvʒlḷfzr])"
+                vowel_fallback = r"([∅Øʐɣmnŋɲȵƞʋvʒlḷfzr])"
                 # if phon[0] in ['l', 'f']:
                 #     consonant = phon[0]
                 if re.match(vowel_fallback, phon[0]):
@@ -142,7 +201,7 @@ def extract_all_from_files(file_path: str) -> pd.DataFrame:
 
             # 韻母提取
             all_rhymes = []
-            tmp_phon = phon[1:] if phon.startswith("∅") else phon
+            tmp_phon = phon[1:] if phon.startswith(("∅", "Ø")) else phon
             if 'j' not in tmp_phon[1:] and 'ʲ' not in tmp_phon[1:]:
                 vowel_found = False
                 for c in tmp_phon:
@@ -153,8 +212,8 @@ def extract_all_from_files(file_path: str) -> pd.DataFrame:
                         break
                     elif vowel_found:
                         all_rhymes.append(c)
-                if not vowel_found and any(c in tmp_phon for c in "ʐzflḷɣmnŋȵƞʋvʒr"):
-                    match = re.search(r".*?([ʐzflḷɣrmnŋȵƞʋvʒ].*?)(?=\d|\s|$)", tmp_phon)
+                if not vowel_found and any(c in tmp_phon for c in "∅Øʐzflḷɣmnŋȵɲƞʋvʒr"):
+                    match = re.search(r".*?([∅Øʐzflḷɣrmnŋɲȵƞʋvʒ].*?)(?=\d|\s|$)", tmp_phon)
                     if match:
                         all_rhymes += list(match.group(1))
             else:
@@ -165,7 +224,7 @@ def extract_all_from_files(file_path: str) -> pd.DataFrame:
             rhyme = ''.join(c for c in all_rhymes if not (c.isdigit() or re.match(r'[一-鿿]', c)))
             for old, new in {
                 'ε': 'ɛ', "α": "ɑ", "ʯ": "ʮ", "∅": "ø", "ο": "o", "ǝ": "ə", "о": "o", "у": "y", "е": "e",
-                "ã": "ã", "ẽ": "ẽ", "ĩ": "ĩ", "ī": "ĩ", "ā": "ã",  "ỹ": "ỹ", "õ": "õ", "ʱ": "ʰ"
+                "ã": "ã", "ẽ": "ẽ", "ĩ": "ĩ", "ī": "ĩ", "ā": "ã", "ỹ": "ỹ", "õ": "õ", "ʱ": "ʰ"
             }.items():
                 rhyme = rhyme.replace(old, new)
 
@@ -175,6 +234,29 @@ def extract_all_from_files(file_path: str) -> pd.DataFrame:
                 "∨": "v", "ł": "ɬ", "tʰs": "ʦʰ", "(ʔ)": "ʔ", "∅": "ʔ", "Ǿ": "ʔ"
             }.items():
                 consonant = consonant.replace(old, new)
+
+            if not get_tone:
+                results.append({
+                    '汉字': hanzi,
+                    '音标': phon,
+                    '声母': consonant,
+                    '韵母': rhyme,
+                    '声调': '',
+                    '註釋': note
+                })
+                continue
+
+            # 提取聲調
+            if "輕聲" in phon:
+                tone = "輕聲"
+            else:
+                tone_match = re.search(r"([A-Da-d0-9]+)", phon[::-1])
+                tone_code = tone_match.group(1) if tone_match else ""
+                if tone_code:
+                    # 使用正則表達式刪除末尾的字母，直到遇到數字
+                    tone_code = re.sub(r'[a-dA-D]+$', '', tone_code)
+                tone_code = tone_code[::-1] if tone_code else ""
+                tone = tone_map.get(tone_code, tone_map.get(tone_code, "未知")) if tone_code else ""
 
             results.append({
                 '汉字': hanzi,
@@ -187,8 +269,10 @@ def extract_all_from_files(file_path: str) -> pd.DataFrame:
 
     return pd.DataFrame(results)
 
+
 # tsv_file = r"C:\Users\joengzaang\myfiles\杂文件\声韵处理\processed\東莞東坑.tsv"
-# result = extract_all_from_tsv(tsv_file)
+# tsv_file = r"C:\Users\joengzaang\PycharmProjects\process_phonology\data\yindian\藤縣.tsv"
+# result = extract_all_from_files(tsv_file)
 # pd.set_option('display.max_rows', None)  # 显示所有行
 # pd.set_option('display.max_columns', None)  # 显示所有列
 # pd.set_option('display.width', None)  # 自动适应宽度

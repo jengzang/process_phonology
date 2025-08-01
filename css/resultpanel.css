@@ -350,11 +350,6 @@
     opacity: 1;                      /* 🔸 滑鼠懸浮時完全不透明 */
 }
 
-
-
-
-
-
 #resultTable td {
     position: relative;
 }

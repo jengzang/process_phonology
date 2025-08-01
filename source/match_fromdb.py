@@ -21,6 +21,11 @@ custom_variant_dict = {
     "峯": "峰"
     # 如需可再擴充
 }
+# # 建立雙向映射
+# custom_variant_bidict = {}
+# for k, v in custom_variant_dict.items():
+#     custom_variant_bidict[k] = v
+#     custom_variant_bidict[v] = k
 
 
 def get_tsvs(output_dir='data/processed', partition_name='全部'):
@@ -77,8 +82,6 @@ def get_tsvs(output_dir='data/processed', partition_name='全部'):
             text = text.replace(old, new)
         return text
 
-    matched_locations = []
-    matched_set = set()
     unmatched_locations_step1 = []
     # 篩選分區處理
     partition_filter_set = None
@@ -87,62 +90,80 @@ def get_tsvs(output_dir='data/processed', partition_name='全部'):
         partition_filter_set = set(selected_parts)
         print(f"[調試] 篩選分區：{partition_filter_set}")
 
-    print("=== 匹配調訊輸出 ===")
+    matched_abbr_to_path = {}  # abbr -> tsv_path
+
+    # Step 1: 匹配原始名稱
     for loc in original_locations:
         if loc in sort_order_abbr:
-            matched_locations.append(loc)
-            matched_set.add(loc)
-            # print(f"Step1 匹配：{loc} -> 簡簿")
+            matched_abbr_to_path[loc] = name_to_path[loc]  # 立刻將路徑對應
+            # print(f"Step1 匹配：{loc} -> 簡簿 => {name_to_path[loc]}")
         else:
             unmatched_locations_step1.append(loc)
 
+    # Step 2: 簡轉繁匹配
     sort_order_abbr_trad = [converter_s2t.convert(x) for x in sort_order_abbr]
     unmatched_locations_step2 = []
     for loc in unmatched_locations_step1:
-        if loc in sort_order_abbr_trad:
-            matched_locations.append(loc)
-            matched_set.add(loc)
-            # print(f"Step2 匹配：{loc} -> 簡簿(簡轉繁)")
+        # print(f"Step2 檢查：{loc}")  # 調試輸出
+        for abbr, abbr_trad in zip(sort_order_abbr, sort_order_abbr_trad):
+            if loc == abbr_trad:
+                matched_abbr_to_path[abbr] = name_to_path[loc]  # 使用原始檔名對應到簡稱
+                # print(f"Step2 匹配：{abbr} -> 簡轉繁 => {loc} => {name_to_path[loc]}")  # ✅
+                break
         else:
             unmatched_locations_step2.append(loc)
 
+    # Step 3: 簡轉簡體匹配
     sort_order_abbr_simp = [converter_t2s.convert(x) for x in sort_order_abbr]
     unmatched_locations_step3 = []
     for loc in unmatched_locations_step2:
+        # print(f"Step3 檢查：{loc}")  # 調試輸出
         loc_simp = converter_t2s.convert(loc)
-        if loc_simp in sort_order_abbr_simp:
-            matched_locations.append(loc)
-            matched_set.add(loc)
-            # print(f"Step3 匹配：{loc}(轉簡體) -> 簡簿(轉簡體)")
+        for abbr, abbr_simp in zip(sort_order_abbr, sort_order_abbr_simp):
+            if loc_simp == abbr_simp:
+                matched_abbr_to_path[abbr] = name_to_path[loc]  # 使用原始檔名對應到簡稱
+                # print(f"Step3 匹配：{loc}(轉簡體) -> 簡簿(轉簡體) => {abbr} => {name_to_path[loc]}")  # ✅
+                break
         else:
             unmatched_locations_step3.append(loc)
 
-    abbr_variant_set = set(converter_variant.convert(x) for x in sort_order_abbr)
+    # Step 4: 異體字簡化匹配
+    abbr_variant_map = {
+        converter_variant.convert(abbr): abbr
+        for abbr in sort_order_abbr
+    }
     unmatched_locations_step4 = []
     for loc in unmatched_locations_step3:
+        # print(f"Step4 檢查：{loc}")  # 調試輸出
         loc_var = converter_variant.convert(loc)
-        if loc_var in abbr_variant_set:
-            matched_locations.append(loc)
-            matched_set.add(loc)
-            # print(f"Step4 匹配：{loc}(異體簡化為 {loc_var}) -> 簡簿(異體簡化)")
+        if loc_var in abbr_variant_map:
+            abbr = abbr_variant_map[loc_var]
+            matched_abbr_to_path[abbr] = name_to_path[loc]
+            # print(f"Step4 匹配：{loc}(異體簡化為 {loc_var}) -> 簡簿(異體簡化) => {abbr} => {name_to_path[loc]}")
         else:
             unmatched_locations_step4.append(loc)
 
-    abbr_custom_set = set(apply_custom_variant(x) for x in sort_order_abbr)
+    # Step 5: 自定義異體字匹配
+    abbr_custom_map = {
+        apply_custom_variant(abbr): abbr
+        for abbr in sort_order_abbr
+    }
     unmatched_locations = []
     for loc in unmatched_locations_step4:
+        # print(f"Step5 檢查：{loc}")  # 調試輸出
         loc_custom = apply_custom_variant(loc)
-        if loc_custom in abbr_custom_set:
-            matched_locations.append(loc)
-            matched_set.add(loc)
-            # print(f"Step5 匹配：{loc}(自定義轉為 {loc_custom}) -> 簡簿(自定義)")
+        if loc_custom in abbr_custom_map:
+            abbr = abbr_custom_map[loc_custom]
+            matched_abbr_to_path[abbr] = name_to_path[loc]
+            # print(f"Step5 匹配：{loc}(自定義轉為 {loc_custom}) -> 簡簿(自定義) => {abbr} => {name_to_path[loc]}")
         else:
             unmatched_locations.append(loc)
-            # print(f"未匹配：{loc}(自定義轉為 {loc_custom})")
+            # print(f"未匹配：{loc}(自定義轉為 {loc_custom})")  # 調試輸出
 
+    # Step 6: 按順序處理匹配結果
     sorted_matched = [
         abbr for abbr in sort_order_abbr
-        if abbr in matched_set and (
+        if abbr in matched_abbr_to_path and (
                 partition_filter_set is None or partition_map.get(abbr, '') in partition_filter_set
         )
     ]
@@ -151,14 +172,44 @@ def get_tsvs(output_dir='data/processed', partition_name='全部'):
     partitions = []
     sorted_paths = []
     previous_partition = None
+
+    # 使用匹配結果生成最終路徑和分區
     for loc in sorted_matched:
         current_partition = partition_map.get(loc, '')
+
+        # === 優先使用前面比對階段已對應的檔名 ===
+        chosen_path = matched_abbr_to_path.get(loc)
+
+        if chosen_path is None:
+            # === 五重轉換匹配 ===
+            candidates = [name for name in name_to_path if loc == name or
+                          converter_s2t.convert(name) == loc or
+                          converter_t2s.convert(name) == loc or
+                          converter_variant.convert(name) == loc or
+                          apply_custom_variant(name) == loc]
+
+            if not candidates:
+                print(f"[⚠️ 無匹配檔案] 找不到 {loc} 對應的來源檔案")
+                continue  # 如果找不到對應的檔案，跳過這個簡稱
+            elif len(candidates) == 1:
+                chosen_path = name_to_path[candidates[0]]
+            else:
+                # 多重匹配，選擇修改時間較新的檔案
+                chosen = max(candidates, key=lambda x: os.path.getmtime(name_to_path[x]))
+                print(f"[⚠️ 多重匹配] 簡稱 '{loc}' 命中多個來源，保留較新檔案：'{chosen}'")
+                for c in candidates:
+                    mtime = os.path.getmtime(name_to_path[c])
+                    print(f" - {c}: 修改時間 {mtime}")
+                chosen_path = name_to_path[chosen]
+
+        # === 分區斷開顯示 ===
         if previous_partition is not None and current_partition != previous_partition:
             locations.append("_")
             sorted_paths.append("_")
             partitions.append("")
+
         locations.append(loc)
-        sorted_paths.append(name_to_path[loc])
+        sorted_paths.append(chosen_path)  # 使用選擇的檔案路徑
         partitions.append(current_partition)
         previous_partition = current_partition
 
@@ -166,18 +217,16 @@ def get_tsvs(output_dir='data/processed', partition_name='全部'):
     # for loc, part in zip(locations, partitions):
     # print(f"{loc}\t{part}")
 
-    # print("\n=== 匹配成功 ===")
-    # print(matched_locations)
-
     print("\n=== 未匹配 ===")
     print(unmatched_locations)
 
     return sorted_paths, locations, partitions
 
 
-if __name__ == "__main__":
-    sorted_paths, locations, partitions = get_tsvs()
-    # print(sorted_paths)
+# if __name__ == "__main__":
+    # sorted_paths, locations, partitions = get_tsvs(output_dir=r"C:\Users\joengzaang\PycharmProjects\process_phonology\data\yindian")
+    # print("sorted_paths", sorted_paths)
+    # print(len(sorted_paths))
     # print(locations)
     # print(partitions)
     # for path, name, part in zip(sorted_paths, locations, partitions):

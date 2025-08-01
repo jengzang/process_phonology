@@ -2,8 +2,8 @@ import os
 import tkinter as tk
 from tkinter import filedialog
 
-from format_convert import process_音典
-from get_new import extract_all_from_tsv
+from source.format_convert import process_音典
+from source.get_new import extract_all_from_files
 
 # 直接開始執行
 root = tk.Tk()
@@ -21,7 +21,7 @@ for file in file_paths:
 
     # 調用你已寫好的函數
     process_音典(file, output_path=output_path)
-    result = extract_all_from_tsv(output_path)
+    result = extract_all_from_files(output_path)
 
     results.append(result)
 

@@ -110,6 +110,8 @@ def convert_tones(tone: dict, shortname: str):
 
         if prev_char in ru_initials:
             tone_num = match_tone(tail_tone, prev_char, tone_ru)
+            if tone_num is None:
+                tone_num = match_tone(tail_tone, prev_char, tone_bian)
 
         if tone_num is None:
             tone_num = match_tone(tail_tone, prev_char, tone_shu)

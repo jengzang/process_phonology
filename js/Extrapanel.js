@@ -358,6 +358,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let lastPositionsDiv = null;
 
     charactersBtn.addEventListener('click', async () => {
+        await create_map1();
         // 获取输入框中的汉字
         const chars = inputBox.value.trim().split(""); // 将输入框内容拆分成字符数组
         const locations = locationsInput.value.trim().split(/\s+/); // 获取并拆分 locations
@@ -469,6 +470,7 @@ document.addEventListener("DOMContentLoaded",  function () {
         // 获取输入框中的汉字
         const locations = locationsInput.value.trim().split(/\s+/); // 获取并拆分 locations
         const regions = regionsInput.value.trim().split(/\s+/); // 获取并拆分 regions
+        await create_map1();
 
         // 构造请求数据
         const requestData = {

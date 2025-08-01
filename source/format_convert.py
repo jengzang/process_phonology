@@ -11,6 +11,7 @@ import csv
 import os
 import re
 from itertools import product
+from tkinter import Tk, filedialog
 
 import docx
 import pandas as pd
@@ -153,37 +154,54 @@ def run2text(run):
 
 
 def docx_to_tsv(doc):
-    tsv = get_tsv_name(doc)
-    if not os.path.exists(doc): return
-    if os.path.exists(tsv):
-        xtime = os.path.getmtime(doc)
-        ttime = os.path.getmtime(tsv)
-        if ttime >= xtime: return
+    if not os.path.exists(doc):
+        print("❌ 輸入檔案不存在，跳過")
+        return
+
     lines = []
     Doc = Document(doc)
-    for each in Doc._body._element:
+
+    for idx, each in enumerate(Doc._body._element):
         if isinstance(each, docx.oxml.table.CT_Tbl):
+            # print(f"[📐] 處理表格 第 {idx + 1} 區塊")
             t = Table(each, Doc)
-            for row in t.rows:
+            for row_num, row in enumerate(t.rows):
                 行 = ""
                 cells = row.cells
                 for i, cell in enumerate(cells):
                     if cell in cells[:i]: continue
                     for p in cell.paragraphs:
-                        行 += "".join(map(run2text, p.iter_inner_content())).replace("\t", "").replace("\n", "")
-                    行 += "\t"
-                lines.append(
-                    行.replace("}~", "~}").replace("~{", "{~").replace("}{", "").replace("[}", "}[").replace("{h}",
-                                                                                                             "h").strip())
+                        raw = "".join(map(run2text, p.iter_inner_content()))
+                        行 += raw.replace("\t", "").replace("\n", "")
+                行 += "\t"
+
+                before = 行
+                after = 行.replace("}~", "~}").replace("~{", "{~").replace("}{", "").replace("[}", "}[").replace("{h}",
+                                                                                                                 "h").strip()
+                # print(f"  [→ 表格第 {row_num + 1} 行] 原始：{before}")
+                # print(f"  [✓ 清洗後]：{after}")
+                lines.append(after)
+
         elif isinstance(each, docx.oxml.text.paragraph.CT_P):
+            # print(f"[📄] 處理段落 第 {idx + 1} 區塊")
             element = Paragraph(each, Doc)
-            行 = "".join(map(run2text, element.iter_inner_content())).replace("}~", "~}").replace("~{", "{~").replace(
-                "}{", "").replace("[}", "}[").replace("{h}", "h")
-            lines.append(行)
+            raw = "".join(map(run2text, element.iter_inner_content()))
+            before = raw
+            after = raw.replace("}~", "~}").replace("~{", "{~").replace("}{", "").replace("[}", "}[").replace("{h}",
+                                                                                                              "h")
+            # print(f"  [→ 段落原始]：{before}")
+            # print(f"  [✓ 清洗後]：{after}")
+            lines.append(after)
     行 = "\n".join(lines).replace("}\n{", "").replace("\n}", "}\n")
-    with open(tsv, "w", encoding="utf-8", newline="\n") as t:
+    # print(f"[📦] 合併所有行後內容 頭 200 字預覽：\n{行[:200]}...")
+    dirpath = os.path.dirname(doc)
+    basename = os.path.splitext(os.path.basename(doc))[0]
+    tsv_path = os.path.join(dirpath, basename + ".tsv")
+    with open(tsv_path, "w", encoding="utf-8", newline="\n") as t:
         t.write(行)
-    return tsv
+        print(f"[✅] 已寫入：{tsv_path}")
+
+    return tsv_path
 
 
 def convert_to_tsv_if_needed(filepath):
@@ -490,8 +508,8 @@ def process_跳跳老鼠(file, level=1, output_path=None):
 
 
 # ========== 縣志格式處理 ==========
-def process_縣志(file, level=1, output_path=None):
-    cc = OpenCC('s2t')
+def process_縣志_excel(file, level=1, output_path=None):
+    # cc = OpenCC('s2t')
     rows = []
     simplified_rows = []
     debug = True
@@ -615,6 +633,184 @@ def process_縣志(file, level=1, output_path=None):
     print(f"📊 行數統計：總行數 {total}, 跳過 {skipped} 行, 標註簡體 {simplified_count} 條")
 
 
-# test = ['台','高']
-# result = s2t_pro(test,level=2)
-# print(result)
+def process_縣志_word(file, level=1, output_path=None):
+    print(f"📖 讀取 word：{file}")
+    tsv_path = convert_to_tsv_if_needed(file)
+    with open(tsv_path, encoding="utf-8") as f:
+        raw = f.read()
+
+    def parse_entry_blocks(text):
+        results = []
+
+        current_vowel = None  # e.g., 'i', 'u'
+
+        for line in text.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+
+            if line.startswith("#"):
+                current_vowel = line[1:]
+                continue
+
+            match = re.match(r"^([^\[]+)", line)
+            if not match or not current_vowel:
+                continue
+
+            initial = match.group(1).strip()
+            segments = re.findall(r"\[(\d+)]([^\[]+)", line)
+
+            for tone, content in segments:
+                syllable = f"{initial}{current_vowel}{tone}"
+                chars = []
+                explanations = {}
+                temp = ""
+                in_brace = False
+                current_char = ""
+
+                for c in content:
+                    if c == "{":
+                        in_brace = True
+                        temp = ""
+                    elif c == "}":
+                        in_brace = False
+                        explanations[current_char] = temp
+                        temp = ""
+                    elif in_brace:
+                        temp += c
+                    else:
+                        current_char = c
+                        chars.append(c)
+
+                for char in chars:
+                    explanation = explanations.get(char, "")
+                    results.append((char, syllable, explanation))
+
+        return results
+    data = parse_entry_blocks(raw)
+    outpath = output_path or os.path.splitext(file)[0] + ".tsv"
+    df = pd.DataFrame(data, columns=["#漢字", "音標", "解釋"])
+    df.to_csv(outpath, sep="\t", index=False)
+    # print(f"[✅] 轉換完成，輸出路徑：{outpath}")
+
+    with open(outpath, encoding="utf-8") as f:
+        lines = [line.rstrip("\n").split("\t") for line in f if line.strip() and not line.startswith("#")]
+        # print("lines:",lines)
+
+    index = {'漢字': 0, '音標': 1, '解釋': 2}
+    print(f"[處理] 開始掃描資料行，共 {len(lines) - 1} 筆")
+
+    delimiters = [';', '；', '/', '、', ',', '，']
+
+    rows = []
+    simplified_rows = []
+
+    def split_field(field):
+        for delim in delimiters:
+            field = field.replace(delim, '∥')
+        return [f.strip() for f in field.split('∥') if f.strip()]
+
+    def get_field(parts, field_name):
+        idx = index.get(field_name)
+        if idx is not None and idx < len(parts):
+            return parts[idx].strip()
+        return ""
+
+    def process_pair(word, phon, note, row_num):
+        clean_str, mapping = s2t_pro(word, level)
+        mapping = dict(mapping)
+        phon_units = phon.strip().split()
+        word_len_match = len(word) == len(phon_units)
+
+        if word_len_match:
+            for ch, p in zip(word, phon_units):
+                candidates = mapping.get(ch, [ch])
+                for cand in candidates:
+                    rows.append([cand, p, note])
+                    if cand != ch:
+                        simplified_rows.append([cand, p, note, "簡"])
+                        print(f"[簡體一對多] 第 {row_num} 行：{ch} → {cand}")
+        else:
+            rows.append([clean_str, phon, note])
+            if clean_str != word:
+                simplified_rows.append([clean_str, phon, note, "簡"])
+                print(f"[fallback] 第 {row_num} 行：{word} → {clean_str}")
+
+    print(f"[處理] 開始掃描資料行，共 {len(lines) - 1} 筆")
+
+    for row_num, parts in enumerate(lines[1:], start=2):
+        word_raw = get_field(parts, '漢字')
+        phon_raw = get_field(parts, '音標')
+        note = get_field(parts, '解釋')
+
+        if not word_raw or not phon_raw:
+            continue
+
+        word_list = split_field(word_raw)
+        phon_list = split_field(phon_raw)
+
+        if not word_list or not phon_list:
+            print(f"⚠️ 跳過第 {row_num} 行，因為漢字或音標清單為空")
+            continue
+
+        if len(word_list) > 1 and len(phon_list) > 1:
+            print(f"[笛卡爾積] 第 {row_num} 行：{word_list} × {phon_list}")
+            for word, phon in product(word_list, phon_list):
+                process_pair(word, phon, note, row_num)
+
+        elif len(word_list) > 1 and len(phon_list) == 1:
+            print(f"[多對一] 第 {row_num} 行：{word_list} × {phon_list[0]}")
+            for word in word_list:
+                process_pair(word, phon_list[0], note, row_num)
+
+        elif len(word_list) == 1 and len(phon_list) > 1:
+            print(f"[一對多] 第 {row_num} 行：{word_list[0]} × {phon_list}")
+            for phon in phon_list:
+                process_pair(word_list[0], phon, note, row_num)
+
+        else:
+            word = ''.join(word_list)
+            phon = ' '.join(phon_list)
+            # print(f"[fallback] 第 {row_num} 行：{word} → {phon}")
+            process_pair(word, phon, note, row_num)
+
+    # Step 5: 輸出最終 TSV
+    # final_outpath = output_path or (os.path.splitext(file)[0] + ".tsv")
+    with open(outpath, "w", encoding="utf-8", newline="\n") as out:
+        writer = csv.writer(out, delimiter="\t")
+        writer.writerow(["#漢字", "音標", "解釋"])
+        writer.writerows(rows)
+
+    # Step 6: 輸出簡體資料
+    simp_path = os.path.splitext(file)[0] + ".簡.tsv"
+    if simplified_rows:
+        print(f"[簡體] 共發現 {len(simplified_rows)} 筆簡體詞彙，寫入：{simp_path}")
+        with open(simp_path, "w", encoding="utf-8", newline="\n") as out:
+            writer = csv.writer(out, delimiter="\t")
+            writer.writerow(["#漢字", "音標", "解釋", "繁簡"])
+            writer.writerows(simplified_rows)
+
+    print(f"✅ 全部處理完成：{outpath}")
+
+
+def process_縣志(file, level=1, output_path=None):
+    ext = os.path.splitext(file)[1].lower()
+    if ext in [".xlsx", ".xls"]:
+        process_縣志_excel(file, level, output_path)
+    elif ext in [".docx", ".doc"]:
+        process_縣志_word(file, level, output_path)
+
+
+if __name__ == "__main__":
+    # ✅ tkinter 檔案選擇器
+    Tk().withdraw()  # 不顯示主視窗
+    file_path = filedialog.askopenfilename(
+        title="選擇縣志檔案",
+        filetypes=[("word Files", "*.docx"),("excel files", "*.xlsx"), ("All Files", "*.*")]
+    )
+
+    if file_path:
+        # convert_to_tsv_if_needed(file_path)
+        process_縣志_word(file_path)
+    else:
+        print("❌ 沒有選擇任何檔案")
