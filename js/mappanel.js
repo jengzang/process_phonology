@@ -234,6 +234,18 @@ async function create_map1(){
                 // 直接使用原始经纬度数据（假设 coordinates 是 [lng, lat]）
                 const lng = coordinates[0];
                 const lat = coordinates[1];
+                let fontSize;
+                const nameLength = locationName.length;
+
+                if (nameLength <= 3) {
+                    fontSize = '12.5px';
+                } else if (nameLength === 4) {
+                    fontSize = '11.5px';
+                } else if (nameLength === 5) {
+                    fontSize = '10.5px';
+                } else {
+                    fontSize = '10px';
+                }
                 // console.log("原始经纬度：", lng, lat);
 
                 // 确保坐标是有效的并可以用来绘制标记
@@ -251,13 +263,15 @@ async function create_map1(){
                             padding: '.05rem .1rem',        // 调整 padding，更加紧凑
                             marginBottom: '.1rem',           // 调整底部 margin
                             borderRadius: '.1rem',
-                            backgroundColor: 'white',
+                            // backgroundColor: 'rgba(66, 38, 38, 0.85)',
+                            // color: 'rgb(125,248,162)',
+                            backgroundColor: '#1b2e2b',
+                            color: '#a6ffdc',
                             width: 'auto',                    // 根据文字长度自动撑开宽度
                             borderWidth: 0,
                             boxShadow: '0 2px 6px 0 rgba(114, 124, 245, .5)',
                             textAlign: 'center',
-                            fontSize: '12px',                // 调小字体大小
-                            color: 'blue',
+                            fontSize: fontSize,                // 调小字体大小
                             display: 'inline-block',          // 让容器根据内容宽度调整
                             whiteSpace: 'nowrap',            // 保证文字不换行
                             overflow: 'hidden',               // 防止超出容器的文本显示

@@ -352,8 +352,8 @@ def search_tones(locations=None, regions=None, get_raw: bool = False):
     df.set_index('簡稱', inplace=True)
 
     # 如果传入了abbreviation，则根据它过滤数据
-    if  all_locations is not None:
-        df = df.loc[ all_locations]
+    if all_locations is not None:
+        df = df.loc[all_locations]
 
     # 处理每一列的单元格
     def process_cell(value, num):

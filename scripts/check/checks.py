@@ -172,7 +172,7 @@ def 檢查資料格式(df, col_hanzi, col_ipa, display=False, col_note=None):
             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
             "ŋɑɐɒɓʙβɔɕçðɖɗɘəɚɛɜɞɟʄɡɢʛɣʰɥʜɦɪʝɭɬɫʟɮɰɱɲȵɳŋɳɴɵøœæɶɸɹɻʁʀɽɾʃʂʈʊʋʌʍχʎʑʐʒʔʕʡʢʘʞθʼˈˌːˑ⁰¹²³⁴⁵⁶⁷⁸⁹ⁿˡʲʳˀ"
             "ʦʧʨʂʐʑʒʮʰʲː˞ˠˤ~^̃"
-            "ıſɩɷʅɥʯεɝɚᴇãẽĩỹõúαɤᵘᶷᶤᶶᵚʸᶦᵊⁱ◌∅ɯʦʒɿ̍ʷ"
+            "ıſɩɷʅɥʯεɝɚᴇãẽĩỹõúαɤᵘᶷᶤᶶᵚʸᶦᵊⁱ◌∅ɯʦʒɿ̍ʷ̯̩"
             "0123456789"
         )
         return all(c in allowed for c in s)
@@ -744,6 +744,9 @@ def main(mode='onl'):
     pd.set_option('display.max_rows', None)
     pd.set_option('display.max_columns', None)
     pd.set_option('display.max_colwidth', None)
+
+    five = True
+
     if mode == 'only':
         xlsx_paths = filedialog.askopenfilenames(
             title="選擇多個 Excel 文件",
@@ -766,6 +769,7 @@ def main(mode='onl'):
             '音標': ['IPA_程序改名', 'IPA', 'ipa', '音標', 'syllable'],
             '解釋': ['注釋_程序改名', '注释', '注釋', '解釋', 'notes']
         }
+        print(file_paths)
         for path in file_paths:
             ext = os.path.splitext(path)[1].lower()
             if ext == ".tsv":
@@ -776,7 +780,7 @@ def main(mode='onl'):
                 if os.path.exists(tsv_path):
                     xlsx_path = os.path.splitext(path)[0] + ".xlsx"
                     tsv_to_xlsx(tsv_path, xlsx_path)
-                    check_all([xlsx_path])
+                    check_all([xlsx_path], five)
 
             elif ext in (".xlsx", ".xls"):
                 try:
@@ -796,8 +800,8 @@ def main(mode='onl'):
 
                 # 如果三個標準欄位都找到，就 rename 並執行 check_all
                 if set(mapped_cols.keys()) >= {"漢字", "音標", "解釋"}:
-                    df = df.rename(columns={v: k for k, v in mapped_cols.items()})
-                    check_all(df)
+                    # df = df.rename(columns={v: k for k, v in mapped_cols.items()})
+                    check_all([path], five)
                 else:
                     required_cols = ["漢字", "音標", "解釋"]
                     missing = [col for col in required_cols if col not in mapped_cols]
@@ -813,8 +817,7 @@ def main(mode='onl'):
                                 if os.path.exists(tsv_path):
                                     xlsx_path = os.path.splitext(path)[0] + "pro" + ".xlsx"
                                     tsv_to_xlsx(tsv_path, xlsx_path)
-                                    check_all([xlsx_path])
-                                    exit_outer = True
+                                    check_all([xlsx_path], five)
                                 break
                             elif user_input == "2":
                                 print("👉 使用縣志格式邏輯")
@@ -823,8 +826,7 @@ def main(mode='onl'):
                                 if os.path.exists(tsv_path):
                                     xlsx_path = os.path.splitext(path)[0] + "pro" + ".xlsx"
                                     tsv_to_xlsx(tsv_path, xlsx_path)
-                                    check_all([xlsx_path])
-                                    exit_outer = True
+                                    check_all([xlsx_path], five)
                                 break
                             else:
                                 print("⚠️ 請輸入正確的數字（1 或 2）")

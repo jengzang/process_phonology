@@ -5,6 +5,7 @@ import re
 import pandas as pd
 
 from source.Extras_addplaces_searchchars import search_tones
+from source.match_fromdb import get_tsvs
 
 
 def extract_all_from_files(file_path: str, get_tone: bool = True, preserve_empty_rows: bool = False) -> pd.DataFrame:
@@ -32,8 +33,8 @@ def extract_all_from_files(file_path: str, get_tone: bool = True, preserve_empty
         return tone_map
 
     if get_tone:
-        shortname = os.path.splitext(os.path.basename(file_path))[0]
-        result = search_tones(locations=[shortname], regions=None, get_raw=True)
+        shortname = get_tsvs(single=file_path)[1]
+        result = search_tones(locations=shortname, regions=None, get_raw=True)
         tone_map_yindian = build_tone_map_yindian(result)
     else:
         tone_map_yindian = {

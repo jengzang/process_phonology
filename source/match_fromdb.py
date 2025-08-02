@@ -18,9 +18,15 @@ custom_variant_dict = {
     "尙": "尚",
     "郉": "邢",
     "楡": "榆",
-    "峯": "峰"
+    "峯": "峰",
+    "鎭": "鎮",
+    "巖": "岩",
+    "黃": "黃",
+    "甯": "寧",
     # 如需可再擴充
 }
+
+
 # # 建立雙向映射
 # custom_variant_bidict = {}
 # for k, v in custom_variant_dict.items():
@@ -28,12 +34,15 @@ custom_variant_dict = {
 #     custom_variant_bidict[v] = k
 
 
-def get_tsvs(output_dir='data/processed', partition_name='全部'):
+def get_tsvs(output_dir='data/processed', partition_name='全部', single=None):
     # Use the Path object for the directory
     output_dir = Path(output_dir)
-    file_paths = [
-        str(f) for f in output_dir.glob("*.tsv") if f.is_file()
-    ]
+    if single:
+        file_paths = [str(Path(single))]
+    else:
+        file_paths = [
+            str(f) for f in output_dir.glob("*.tsv") if f.is_file()
+        ]
 
     # ❗以下為遞迴抓子目錄中的 .tsv，已註解
     # file_paths = [str(f) for f in output_dir.rglob("*.tsv") if f.is_file()]
@@ -49,14 +58,14 @@ def get_tsvs(output_dir='data/processed', partition_name='全部'):
     }
 
     original_locations = list(name_to_path.keys())
-    print(f"[調試] 自動載入的原始地點：{original_locations}")
+    # print(f"[調試] 自動載入的原始地點：{original_locations}")
 
     # === 從資料庫讀取簡稱表 ===
     db_path = QUERY_DB_PATH
     with sqlite3.connect(db_path) as conn:
         abbreviation_df = pd.read_sql_query("SELECT 簡稱, 音典分區 FROM dialects", conn)
 
-    print(f"[調試] 載入的簡稱數量：{len(abbreviation_df)}")
+    # print(f"[調試] 載入的簡稱數量：{len(abbreviation_df)}")
 
     # 檢查簡稱是否有重複
     duplicated_abbr = abbreviation_df[abbreviation_df.duplicated(subset=['簡稱'], keep=False)]
@@ -217,17 +226,20 @@ def get_tsvs(output_dir='data/processed', partition_name='全部'):
     # for loc, part in zip(locations, partitions):
     # print(f"{loc}\t{part}")
 
-    print("\n=== 未匹配 ===")
-    print(unmatched_locations)
+    if (not single) and unmatched_locations:
+        print("\n=== 未匹配 ===")
+        print(unmatched_locations)
+    elif single and unmatched_locations:
+        print(f"[❌ 單一模式] 無法為檔案 {single} 匹配任何簡稱。")
 
     return sorted_paths, locations, partitions
 
 
 # if __name__ == "__main__":
-    # sorted_paths, locations, partitions = get_tsvs(output_dir=r"C:\Users\joengzaang\PycharmProjects\process_phonology\data\yindian")
-    # print("sorted_paths", sorted_paths)
-    # print(len(sorted_paths))
-    # print(locations)
+#     locations= get_tsvs(single=r"C:\Users\joengzaang\PycharmProjects\process_phonology\data\yindian\尙志.tsv")[1]
+#     # print("sorted_paths", sorted_paths)
+#     print("locations:", locations)
+#     print( len(locations))
     # print(partitions)
     # for path, name, part in zip(sorted_paths, locations, partitions):
     #     print(f"{part}\t{name}\t{path}")

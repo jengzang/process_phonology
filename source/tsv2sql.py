@@ -209,7 +209,8 @@ def process_all2sql(tsv_paths, db_path, append=False):
         if path == "_":
             continue
 
-        tsv_name = os.path.splitext(os.path.basename(path))[0]
+        # tsv_name = os.path.splitext(os.path.basename(path))[0]
+        tsv_name = get_tsvs(single=path)[1]
         now_process = f"\n🔍 正在處理：{tsv_name}"
         print(now_process)
         with open("logs/缺資料.txt", "a", encoding="utf-8") as f:
@@ -450,6 +451,11 @@ def sync_dialects_flags(all_db_path=DIALECTS_DB_PATH,
                         log_path=CHARACTERS_DB_PATH):
     # 讀取 dialects_all.db 中所有唯一簡稱
     conn_all = sqlite3.connect(all_db_path)
+    # 創建索引，加快查詢速度
+    print("※ 開始創建索引 ※")
+    conn_all.execute("CREATE INDEX IF NOT EXISTS idx_loc ON dialects(簡稱);")
+    conn_all.execute("CREATE INDEX IF NOT EXISTS idx_char ON dialects(漢字);")
+    conn_all.commit()
     cursor_all = conn_all.cursor()
     cursor_all.execute("SELECT DISTINCT 簡稱 FROM dialects")
     all_tags = set(row[0] for row in cursor_all.fetchall())
@@ -590,7 +596,7 @@ def write_to_sql(yindian=None, write_chars_db=None, append=False):
             "日語吳音", "日語漢音", "日語其他", "崑曲", "京劇", "黃梅戲", "黃梅採茶戲", "隨州花鼓戏",
             "淮劇", "越劇", "贛劇", "南昌採茶戲", "撫州採茶戲", "吉安採茶戲", "星子西河戲", "巴陵戲",
             "湘劇", "長沙花鼓戲", "邕劇", "潮劇", "古腔粵劇", "邵武三角戲", "政和楊源四平戲", "蘇州評彈",
-            "香港", "東干甘肅話", "臺灣"
+            "香港", "東干甘肅話", "臺灣", "國語"
         ]
         tsv_paths = [
             path for file, path in merged_paths.items()
