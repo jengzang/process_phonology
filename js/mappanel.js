@@ -451,6 +451,10 @@ async function func_mergeData() {
                 finalValue += `(*${less.join(', *')})`;  // 用括号包住“少”，并加上 * 前缀
             }
 
+            if (!finalValue) {
+                finalValue = '散';
+            }
+
             // 获取最大占比对应的 value
             let maxPercentageValue = groupedData[location][feature].detailContent.reduce((prev, current) => {
                 return (prev.percentage > current.percentage) ? prev : current;
@@ -918,7 +922,7 @@ async function triggerDrawingFunction() {
                         if (dataItem.iscustoms === 1 && window.isCustomOn) {
                             const notes = dataItem.notes;
                             const text = new window.AMap.Text({
-                                text: value,  // 使用地点名作为文本
+                                text: value,
                                 anchor: 'center',
                                 draggable: false,
                                 cursor: 'pointer',
@@ -962,7 +966,7 @@ async function triggerDrawingFunction() {
                                 const notesEl = document.getElementById("notes1");  // 使用 notes 代替 detailContent
 
                                 locationNameEl.textContent = ` ${locationName}`;
-                                featureEl.textContent = ` ${feature}`;
+                                featureEl.textContent = ` ${feature} • ${value}`;
                                 notesEl.textContent = `說明: ${notes}`;  // 直接显示 notes 文本内容
 
                                 // 获取原生事件对象

@@ -169,6 +169,8 @@ document.addEventListener("DOMContentLoaded", () => {
         // await runAnalysis();          // 先送出分析並記錄 log
         await analysis_from_db();
         if (window.isButtonClosed) {
+            const bar = document.getElementById('stickyContextBar2');
+            bar.style.display = 'none';
             await js_table_render();     // 然後渲染表格結果
         }else{
             await initVue();

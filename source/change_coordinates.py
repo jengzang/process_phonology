@@ -1,4 +1,6 @@
 import math
+import re
+
 import pandas as pd
 
 
@@ -200,8 +202,8 @@ def wgs84togcj02(lng, lat):
 
 # GCJ02/谷歌、高德 转换为 WGS84 gcj02towgs84
 def gcj02towgs84(localStr):
-    lng = float(localStr.split(',')[0])
-    lat = float(localStr.split(',')[1])
+    lng = float(re.split(r'[，,]', localStr)[0])
+    lat = float(re.split(r'[，,]', localStr)[1])
     PI = 3.1415926535897932384626
     ee = 0.00669342162296594323
     a = 6378245.0
@@ -263,8 +265,7 @@ def main():
 
     # 根據選擇進行相應的轉換
     for index, row in df.iterrows():
-        bd_lon, bd_lat = map(float, row['經緯度'].split(','))
-
+        bd_lon, bd_lat = map(float, re.split(r'[，,]', row['經緯度']))
         if choice == 1:
             result = bd09togcj02(bd_lon, bd_lat)
             print(f"BD-09 -> GCJ-02: {result}")

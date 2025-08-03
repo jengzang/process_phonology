@@ -1,4 +1,5 @@
 import os
+import re
 import sqlite3
 import traceback
 from pathlib import Path
@@ -82,7 +83,7 @@ def build_dialect_database():
             coords = str(coords).strip()
 
             # 分割經緯度
-            bd_lon, bd_lat = map(float, coords.split(','))
+            bd_lon, bd_lat = map(float, re.split(r'[，,]', coords))
 
             # 使用轉換函數
             converted_coords = bd09togcj02(bd_lon, bd_lat)

@@ -191,7 +191,7 @@ def get_from_submission(locations, regions, need_features):
             # 如果查询有结果，处理并添加到结果列表
             for row in rows:
                 # 解析經緯度，将字符串 "40.7128, -74.0060" 转换为列表 [40.7128, -74.0060]
-                latitude_longitude = list(map(float, row[3].split(',')))
+                latitude_longitude = list(map(float, re.split(r'[，,]', row[3])))
 
                 result.append({
                     "簡稱": row[0],
@@ -366,7 +366,7 @@ def search_tones(locations=None, regions=None, get_raw: bool = False):
                 return f"[{num}]{value}"
             else:
                 # 如果有 []，按逗号拆分并处理
-                elements = value.split(',')
+                elements = re.split(r'[，,|;]', value)
                 processed_elements = []
                 for element in elements:
                     # 只有当元素没有 [num] 或 [] 时才加上[num]

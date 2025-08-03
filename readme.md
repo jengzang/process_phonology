@@ -30,23 +30,23 @@
 
 查詢泛粵（嶺南+嶺西）的流攝讀音，自動整理成表格並繪圖
 
-![img](images/image01.png)
+![img](data/images/image01.png)
 
 查詢泛閩西語的次濁上情況：
 
-![img](images/image02.png)
+![img](data/images/image02.png)
 
 查詢湘贛及周邊的知三端讀情況：
 
-![img](images/image03.png)
+![img](data/images/image03.png)
 
 查詢全國的豪韻字，也不會卡，只是等待后端返回耗時稍久一點（大約61s）
 
-![img](images/image04.png)
+![img](data/images/image04.png)
 
 也可以放大地图，显示所有点（按音典一级分区标色）
 
-![img](images/image05.png)
+![img](data/images/image05.png)
 
 ## 一、输入面板
 
@@ -54,27 +54,27 @@
 
 首先分为两个部分：**按照中古地位整理今音**；**根据今音查询该音位的中古来源**
 
-![img](images/image06.png)
+![img](data/images/image06.png)
 
 
 
 选择要分析的**特征(声\韵\调)**
 
-![img](images/image07.png)
+![img](data/images/image07.png)
 
 **地点输入框**：会自动连接后端查询匹配输入，并且用户可以点击选择。
 
 具体匹配逻辑有：直接匹配、简体转繁体匹配、拼音模糊匹配、根据行政区划匹配(县、镇、村均可)、相似度匹配。
 
-![img](images/image08.png)
+![img](data/images/image08.png)
 
-**分区输入：**可输入或选择匹配的分区
+**分区输入：** 可输入或选择匹配的分区
 
-![img](images/image09.png)
+![img](data/images/image09.png)
 
 鼠标hover（悬浮）会自动弹出下一级分区选框，点击即选中并自动填入。
 
-![img](images/image10.png)
+![img](data/images/image10.png)
 
 分区数据均是根据后端返回动态生成的，便于数据更新与维护。
 
@@ -82,31 +82,31 @@
 
 如果选中的是 中古地位整理读音 模式，那么可以选择输入中古音地位。
 
-![img](images/image11.png)
+![img](data/images/image11.png)
 
 输入声\韵\调的名字：
 
 - 输入「泥」→根据泥母分析；
-- 输入「宕 江」→依次分析宕摄和江摄辖字；
+- 输入「宕 江」→根据合并后的宕、江摄辖字分析（中间空格代表一起分析，回车则是按照不同特征处理）；
 - 输入「次浊」→根据次浊声母进行分析；
 - 输入「豪」→根据豪韵分析；
 - 输入「庄组」→根据庄组分析(如果只输入庄，会根据庄母分析)；
 - 输入「流开一」→根据流摄开口一等字分析
 - 输入「假知组 假章组」→根据假摄的知章组辖字进行分析。
 
-![img](images/image12.png)
+![img](data/images/image12.png)
 
 >  这些中古音地位都可以用来分析
 
 例如，分析「嶺南」的宕摄舒声字
 
-![img](images/image13.png)
+![img](data/images/image13.png)
 
 并且，支持“-”全匹配。（位于-后面的必须是中古地位某类）
 
 例如：输入「蟹-等」，会自动匹配蟹一、蟹二、蟹三、蟹四等字。
 
-![img](images/image14.png)
+![img](data/images/image14.png)
 
 如果不输入：则自动根据待分析特征生成（声母：根据三十六声母整理；韵母：根据十六摄整理；声调：根据中古清浊+调类整理）
 
@@ -116,7 +116,7 @@
 
 （根据今音查询该音位的中古来源）
 
-![img](images/image15.png)
+![img](data/images/image15.png)
 
 可以输入查询分类所用的中古音地位：
 
@@ -124,7 +124,7 @@
 
 也可以输入待查音节，留空则查询全部音节。
 
-![img](images/image16.png)
+![img](data/images/image16.png)
 
 >  按摄整理岭南所有点的韵母
 
@@ -144,33 +144,33 @@
 
 ### 2.1海量数据
 
-![img](images/image17.png)
+![img](data/images/image17.png)
 
 基于段落标签<p>动态生成，并且加上了虚拟滚动懒加载，海量数据也不会卡。
 
 **隐藏模式**：
 
-![img](images/image18.png)
+![img](data/images/image18.png)
 
 **不隐藏模式：**
 
-![img](images/image19.png)
+![img](data/images/image19.png)
 
 **一些花里胡哨的效果：**
 
 **浮动bar**做了毛玻璃效果。地点名会根据当前所在区域自动切换，便于用户知道当前显示的语音特征来自于哪个地点。
 
-![img](images/image20.png)
+![img](data/images/image20.png)
 
 **多音字效果**：
 
 标红显示，鼠标悬浮会显示出所有音
 
-![img](images/image21.png)
+![img](data/images/image21.png)
 
 ### 2.2表格模式
 
-![img](images/image22.png)
+![img](data/images/image22.png)
 
 
 
@@ -178,27 +178,27 @@
 
 **隐藏模式**（隐藏了地点、特征列）
 
-![img](images/image23.png)
+![img](data/images/image23.png)
 
 **不隐藏模式：**
 
-![img](images/image24.png)
+![img](data/images/image24.png)
 
 - 浮动bar同样可以根据当前所在位置自动切换；
 
 - 多音字能hover显示详情。
 
-![img](images/image25.png)
+![img](data/images/image25.png)
 
 - 隐藏模式下，hover地点名 有加深效果
 
-![img](images/image26.png)
+![img](data/images/image26.png)
 
 - 结果面板也可以全屏显示
 
-![img](images/image27.png)
+![img](data/images/image27.png)
 
-![img](images/image28.png)
+![img](data/images/image28.png)
 
 ## 三、地图面板
 
@@ -208,65 +208,65 @@
 
 每次执行完查询，会自动绘制一幅以查询所得点的地名为标识的地图。
 
-![img](images/image29.png)
+![img](data/images/image29.png)
 
 地图界面可以自由拖动、缩放，也可以全屏显示：
 
-![img](images/image30.png)
+![img](data/images/image30.png)
 
 ### 3.2特徵绘图
 
 点击顶部栏的特征后，根据选择特征进行绘图
 
-![img](images/image31.png)
+![img](data/images/image31.png)
 
 有多个特征时，会生成下拉选框供用户选择
 
-![img](images/image32.png)
+![img](data/images/image32.png)
 
 当然也支持全屏显示
 
-![img](images/image33.png)
+![img](data/images/image33.png)
 
 点击会浮现弹窗，列出该地点名称以及各特徵占比。
 
-![img](images/image34.png)
+![img](data/images/image34.png)
 
 ### 3.3分区绘图
 
-![img](images/image35.png)
+![img](data/images/image35.png)
 
 按照分区绘图，可选择按照音典一级\二级\三级分区绘图。
 
 按照音典二级分区绘制的岭南+岭西点图
 
-![img](images/image36.png)
+![img](data/images/image36.png)
 
 按照音典三级分区绘制的闽西点图
 
-![img](images/image37.png)
+![img](data/images/image37.png)
 
 ### 3.4自定义添加
 
-![img](images/image38.png)
+![img](data/images/image38.png)
 
 支持用户个人添加点、特征，方便绘制地理语言学地图。
 
-![img](images/image39.png)
+![img](data/images/image39.png)
 
 - 特徵根据当前绘图特徵自动填入
 - 在手动添加数据框展开时，点击地图会自动获取经纬度填入
 - 输入地点会自动到后端数据库匹配已有点，点击后自动填入该点分区（可以理解为填写音典分区的工具）
 
-![img](images/image40.png)
+![img](data/images/image40.png)
 
 提交后打开顶部栏按钮，即可显示自己刚刚绘制的点。关闭则不显示，可自由切换
 
-![img](images/image41.png)
+![img](data/images/image41.png)
 
 点击填入的点，会出现弹窗显示详细信息。
 
-![img](images/image42.png)
+![img](data/images/image42.png)
 
 当然，如果我之后上云的话，肯定会搞登录制，只有登录了的人才能自己添加点
 
@@ -274,7 +274,7 @@
 
 鼠标悬浮后，左上角控件区会自动放大，可以切换地图控件。
 
-![img](images/image43.png)
+![img](data/images/image43.png)
 
 
 
@@ -282,7 +282,7 @@
 
 也可以打开搜索地点窗口，输入关键字搜索。
 
-![img](images/image44.png)
+![img](data/images/image44.png)
 
 ## 四、下拉面板(查字、调)
 
@@ -292,7 +292,7 @@
 
 查字只会显示读音和中古地位，详细的查字、注释功能移步音典。做这个简单的查字功能，是为了配合 根据今音查询该音位的中古来源 功能使用的。知道某个字的声韵调后，再去搜索查询该音位的中古来源，更加方便。
 
-![img](images/image45.png)
+![img](data/images/image45.png)
 
 
 
@@ -310,13 +310,13 @@
 - 某个调类合并到了另一个调类，会填上另一个调类的颜色（前提是音典档案填得好，例如[5]陰去陽上，才会把阳上调填上阴去的颜色）
 - 不存在的调类会留空
 
-![img](images/image46.png)
+![img](data/images/image46.png)
 
-![img](images/image47.png)
+![img](data/images/image47.png)
 
 hover会放大，点击后可以显示具体的调类信息。
 
-![img](images/image48.png)
+![img](data/images/image48.png)
 
 
 

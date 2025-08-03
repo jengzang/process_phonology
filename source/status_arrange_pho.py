@@ -259,46 +259,130 @@ def run_status(
     results_summary = []
 
     for s in input_strings:
-        # print(f"\n🔹 測試輸入：{s}")
-        batch_result = auto_convert_batch(s)
-        # print(f"  🧪 auto_convert_batch ➤ {batch_result}")
+        if "-" in s:
+            # ➤ 保留原邏輯：含有破折號，直接處理整體
+            batch_result = auto_convert_batch(s)
 
-        if not isinstance(batch_result, list):
-            results_summary.append((s, False, False))
-            print(f"  ❌ 無法處理（非 list 結果）：{s}")
-            continue
+            if not isinstance(batch_result, list):
+                results_summary.append((s, False, False))
+                print(f"  ❌ 無法處理（非 list 結果）：{s}")
+                continue
 
-        has_error = any(
-            isinstance(r, tuple) and r[0] is False for r in batch_result
-        )
+            has_error = any(
+                isinstance(r, tuple) and r[0] is False for r in batch_result
+            )
 
-        path_results = []  # ✨ collect per-path result
+            path_results = []
 
-        for path_tuple in batch_result:
-            if isinstance(path_tuple, tuple) and path_tuple[0] is not False:
-                path_str = path_tuple[0]
-                characters, multi_chars = query_characters_by_path(
-                    path_str, db_path=db_path, table=table
-                )
-                path_results.append({
-                    "path": path_str,
-                    "characters": characters,
-                    "multi": multi_chars
-                })
+            for path_tuple in batch_result:
+                if isinstance(path_tuple, tuple) and path_tuple[0] is not False:
+                    path_str = path_tuple[0]
+                    characters, multi_chars = query_characters_by_path(
+                        path_str, db_path=db_path, table=table
+                    )
+                    simplified_input = ''.join(re.findall(r'\[(.*?)\]', path_str))
+                    path_results.append({
+                        "path": simplified_input,
+                        "characters": characters,
+                        "multi": multi_chars
+                    })
 
-        # 統一合併後的格式（為了相容 sta2pho）
-        if path_results:
+            if path_results:
+                all_chars = []
+                all_multi = []
+                for result in path_results:
+                    all_chars.extend(result["characters"])
+                    all_multi.extend(result["multi"])
+                results_summary.append((s, all_chars, list(set(all_multi)), path_results))
+            else:
+                results_summary.append((s, False, False, []))
+
+            if has_error:
+                print(f"  ⚠️ 部分片段轉換失敗：{s}")
+
+        elif " " in s:
+            # ➤ 不含破折號但有空格：多段合併處理
+            parts = s.split()
             all_chars = []
             all_multi = []
-            for result in path_results:
-                all_chars.extend(result["characters"])
-                all_multi.extend(result["multi"])
-            results_summary.append((s, all_chars, list(set(all_multi)), path_results))
-        else:
-            results_summary.append((s, False, False, []))
+            has_error = False
 
-        if has_error:
-            print(f"  ⚠️ 部分片段轉換失敗：{s}")
+            for part in parts:
+                batch_result = auto_convert_batch(part)
+
+                if not isinstance(batch_result, list):
+                    has_error = True
+                    continue
+
+                if any(isinstance(r, tuple) and r[0] is False for r in batch_result):
+                    has_error = True
+
+                for path_tuple in batch_result:
+                    if isinstance(path_tuple, tuple) and path_tuple[0] is not False:
+                        path_str = path_tuple[0]
+                        characters, multi_chars = query_characters_by_path(
+                            path_str, db_path=db_path, table=table
+                        )
+                        all_chars.extend(characters)
+                        all_multi.extend(multi_chars)
+
+            if all_chars:
+                results_summary.append((
+                    s,
+                    all_chars,
+                    list(set(all_multi)),
+                    [{
+                        "path": s,
+                        "characters": all_chars,
+                        "multi": list(set(all_multi))
+                    }]
+                ))
+            else:
+                results_summary.append((s, False, False, []))
+
+            if has_error:
+                print(f"  ⚠️ 部分片段轉換失敗：{s}")
+
+        else:
+            # ➤ 單段處理（無破折號、無空格）
+            batch_result = auto_convert_batch(s)
+
+            if not isinstance(batch_result, list):
+                results_summary.append((s, False, False))
+                print(f"  ❌ 無法處理（非 list 結果）：{s}")
+                continue
+
+            has_error = any(
+                isinstance(r, tuple) and r[0] is False for r in batch_result
+            )
+
+            path_results = []
+
+            for path_tuple in batch_result:
+                if isinstance(path_tuple, tuple) and path_tuple[0] is not False:
+                    path_str = path_tuple[0]
+                    characters, multi_chars = query_characters_by_path(
+                        path_str, db_path=db_path, table=table
+                    )
+                    simplified_input = ''.join(re.findall(r'\[(.*?)\]', path_str))
+                    path_results.append({
+                        "path": simplified_input,
+                        "characters": characters,
+                        "multi": multi_chars
+                    })
+
+            if path_results:
+                all_chars = []
+                all_multi = []
+                for result in path_results:
+                    all_chars.extend(result["characters"])
+                    all_multi.extend(result["multi"])
+                results_summary.append((s, all_chars, list(set(all_multi)), path_results))
+            else:
+                results_summary.append((s, False, False, []))
+
+            if has_error:
+                print(f"  ⚠️ 部分片段轉換失敗：{s}")
 
     return results_summary
 
@@ -382,8 +466,8 @@ def sta2pho(
                         continue
 
                     print(f"\n🔧 開始分析『{path_str}』的特徵分布 ({features[0]})...\n")
-                    simplified_input = ''.join(re.findall(r'\[(.*?)\]', path_str))
-                    df = query_by_status(path_chars, unique_abbrs, [features[0]], simplified_input,
+                    # simplified_input = ''.join(re.findall(r'\[(.*?)\]', path_str))
+                    df = query_by_status(path_chars, unique_abbrs, [features[0]], path_str,
                                          db_path=db_path_dialect)
 
                     all_results.append(df)
@@ -407,8 +491,8 @@ def sta2pho(
                         continue
 
                     print(f"\n🔧 開始分析『{path_str}』的特徵分布 ({feature})...\n")
-                    simplified_input = ''.join(re.findall(r'\[(.*?)\]', path_str))
-                    df = query_by_status(path_chars, unique_abbrs, [feature], simplified_input, db_path=db_path_dialect)
+                    # simplified_input = ''.join(re.findall(r'\[(.*?)\]', path_str))
+                    df = query_by_status(path_chars, unique_abbrs, [feature], path_str, db_path=db_path_dialect)
 
                     all_results.append(df)
 
@@ -435,21 +519,22 @@ def extract_unique_values(db_path=CHARACTERS_DB_PATH, table="characters"):
     return unique_values
 
 
-if __name__ == "__main__":
-    pd.set_option('display.max_rows', None)
-    pd.set_option('display.max_columns', None)
-    pd.set_option('display.max_colwidth', None)
-    pd.set_option('display.width', 0)
-
-    status_inputs = ["蟹-系等", "知組三 端", "通开三"]
-    # status_inputs = ""
-    locations = ['东莞莞城', '雲浮富林']
-    # features = ['聲母', '韻母', '聲調']
-    regions = ['封綏', '儋州']
-    features = ['韻母']
-
-    results = sta2pho(locations, regions, features, status_inputs)
-    # print(all_summaries)
-
-    for row in results:
-        print(row)
+# if __name__ == "__main__":
+#     pd.set_option('display.max_rows', None)
+#     pd.set_option('display.max_columns', None)
+#     pd.set_option('display.max_colwidth', None)
+#     pd.set_option('display.width', 0)
+#
+#     status_inputs = ["蟹-系等", "知組三 端", "通开三"]
+#     # status_inputs = ["蟹-等"]
+#     locations = ['东莞莞城', '雲浮富林']
+#     # features = ['聲母', '韻母', '聲調']
+#     # regions = ['封綏', '儋州']
+#     regions = [""]
+#     features = ['聲母']
+#
+#     results = sta2pho(locations, regions, features, status_inputs)
+#     # print(all_summaries)
+#
+#     for row in results:
+#         print(row)

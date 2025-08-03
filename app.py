@@ -1,6 +1,10 @@
+import os
+import sys
+import threading
+import time
+import webbrowser
 from typing import List, Optional, Union
 
-import httpx
 import uvicorn
 from pydantic import BaseModel, Field
 import asyncio
@@ -9,6 +13,8 @@ import re
 
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.responses import HTMLResponse
+from starlette.staticfiles import StaticFiles
 
 from main import run_phonology_analysis
 from source.Extras_addplaces_searchchars import fetch_dialect_region, handle_form_submission, get_from_submission, \
@@ -17,8 +23,27 @@ from source.config import SUPPLE_DB_PATH
 from source.process_input import read_partition_hierarchy, match_locations_batch, query_dialect_abbreviations, \
     get_coordinates_from_db
 
+
+def get_resource_path(relative_path):
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.abspath(relative_path)
+
+
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+
+app.mount("/css", StaticFiles(directory=get_resource_path("css")), name="css")
+app.mount("/js", StaticFiles(directory=get_resource_path("js")), name="js")
+app.mount("/source", StaticFiles(directory=get_resource_path("source")), name="source")
+app.mount("/data", StaticFiles(directory=get_resource_path("data")), name="data")
+
+
+@app.get("/", response_class=HTMLResponse)
+async def index():
+    index_path = get_resource_path("index.html")
+    with open(index_path, encoding="utf-8") as f:
+        return f.read()
 
 
 class AnalysisPayload(BaseModel):
@@ -275,4 +300,10 @@ async def search_tones_o(request: SearchRequest2):
 #     return JSONResponse(content=response.json(), status_code=response.status_code)
 
 if __name__ == "__main__":
+    def open_browser():
+        time.sleep(1)
+        webbrowser.open("http://127.0.0.1:5000")
+
+
+    threading.Thread(target=open_browser).start()
     uvicorn.run("app:app", host="127.0.0.1", port=5000, reload=True)

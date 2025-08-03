@@ -362,6 +362,10 @@ def auto_convert_single(user_input: str) -> Union[Tuple[str, int], Tuple[bool, i
         return "-".join(result), match_count
 
     if '-' in user_input:
+        simplified_to_traditional = {
+            "摄": "攝", "呼": "呼", "等": "等", "韵": "韻", "入": "入",
+            "调": "調", "清浊": "清濁", "系": "系", "组": "組", "声": "聲",
+        }
         prefix, suffix = user_input.split('-', 1)
 
         fields = []
@@ -374,9 +378,27 @@ def auto_convert_single(user_input: str) -> Union[Tuple[str, int], Tuple[bool, i
                     temp = temp[len(field):]
                     matched = True
                     break
+
+            if not matched:
+                # 嘗試進行簡體轉繁體再匹配
+                converted = ""
+                i = 0
+                while i < len(temp):
+                    ch = temp[i]
+                    converted += simplified_to_traditional.get(ch, ch)
+                    i += 1
+
+                # 再次嘗試用轉換後的字串匹配
+                for field in HIERARCHY_COLUMNS:
+                    if converted.startswith(field):
+                        fields.append(field)
+                        temp = temp[len(field):]  # 注意這裡仍用原本的 temp 切除
+                        matched = True
+                        break
+
             if not matched:
                 print(f"❌ 無效欄位名：「{suffix}」中斷於「{temp}」")
-                return (False, 0)
+                return False, 0
 
         # 優先順序：傳入的順序最優先
         priority_key = ''.join(fields)
@@ -420,7 +442,7 @@ def auto_convert_single(user_input: str) -> Union[Tuple[str, int], Tuple[bool, i
 
 def auto_convert_batch(input_string: str) -> List[Union[Tuple[str, int], Tuple[bool, int]]]:
     import re
-    parts = re.split(r"[ ,;/，；、]+", input_string.strip())
+    parts = re.split(r"[,;/，；、]+", input_string.strip())
     results = []
     for idx, part in enumerate(parts):
         if part:
@@ -651,7 +673,7 @@ def get_coordinates_from_db(abbreviation_list, supplementary_abbreviation_list=N
                 lat_lon_str = row[0]
                 try:
                     # 解析經緯度字符串，將其轉換為浮點數元組
-                    latitude, longitude = map(float, lat_lon_str.split(','))
+                    latitude, longitude = map(float, re.split(r'[，,]', lat_lon_str))
                     result.append((latitude, longitude))
                     latitudes.append(latitude)
                     longitudes.append(longitude)

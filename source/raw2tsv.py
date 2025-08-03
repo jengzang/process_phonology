@@ -1,5 +1,6 @@
 import os
 import glob
+import re
 import tkinter as tk
 from tkinter import filedialog
 import pandas as pd
@@ -60,7 +61,7 @@ def process_columns_name(file, col_letters):
             print(f"[DEBUG] Sheet「{sheet_name}」原表頭：{header}")
 
             # 根據括號判斷是否為粵拼列
-            raw_letters = [c.strip() for c in col_letters.split(",")]
+            raw_letters = [c.strip() for c in re.split(r'[，,]', col_letters)]
             letters = []
             target_names = []
 

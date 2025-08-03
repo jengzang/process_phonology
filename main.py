@@ -70,10 +70,10 @@ def main():
     pd.set_option('display.width', 0)
 
     # 字表轉換成tsv
-    # convert_all_to_tsv()
+    convert_all_to_tsv()
 
     # tsv寫入數據庫
-    write_to_sql(yindian=True, write_chars_db=False, append=False)
+    # write_to_sql(yindian=True, write_chars_db=False, append=False)
     # sync_dialects_flags()
     # # 呼叫分析函數
     # results = run_phonology_analysis(

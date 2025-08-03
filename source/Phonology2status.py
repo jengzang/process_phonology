@@ -1,3 +1,4 @@
+import re
 import sqlite3
 
 import pandas as pd
@@ -273,7 +274,24 @@ def pho2sta(locations, regions, features, status_inputs,
             # 過濾 pho_values（若有）
             if pho_values:
                 print(pho_values)
-                filtered_items = [(fv, d) for fv, d in feature_items if fv in pho_values]
+                filtered_items = []
+                for fv, d in feature_items:
+                    # 檢查 pho_values 中的每個元素
+                    match_found = False
+                    for pho_value in pho_values:
+                        # 如果 pho_value 含有漢字，則進行模糊匹配
+                        if any('\u4e00' <= char <= '\u9fff' for char in pho_value):  # 檢查是否包含漢字
+                            if re.search(pho_value, fv):  # 模糊匹配
+                                match_found = True
+                                break
+                        else:
+                            # 如果沒有漢字，則進行完全匹配
+                            if fv == pho_value:
+                                match_found = True
+                                break
+                    if match_found:
+                        filtered_items.append((fv, d))
+
                 if filtered_items:
                     # print(f"     📌 過濾特徵值：{[fv for fv, _ in filtered_items]}")
                     feature_items = filtered_items

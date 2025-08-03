@@ -9,7 +9,7 @@ from source.match_fromdb import get_tsvs
 
 
 def extract_all_from_files(file_path: str, get_tone: bool = True, preserve_empty_rows: bool = False) -> pd.DataFrame:
-    vowel_pattern = r"[iyɨʉɯuɪʏɿʅʅɭıɪſɩɷʮɥʯʊeɘɵəɤoοоɛεɝɚᴇœɜɞʌɔæaɶɑɒᴀɐãẽĩỹõúαᵘᶷᶤᶶᵚʸᶦᵊⁱ◌øɻβʝɹǝуеṃṇīā]"
+    vowel_pattern = r"[iyɨʉɯuɪʏɿʅʅɭıɪſɩɷʮɥʯʊeɘɵəɤoοоɛεɝɚᴇœɜɞʌɔæaɶɑɒᴀɐãẽĩỹõúαᵘᶷᶤᶶᵚʸᶦᵊⁱ◌øɻβʝɹǝуеṃṇīā∅Ø]"
 
     # print(file_path)
     def build_tone_map_yindian(result):
@@ -171,34 +171,37 @@ def extract_all_from_files(file_path: str, get_tone: bool = True, preserve_empty
 
             # 提取聲母
             consonant = ""
-            if not re.search(vowel_pattern, re.split(r"\d", phon)[0]):
-                vowel_fallback = r"([∅Øʐɣmnŋɲȵƞʋvʒlḷfzr])"
-                # if phon[0] in ['l', 'f']:
-                #     consonant = phon[0]
-                if re.match(vowel_fallback, phon[0]):
-                    consonant = "/"
-                elif not re.search(vowel_fallback, phon):
-                    # consonant = f"報錯：{phon}"
-                    consonant = ""
-                else:
-                    for char in phon:
-                        if re.match(vowel_fallback, char) or re.match(r'\d', char):
-                            break
-                        consonant += char
+            if phon and phon[0] in {"∅", "Ø"}:
+                consonant = "ʔ"
             else:
-                if re.match(vowel_pattern, phon[0]):
-                    consonant = "/"
-                elif 'j' in phon[1:] or 'ʲ' in phon[1:]:
-                    for char in phon:
-                        if re.match(vowel_pattern, char) or char in ('j', 'ʲ'):
-                            break
-                        consonant += char
+                if not re.search(vowel_pattern, re.split(r"\d", phon)[0]):
+                    vowel_fallback = r"([ʐɣmnŋɲȵƞʋvʒlḷfzr])"
+                    # if phon[0] in ['l', 'f']:
+                    #     consonant = phon[0]
+                    if re.match(vowel_fallback, phon[0]):
+                        consonant = "/"
+                    elif not re.search(vowel_fallback, phon):
+                        # consonant = f"報錯：{phon}"
+                        consonant = ""
+                    else:
+                        for char in phon:
+                            if re.match(vowel_fallback, char) or re.match(r'\d', char):
+                                break
+                            consonant += char
                 else:
-                    for char in phon:
-                        if re.match(vowel_pattern, char):
-                            break
-                        consonant += char
-            consonant = re.sub(r"\d", "", consonant)
+                    if re.match(vowel_pattern, phon[0]):
+                        consonant = "/"
+                    elif 'j' in phon[1:] or 'ʲ' in phon[1:]:
+                        for char in phon:
+                            if re.match(vowel_pattern, char) or char in ('j', 'ʲ'):
+                                break
+                            consonant += char
+                    else:
+                        for char in phon:
+                            if re.match(vowel_pattern, char):
+                                break
+                            consonant += char
+                consonant = re.sub(r"\d", "", consonant)
 
             # 韻母提取
             all_rhymes = []
@@ -213,8 +216,8 @@ def extract_all_from_files(file_path: str, get_tone: bool = True, preserve_empty
                         break
                     elif vowel_found:
                         all_rhymes.append(c)
-                if not vowel_found and any(c in tmp_phon for c in "∅Øʐzflḷɣmnŋȵɲƞʋvʒr"):
-                    match = re.search(r".*?([∅Øʐzflḷɣrmnŋɲȵƞʋvʒ].*?)(?=\d|\s|$)", tmp_phon)
+                if not vowel_found and any(c in tmp_phon for c in "ʐzflḷɣmnŋȵɲƞʋvʒr"):
+                    match = re.search(r".*?([ʐzflḷɣrmnŋɲȵƞʋvʒ].*?)(?=\d|\s|$)", tmp_phon)
                     if match:
                         all_rhymes += list(match.group(1))
             else:
