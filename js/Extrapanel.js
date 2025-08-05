@@ -67,7 +67,7 @@ inputadd.addEventListener("keyup",async () => {
     }
 
     // 请求匹配的地名数据
-    fetch("http://127.0.0.1:5000/api/batch_match", {
+    fetch("http://10.250.101.238:5000/api/batch_match", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -117,7 +117,7 @@ inputadd.addEventListener("keyup",async () => {
                         // 发送请求到后端获取音典分区
                         try {
                             // 使用 GET 请求
-                            const response = await fetch(`http://127.0.0.1:5000/api/get_regions?input_data=${encodeURIComponent(item)}`, {
+                            const response = await fetch(`http://10.250.101.238:5000/api/get_regions?input_data=${encodeURIComponent(item)}`, {
                                 method: "GET",  // 使用 GET 请求
                                 // headers: { "Content-Type": "application/json" }
                             });
@@ -184,7 +184,7 @@ document.getElementById("infoForm").addEventListener("submit", function(event) {
     };
 
 // 發送數據到後端（使用 fetch API）
-    fetch("http://127.0.0.1:5000/api/submit_form", {  // 使用端口 5000 和正確的 URL
+    fetch("http://10.250.101.238:5000/api/submit_form", {  // 使用端口 5000 和正確的 URL
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -378,7 +378,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         try {
             // 发送 POST 请求到后端
-            const response = await fetch('http://127.0.0.1:5000/api/search_chars/', {
+            const response = await fetch('http://10.250.101.238:5000/api/search_chars/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -446,6 +446,8 @@ document.addEventListener("DOMContentLoaded", function () {
                         // 将整个容器添加到 DOM 中
                         contentSearch.appendChild(infoContainer);
                     });
+                    lastCharDiv = [];
+                    lastPositionsDiv = [];
                 } else {
                     console.error("返回的数据不是一个数组:", resultData);
                 }
@@ -480,7 +482,7 @@ document.addEventListener("DOMContentLoaded",  function () {
 
         try {
             // 发送 POST 请求到后端
-            const response = await fetch('http://127.0.0.1:5000/api/search_tones/', {
+            const response = await fetch('http://10.250.101.238:5000/api/search_tones/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -588,13 +590,24 @@ document.addEventListener("DOMContentLoaded",  function () {
                         // 如果以 T 开头，读取对应列的颜色（T1 ~ T10）
                         else if (toneValue.startsWith("T")) {
                             const columnIndex = parseInt(toneValue.substring(1)) -1; // T1 -> 0, T2 -> 1, ..., T10 -> 9
-                            console.log("columnindex",columnIndex)
+                            // console.log("columnindex",columnIndex)
                             td.style.backgroundColor = colorArray[columnIndex].hex;
                         }
                         // 如果值是数字开头的，显示数字值并填充颜色
                         else if (/^\d/.test(toneValue)) { // 如果是以数字开头
                             td.style.backgroundColor = colorArray[index].hex;
                             td.textContent = toneValue; // 显示实际音调值
+                            td.style.fontFamily = 'Courier New, sans-serif';  // 设置字体为 Impact
+                            td.style.fontWeight = 'bold';  // 设置加粗
+                        }
+                        // 如果值是 ` 开头，去除 ` 并添加下划线
+                        else if (/^`/.test(toneValue)) {  // 如果是以 ` 开头
+                            td.style.backgroundColor = colorArray[index].hex;
+                            td.textContent = toneValue.replace(/`/g, ''); // 去除所有的 `，显示剩余部分
+                            // td.style.fontStyle = "italic";  // 设置斜体
+                            td.style.fontFamily = 'Times New Roman , sans-serif';  // 设置字体为 Impact
+                            // td.style.textDecoration = "underline"; // 添加下划线
+                            // td.style.textDecorationStyle = 'dotted';  /* 点划线 */
                         }
 
                         // td.textContent = toneValue;

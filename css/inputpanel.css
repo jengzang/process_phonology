@@ -5,7 +5,7 @@
     display: flex;
     gap: 16px;
     margin-bottom: 12px;
-    width: 100%; /* 父容器寬度會根據頁面寬度來調整 */
+    /*width: 100%; !* 父容器寬度會根據頁面寬度來調整 *!*/
     align-items: stretch;
     max-width: 100%; /* 防止容器寬度超出父元素 */
     /*overflow: hidden; !* 防止橫向滾動條出現 *!*/
@@ -155,21 +155,6 @@
     transform: scale(1.02); /* 轻微放大 */
 }
 
-.panel-subtitle {
-    margin: 6px 0 8px;
-    text-align: center;
-    font-size: 14px;
-    font-weight: 600;
-    color: #444;
-    /*width: 70%;*/
-}
-
-
-
-/* 增加panel-subtitle的hover效果 */
-.panel-subtitle:hover {
-    color: #007aff; /* 悬停时文字颜色变化 */
-}
 
 .panel-header {
     background: #f2f2f2;
@@ -532,6 +517,7 @@ label:hover {
     text-align: center; /* 文字居中 */
     margin-bottom: 0px; /* 讓文字和按鈕保持一定的距離 */
     transition: color 0.3s ease, transform 0.3s ease; /* 添加過渡效果 */
+    white-space: nowrap; /* 禁止換行 */
 }
 
 .button-text-masschange:hover {
@@ -689,7 +675,7 @@ label:hover {
 
 /* 展開時的樣式 */
 .dropdown-map option {
-    padding: 8px; /* 給選項適當的內邊距 */
+    padding: 3px; /* 給選項適當的內邊距 */
     font-size: 13px;
     background-color: #f9f9f9; /* 輕微的背景色 */
     color: #333;

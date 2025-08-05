@@ -37,21 +37,21 @@
     </div>
 
     <div id="panelContent" class="panel-content">
-        <h4 class="panel-subtitle">選擇分析模式</h4>
+        <h4 id="mode-subtitle" class="panel-subtitle">選擇分析模式</h4>
         <div class="mode-feature-row">
             <div class="mode-box">
                 <label class="mode-label">
                     <input type="radio" name="mode" value="s2p" checked />
                     <div class="mode-text">
                         <div class="mode-title">中古➡️讀音</div>
-                        <div class="mode-desc">根據中古地位整理讀音</div>
+                        <div class="mode-desc">按中古地位整理讀音</div>
                     </div>
                 </label>
                 <label class="mode-label">
                     <input type="radio" name="mode" value="p2s" />
                     <div class="mode-text">
                         <div class="mode-title">讀音➡️中古</div>
-                        <div class="mode-desc">根據讀音整理中古地位</div>
+                        <div class="mode-desc">分析音位的中古來源</div>
                     </div>
                 </label>
             </div>
@@ -188,10 +188,6 @@
                 </span>
             </div>
         </div>
-
-
-
-
     </div>
     <div id="mapPanelContent" class="panel-content">
                 <!-- 地图区域 -->
@@ -272,7 +268,44 @@
                 </tr>
             </table>
         </div>
-            </div>
+    </div>
+    <!-- 右侧面板容器 -->
+    <div id="rightPanel" class="right-panel">
+        <div class="panel-content1">
+            <h3>手動添加數據</h3>
+            <form id="infoForm">
+                <div class="form-row">
+                    <label for="location-input">地點(簡稱):</label>
+                    <input type="text" id="location-input" name="location" placeholder="請輸入地點簡稱">
+                </div>
+                <div class="form-row">
+                    <label for="region-input">音典分區:</label>
+                    <input type="text" id="region-input" name="region" placeholder="請輸入音典分區">
+                </div>
+                <div class="form-row">
+                    <label for="coordinates-input">經緯度:</label>
+                    <input type="text" id="coordinates-input" name="coordinates" placeholder="請輸入經緯度">
+                </div>
+                <div class="form-row">
+                    <label for="feature-input">特徵:</label>
+                    <input type="text" id="feature-input" name="feature" placeholder="請輸入特徵">
+                </div>
+                <div class="form-row">
+                    <label for="value-input">值:</label>
+                    <input type="text" id="value-input" name="value" placeholder="請輸入值">
+                </div>
+                <div class="form-row">
+                    <label for="description-input">說明:</label>
+                    <textarea id="description-input" name="description" placeholder="請輸入說明"></textarea>
+                </div>
+                <button type="submit">提交</button>
+            </form>
+        </div>
+    </div>
+    <!-- 加号按钮 -->
+    <div id="expandButton" class="expand-button">
+        +
+    </div>
 </div>
 
 <!-- 面板復原按鈕 -->
@@ -280,43 +313,7 @@
 <button id="resultRestoreBtn" class="toggle-btn">🗗</button>
 <button id="mapPanelRestoreBtn" class="toggle-btn">🗗</button>
 
-<!-- 右侧面板容器 -->
-<div id="rightPanel" class="right-panel">
-    <div class="panel-content1">
-        <h3>手動添加數據</h3>
-        <form id="infoForm">
-            <div class="form-row">
-                <label for="location-input">地點(簡稱):</label>
-                <input type="text" id="location-input" name="location" placeholder="請輸入地點簡稱">
-            </div>
-            <div class="form-row">
-                <label for="region-input">音典分區:</label>
-                <input type="text" id="region-input" name="region" placeholder="請輸入音典分區">
-            </div>
-            <div class="form-row">
-                <label for="coordinates-input">經緯度:</label>
-                <input type="text" id="coordinates-input" name="coordinates" placeholder="請輸入經緯度">
-            </div>
-            <div class="form-row">
-                <label for="feature-input">特徵:</label>
-                <input type="text" id="feature-input" name="feature" placeholder="請輸入特徵">
-            </div>
-            <div class="form-row">
-                <label for="value-input">值:</label>
-                <input type="text" id="value-input" name="value" placeholder="請輸入值">
-            </div>
-            <div class="form-row">
-                <label for="description-input">說明:</label>
-                <textarea id="description-input" name="description" placeholder="請輸入說明"></textarea>
-            </div>
-            <button type="submit">提交</button>
-        </form>
-    </div>
-</div>
-<!-- 加号按钮 -->
-<div id="expandButton" class="expand-button">
-    +
-</div>
+
 
 <div class="container-search">
     <!-- 可拖动的展开部分 -->

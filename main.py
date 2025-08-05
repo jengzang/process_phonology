@@ -5,6 +5,9 @@ from source.raw2tsv import convert_all_to_tsv
 from source.status_arrange_pho import sta2pho
 from source.tsv2sql import write_to_sql, build_dialect_database, sync_dialects_flags
 
+"""
+目前用来前置处理字表，转成tsv，然后写入数据库。
+"""
 
 def run_phonology_analysis(
         mode: str,
@@ -73,7 +76,7 @@ def main():
     convert_all_to_tsv()
 
     # tsv寫入數據庫
-    # write_to_sql(yindian=True, write_chars_db=False, append=False)
+    write_to_sql(yindian=True, write_chars_db=False, append=False)
     # sync_dialects_flags()
     # # 呼叫分析函數
     # results = run_phonology_analysis(

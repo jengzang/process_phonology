@@ -41,9 +41,14 @@ app.mount("/data", StaticFiles(directory=get_resource_path("data")), name="data"
 
 @app.get("/", response_class=HTMLResponse)
 async def index():
+    # 获取 index.html 的文件路径
     index_path = get_resource_path("index.html")
+    # 打开并读取文件内容
     with open(index_path, encoding="utf-8") as f:
-        return f.read()
+        content = f.read()
+    # 返回 HTML 内容，带上 Cache-Control 响应头
+    headers = {"Cache-Control": "no-cache, must-revalidate"}
+    return HTMLResponse(content=content, headers=headers)
 
 
 class AnalysisPayload(BaseModel):
@@ -302,8 +307,13 @@ async def search_tones_o(request: SearchRequest2):
 if __name__ == "__main__":
     def open_browser():
         time.sleep(1)
-        webbrowser.open("http://127.0.0.1:5000")
+        # webbrowser.open("http://127.0.0.1:5000")
+        # 使用局域网 IP 地址，替换为你的本地 IP 地址（例如：10.250.101.238）
+        # webbrowser.open("http://10.250.101.238:5000")
 
 
     threading.Thread(target=open_browser).start()
-    uvicorn.run("app:app", host="127.0.0.1", port=5000, reload=True)
+
+    # uvicorn.run("app:app", host="127.0.0.1", port=5000, reload=True)
+    # 让 FastAPI 监听所有网络接口
+    uvicorn.run("app:app", host="0.0.0.0", port=5000, reload=True)

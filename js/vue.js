@@ -87,7 +87,7 @@ async function initVue() {
                 const feature = Object.keys(groupValues)[0];  // 获取分组值的第一个键（特征）
                 const value = groupValues[feature];  // 获取对应的值
 
-                return `${feature} - ${value}`;
+                return `${feature}  ☞  ${value}`;
             };
 
             const getCorrespondingCharacters = (item) => {

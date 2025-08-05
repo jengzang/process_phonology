@@ -91,7 +91,7 @@ from tkinter import filedialog
 
 import pandas as pd
 
-from source.format_convert import process_縣志_word, process_跳跳老鼠, process_縣志_excel
+from source.format_convert import process_縣志_word, process_跳跳老鼠, process_縣志_excel, process_音典
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))  # 添加项目根目录到 sys.path
 from maybe_error_chars import check_get_chars
@@ -804,6 +804,7 @@ def main(mode='onl'):
                     check_all([path], five)
                 else:
                     required_cols = ["漢字", "音標", "解釋"]
+                    print(mapped_cols)
                     missing = [col for col in required_cols if col not in mapped_cols]
                     if missing:
                         print(f"❌ 缺少欄位：{missing}，是否為縣志/跳跳老鼠格式？")

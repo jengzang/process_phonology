@@ -13,8 +13,8 @@
 
 /* 初始加号按钮样式 */
 .expand-button {
-    position: fixed;
-    right: 10px;  /* 位于页面右侧 */
+    position: absolute;
+    right: 15px;  /* 位于页面右侧 */
     top: 50%;     /* 垂直居中 */
     transform: translateY(-50%);
     width: 50px;
@@ -56,11 +56,11 @@
 
 /* 展开面板的动画效果 */
 .right-panel {
-    position: fixed;
-    right: -23%;  /* 初始状态在页面右侧外面 */
+    position: absolute;
+    right: -50%;  /* 初始状态在页面右侧外面 */
     top: 50%;
     transform: translateY(-50%);
-    width: 20%;  /* 宽度占页面右侧1/5 */
+    width: 45%;  /* 宽度占页面右侧1/5 */
     height: 50%;  /* 高度居中 */
     background-color: #ffffff;
     border-radius: 15px 0 0 15px;
@@ -70,23 +70,25 @@
     flex-direction: column;
     justify-content: flex-start;  /* 讓內容對齊顶部 */
     display: flex;
+
 }
 
 /* 右側面板的內容 */
-.panel-content {
+.panel-content1 {
     color: #333;
     display: flex;
     flex-direction: column;
     gap: 15px;  /* 自動控制表單行間距 */
     flex-grow: 1;  /* 使表單填滿可用空間 */
     overflow-y: auto;  /* 如果內容過多，可以滾動 */
+    overflow-x: hidden; /* 禁止水平滚动 */
 }
 
 /* 调整 h2 和表单之间的间距 */
-.panel-content h2 {
+.panel-content1 h3 {
     font-size: 18px;
     text-align: center;
-    margin-bottom: 15px;  /* 增加 h2 和表单之间的空隙 */
+    margin: 5px;  /* 增加 h2 和表单之间的空隙 */
 }
 
 
@@ -143,7 +145,7 @@
 
 button[type="submit"] {
     width: 100%;
-    padding: 10px;
+    padding: 6px;
     background-color: #007aff;
     color: white;
     border: none;
@@ -310,8 +312,6 @@ button[type="submit"]:active {
 
 
 
-
-
 /* 面板容器 */
 .container-search {
     position: relative;
@@ -332,6 +332,19 @@ button[type="submit"]:active {
     height: 6%; /* 默认高度为页面的2/5 */
     overflow: hidden;
     transition: height 0.3s ease;
+    justify-content: center; /* 水平居中 */
+
+}
+
+@media (max-aspect-ratio: 1/1) {
+    .expansion-panel-search {
+        left: 25% !important; /* 左侧位置在页面的3/10 */
+        width: 50% !important; /* 设置元素宽度 */
+        top: 0; /* 顶部贴着页面上边缘 */
+        height: 50px; /* 默认高度为页面的2/5 */
+        justify-content: center; /* 水平居中 */
+        display: flex;
+    }
 }
 
 /* 面板内容样式 */
@@ -455,7 +468,7 @@ button[type="submit"]:active {
     font-weight: bold;
     text-align: center;
     display: inline-block; /* 设置为 inline-block */
-    font-family: "Times New Roman";
+    font-family: "Times New Roman", sans-serif;
 }
 
 .syllables span {
@@ -467,8 +480,8 @@ button[type="submit"]:active {
     top: 10px; /* 距离顶部 10px */
     right: 10px; /* 距离右侧 10px */
     font-size: 16px; /* 小字体大小 */
-    width: 20px; /* 设置按钮的宽度 */
-    height: 20px; /* 设置按钮的高度 */
+    width: 25px; /* 设置按钮的宽度 */
+    height: 25px; /* 设置按钮的高度 */
     border: none; /* 去除边框 */
     background: none; /* 去除背景 */
     color: #888; /* 设置按钮颜色 */
@@ -503,14 +516,17 @@ button[type="submit"]:active {
     white-space: nowrap; /* 禁止换行 */
     font-size: 12px; /* 默认字体大小 */
     transition: transform 0.2s ease, background-color 0.2s ease; /* 添加过渡效果 */
+    /*box-sizing: border-box; !* 确保边框不会被缩放后遮挡 *!*/
 }
 
 
-/* 鼠标悬停时变色、变大 */
 .location-tones:hover {
     background-color: #f4f4f4; /* 鼠标悬停时变色 */
-    transform: scale(1.1); /* 鼠标悬停时稍微放大 */
+    transform: scale(1.15); /* 鼠标悬停时稍微放大 */
     cursor: pointer; /* 鼠标指针变为手形 */
+    color: #0038a1; /* 文字变成深蓝色 */
+    /*border: 5px solid #020000; !* 添加边框 *!*/
+    /*border: 2px solid #003366; !* 放大后加上边框 *!*/
 }
 
 /* 音调列 */
@@ -520,8 +536,16 @@ button[type="submit"]:active {
     overflow: hidden; /* 隐藏超出部分 */
     white-space: nowrap; /* 禁止换行 */
     font-size: 1em; /* 默认字体大小 */
+    box-sizing: border-box; /* 确保边框不会被缩放后遮挡 */
 }
 
+/*.tones-cell-tones:hover {*/
+/*    transform: scale(1.1); !* 鼠标悬停时稍微放大 *!*/
+/*    border: 3px solid #020000; !* 添加边框 *!*/
+/*    !*box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); !* 添加阴影 *!*!*/
+/*    !*font-size: 1.1em; !* 放大字体 *!*!*/
+/*    !*cursor: pointer; !* 鼠标指针变为手形 *!*!*/
+/*}*/
 
 /* 弹窗样式 */
 .popup-tones {

@@ -1,13 +1,3 @@
-#mapPanel.panel-medium {
-    left: 60vw; /* 右侧 2/5 */
-    width: 40vw; /* 右侧占 2/5 */
-}
-
-#mapContainer {
-    width: 100%;      /* 宽度撑满父容器 */
-    height: 100%;     /* 高度撑满父容器 */
-}
-
 /* 控件面板 */
 .input-card {
     display: flex;
@@ -303,7 +293,7 @@
 }
 
 .popup.active2 {
-    opacity: 1;
+    opacity: 1!important;
     z-index: 99999;
     visibility: visible!important;
     transform: translateX(-50%) translateY(20px); /* 适当的偏移量 */

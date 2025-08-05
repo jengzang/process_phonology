@@ -414,8 +414,8 @@ def search_tones(locations=None, regions=None, get_raw: bool = False):
             "tones": []
         }
 
-        # 遍历 T1 到 T10
-        for i in range(1, 11):
+        # Part 1: 循环处理 T1 到 T8
+        for i in range(1, 9):  # 范围是 1 到 8（包含 8）
             matched = total_data[i - 1]  # 索引从 0 开始，因此使用 i - 1
 
             # 去除方括号和其中的内容
@@ -423,7 +423,7 @@ def search_tones(locations=None, regions=None, get_raw: bool = False):
 
             if raw_value:
                 # 按逗号分割
-                raw_parts = raw_value.split(',')
+                raw_parts = re.split(r'[，,]', raw_value)
                 value_list = []
                 name_list = []
 
@@ -432,6 +432,87 @@ def search_tones(locations=None, regions=None, get_raw: bool = False):
                     value = ''.join(re.findall(r'\d+', part))
                     # 提取汉字部分 (name)
                     name = ''.join(re.findall(r'[^\d,]+', part))
+
+                    # 如果 name 中包含 "入"，则给 value 添加前缀
+                    if "入" in name:
+                        value = f'`{value}'  # 给 value 添加前缀
+
+                    value_list.append(value)
+                    name_list.append(name)
+
+                # 匹配名称
+                match_list = []
+                for name in name_list:
+                    matched_t = set()  # 使用 set 来去重
+                    for t, names in match_table.items():
+                        if any(matching_name in name for matching_name in names):  # 部分匹配
+                            matched_t.add(t)
+
+                    match_list.extend(list(matched_t))  # 将 set 转回 list，直接扩展到 match_list
+                    # 如果 T5 没有被匹配到，则使用备用规则 ['去'] 来匹配 T5
+                    if 'T1' not in match_list:
+                        if '平' in name and not re.search(r'^(陽|阳)', name):
+                            match_list.append('T1')
+                    if 'T3' not in match_list:
+                        if '上' in name and not re.search(r'^(陽|阳)', name):
+                            match_list.append('T3')
+                    if 'T5' not in match_list:
+                        if '去' in name and not re.search(r'^(陽|阳)', name):
+                            match_list.append('T5')
+                    if 'T7' not in match_list:
+                        if '入' in name and not re.search(r'^(陽|阳)', name):
+                            match_list.append('T7')
+
+                # 去重 match_list
+                match_list = list(set(match_list))
+                bracket_nums = re.findall(r'\[(\d+)\]', matched)
+
+                # 将结果保存到 row_data 字典中
+                row_data[f"T{i}"] = {
+                    'raw': raw_value,
+                    'value': value_list,
+                    'name': name_list,
+                    'match': match_list,
+                    'num': bracket_nums
+                }
+
+                # 更新 tones 列表
+                new_row['tones'].append(
+                    {f"T{i}": ','.join(value_list) if value_list else ','.join(match_list) if match_list else '無'})
+            else:
+                # 如果没有匹配值，初始化为空
+                row_data[f"T{i}"] = {
+                    'raw': '',
+                    'value': [],
+                    'name': [],
+                    'match': [],
+                    'num': []
+                }
+
+                new_row['tones'].append({f"T{i}": '無'})  # 初步处理为无匹配
+
+        # Part 2: 循环处理 T9 到 T10
+        for i in range(9, 11):  # 范围是 9 到 10（包含 10）
+            matched = total_data[i - 1]  # 索引从 0 开始，因此使用 i - 1
+
+            # 去除方括号和其中的内容
+            raw_value = re.sub(r'\[.*?\]', '', matched)  # 删除方括号和其中的内容
+
+            if raw_value:
+                # 按逗号分割
+                raw_parts = re.split(r'[，,]', raw_value)
+                value_list = []
+                name_list = []
+
+                for part in raw_parts:
+                    # 提取数字部分 (value)
+                    value = ''.join(re.findall(r'\d+', part))
+                    # 提取汉字部分 (name)
+                    name = ''.join(re.findall(r'[^\d,]+', part))
+
+                    # 如果 name 中包含 "入"，则给 value 添加前缀
+                    if "入" in name:
+                        value = f'`{value}'  # 给 value 添加前缀
 
                     value_list.append(value)
                     name_list.append(name)
@@ -448,7 +529,6 @@ def search_tones(locations=None, regions=None, get_raw: bool = False):
 
                 # 去重 match_list
                 match_list = list(set(match_list))
-
                 bracket_nums = re.findall(r'\[(\d+)\]', matched)
 
                 # 将结果保存到 row_data 字典中
@@ -505,9 +585,10 @@ def search_tones(locations=None, regions=None, get_raw: bool = False):
 
     return new_result
 
+
 # result = process_dialect_data()
 # print(result)
-# locations = ['藤縣']
-# chars = ['干']
-# result = search_tones(locations, get_raw=True)
+# locations = ['南寧五塘']
+# # # chars = ['干']
+# result = search_tones(locations)
 # print(result)

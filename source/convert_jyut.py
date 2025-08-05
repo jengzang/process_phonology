@@ -4,16 +4,25 @@ import re
 
 def build_replace_table():
     replace_data = [
+        # 韻腹
+        ['uu', 'ʊ', 'wf'], ['ii', 'ɪ', 'wf'],
+        ['or', 'ɤ', 'wf'], ['ar', 'ɑ', 'wf'],['ae', 'æ', 'wf'],
         ['aa', 'a', 'wf'], ['a', 'ɐ', 'wf'], ['e', 'ɛ', 'wf'], ['ea', 'ə', 'wf'],
         ['oe', 'œ', 'wf'], ['eo', 'ɵ', 'wf'], ['y', 'y', 'wf'], ['o', 'ɔ', 'wf'],
         # ['uu', 'u', 'wf'], ['u', 'ʊ', 'wf'],
+        # 聲母
         ['ng', 'ŋ', 'sm'], ['nj', 'ȵ', 'sm'], ['sl', 'ɬ', 'sm'],
-        ['th', 'θ', 'sm'], ['bb', 'ɓ', 'sm'], ['zh', 'ʧ', 'sm'], ['ch', 'ʧʰ', 'sm'], ['sh', 'ʃ', 'sm'],
+        ['th', 'θ', 'sm'], ['bb', 'ɓ', 'sm'], ['dd', 'ɗ', 'sm'],
+        ['zh', 'ʧ', 'sm'], ['ch', 'ʧʰ', 'sm'], ['sh', 'ʃ', 'sm'],
         ['zj', 'ʨ', 'sm'], ['cj', 'ʨʰ', 'sm'], ['sj', 'ɕ', 'sm'], ['q', 'ʔ', 'sm'],
         ['c', 'ʦʰ', 'sm'], ['z', 'ʦ', 'sm'], ['d', 't', 'sm'], ['t', 'tʰ', 'sm'],
-        ['g', 'k', 'sm'], ['k', 'kʰ', 'sm'], ['b', 'p', 'sm'], ['p', 'pʰ', 'sm'], ['s', 's', 'sm'],
-        ['1', '454', 'jd'], ['2', '33', 'jd'], ['3', '41', 'jd'], ['4', '132', 'jd'],
-        ['5', '13', 'jd'], ['6', '21', 'jd'], ['7', '5', 'jd'], ['8', '3', 'jd'], ['9', '12', 'jd'], ['10', '2', 'jd'],
+        ['g', 'k', 'sm'], ['k', 'kʰ', 'sm'], ['b', 'p', 'sm'], ['p', 'pʰ', 'sm'],
+        # ['s', 's', 'sm'],
+        # 聲調
+        ['1', '454', 'jd'], ['2', '33', 'jd'], ['3', '42', 'jd'],
+        ['4', '232', 'jd'], ['5', '23', 'jd'], ['6', '21', 'jd'],
+        ['7', '5', 'jd'], ['8', '4', 'jd'], ['9', '2', 'jd'], ['10', '22', 'jd'],
+        # 韻尾
         ['ng', 'ŋ', 'wm'], ['h', 'ʔ', 'wm'], ['n', 'n', 'wm'], ['m', 'm', 'wm']
     ]
     return pd.DataFrame(replace_data, columns=["to_replace", "replacement", "condition"]).astype(str)
@@ -42,7 +51,7 @@ def process_yutping_file(filepath, replace_df, convert_tone=True, debug=True):
     if debug:
         print(f"✅ 讀取檔案: {filepath} 共 {len(df)} 條")
 
-    vowels = set('aeuioy')
+    vowels = set('aeuioyr')
 
     def clean_and_extract_notes_fixed(text):
         if not text:

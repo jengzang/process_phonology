@@ -60,7 +60,7 @@ updateVisibility();
 //         debugLog.textContent = ""; // 清空舊 log
 //         log("📦 發送 Payload", payload);
 //
-//         const res = await fetchWithLog("http://127.0.0.1:5000/api/phonology", {
+//         const res = await fetchWithLog("http://10.250.101.238:5000/api/phonology", {
 //             method: "POST",
 //             headers: { "Content-Type": "application/json" },
 //             body: JSON.stringify(payload)
@@ -79,7 +79,7 @@ document.getElementById("testBackendBtn").addEventListener("click", async () => 
     const log = document.getElementById("debug-log");
     log.textContent = "⌛ 後端連線測試中...";
     try {
-        const res = await fetch("http://127.0.0.1:5000/api/phonology", {
+        const res = await fetch("http://10.250.101.238:5000/api/phonology", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -102,7 +102,7 @@ document.getElementById("testBackendBtn").addEventListener("click", async () => 
 });
 
 function getSubregions(parentLabel) {
-    return fetch(`http://127.0.0.1:5000/api/partitions?parent=${encodeURIComponent(parentLabel)}`)
+    return fetch(`http://10.250.101.238:5000/api/partitions?parent=${encodeURIComponent(parentLabel)}`)
         .then(res => res.json())
         .then(data => {
                 // 根據返回的數據格式，提取出嶺東的分區列表
@@ -120,10 +120,18 @@ window.showPartitionSelector = function (textarea) {
 
     const container = document.createElement('div');
     const panelRect = document.getElementById('panelContent').getBoundingClientRect();
+    // 获取窗口的宽度和高度
+    const isPortrait = window.innerWidth < window.innerHeight;  // 判断是否为竖屏
     container.style.position = 'fixed';
-    container.style.top = `${panelRect.top}px`;
-    container.style.left = `${panelRect.right}px`;
-    container.style.zIndex = 9999;
+    if (isPortrait) {
+        container.style.top = `${panelRect.bottom*4/5}px`;
+        container.style.left = `${panelRect.right*3/7}px`;
+    }
+    else {
+        container.style.top = `${panelRect.top}px`;
+        container.style.left = `${panelRect.right}px`;
+    }
+    container.style.zIndex = '9999';
     container.style.background = '#fff';
     container.style.border = '1px solid #ccc';
     container.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
@@ -202,43 +210,28 @@ function renderList(items, container, parentLabel, textarea, onClose, lvl2 = nul
         item.style.padding = '4px 8px';
         item.style.cursor = 'pointer';
 
+        let touchStartTime = 0;
+        const LONG_PRESS_THRESHOLD = 400;  // 设定长按阈值为500毫秒
+        let isLongPress = false;
+
         item.addEventListener('mouseenter', () => {
             clearTimeout(hoverTimeout);
             hoverTimeout = setTimeout(async () => {
-                const subs = await getSubregions(label);
-                const rect = item.getBoundingClientRect();
-                const popupLeft = rect.right;
-                const popupHeight = 200;
-                let popupTop = rect.top;
-
-                const lvl1Items = document.querySelectorAll('.partition-lvl1 > div');
-                const firstItem = lvl1Items[0];
-                const lastItem = lvl1Items[lvl1Items.length - 1];
-                const anchorTop = firstItem?.getBoundingClientRect().top ?? 0;
-                const anchorBottom = lastItem?.getBoundingClientRect().bottom ?? window.innerHeight;
-
-                if (popupTop + popupHeight > anchorBottom) popupTop = anchorBottom - popupHeight;
-                if (popupTop < anchorTop) popupTop = anchorTop;
-
-                popupTop = Math.max(popupTop, 0);
-                popupTop = Math.min(popupTop, window.innerHeight - popupHeight);
-
-                if (lvl2 && parentLabel == null) {
-                    lvl3.innerHTML = "";
-                    lvl3.style.display = 'none';
-                    lvl2.style.position = 'fixed';
-                    lvl2.style.top = `${popupTop}px`;
-                    lvl2.style.left = `${popupLeft}px`;
-                    lvl2.style.display = 'block';
-                    renderList(subs, lvl2, label, textarea, onClose, null, lvl3);
-                } else if (lvl3 && parentLabel != null) {
-                    lvl3.style.position = 'fixed';
-                    lvl3.style.top = `${popupTop}px`;
-                    lvl3.style.left = `${popupLeft}px`;
-                    lvl3.style.display = 'block';
-                    renderList(subs, lvl3, label, textarea, onClose);
+                if (!isLongPress) {  // 如果不是长按才继续执行
+                    await popup_box(label, item, parentLabel, textarea, onClose, lvl2, lvl3);
                 }
             }, 300);
+            // 处理长按事件
+            touchStartTime = Date.now();  // 记录触摸开始时间
+            isLongPress = false;  // 重置长按标志
+        });
+        // 长按的判别逻辑
+        item.addEventListener('mouseleave', async () => {
+            clearTimeout(hoverTimeout); // 离开时清除所有悬停相关的事件
+            if (Date.now() - touchStartTime >= LONG_PRESS_THRESHOLD) {
+                isLongPress = true;  // 如果超过500ms，标记为长按
+                await popup_box(label, item, parentLabel, textarea, onClose, lvl2, lvl3);
+            }
         });
 
         item.addEventListener('mouseleave', () => clearTimeout(hoverTimeout));
@@ -257,12 +250,48 @@ function renderList(items, container, parentLabel, textarea, onClose, lvl2 = nul
     });
 }
 
+
+async function popup_box(label, item, parentLabel, textarea, onClose, lvl2, lvl3) {
+    const subs = await getSubregions(label);
+    const rect = item.getBoundingClientRect();
+    const popupLeft = rect.right;
+    const popupHeight = 200;
+    let popupTop = rect.top;
+
+    const lvl1Items = document.querySelectorAll('.partition-lvl1 > div');
+    const firstItem = lvl1Items[0];
+    const lastItem = lvl1Items[lvl1Items.length - 1];
+    const anchorTop = firstItem?.getBoundingClientRect().top ?? 0;
+    const anchorBottom = lastItem?.getBoundingClientRect().bottom ?? window.innerHeight;
+
+    if (popupTop + popupHeight > anchorBottom) popupTop = anchorBottom - popupHeight;
+    if (popupTop < anchorTop) popupTop = anchorTop;
+
+    popupTop = Math.max(popupTop, 0);
+    popupTop = Math.min(popupTop, window.innerHeight - popupHeight);
+
+    if (lvl2 && parentLabel == null) {
+        lvl3.innerHTML = "";
+        lvl3.style.display = 'none';
+        lvl2.style.position = 'fixed';
+        lvl2.style.top = `${popupTop}px`;
+        lvl2.style.left = `${popupLeft}px`;
+        lvl2.style.display = 'block';
+        renderList(subs, lvl2, label, textarea, onClose, null, lvl3);
+    } else if (lvl3 && parentLabel != null) {
+        lvl3.style.position = 'fixed';
+        lvl3.style.top = `${popupTop}px`;
+        lvl3.style.left = `${popupLeft}px`;
+        lvl3.style.display = 'block';
+        renderList(subs, lvl3, label, textarea, onClose);
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     const btn = document.getElementById("partitionBtn");
     const textarea = document.getElementById("regions");
     btn?.addEventListener("click", () => window.showPartitionSelector(textarea));
 });
-
 
 
 const inputEl = document.getElementById("locations");
@@ -294,10 +323,10 @@ inputEl.addEventListener("keyup", () => {
         suggestion.style.display = "none";
         return;
     }
-    fetch("http://127.0.0.1:5000/api/batch_match", {
+    fetch("http://10.250.101.238:5000/api/batch_match", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input_string: query })
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({input_string: query})
     })
         .then(res => res.json())
         .then(results => {
@@ -364,5 +393,6 @@ inputEl.addEventListener("blur", () => {
         suggestion.style.display = "none";
     }, 200);
 });
+
 
 

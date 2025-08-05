@@ -187,7 +187,7 @@ async function create_map1(){
     }
 
 // 假设 customToggle 和 isCustomOn 已经在其他地方定义并控制开关状态
-    const url = new URL("http://127.0.0.1:5000/api/get_coordinates");  // 后端 API 地址
+    const url = new URL("http://10.250.101.238:5000/api/get_coordinates");  // 后端 API 地址
     url.searchParams.append('locations', locations);  // 添加 locations 参数
     url.searchParams.append('regions', regions);  // 添加 regions 参数
 
@@ -490,7 +490,7 @@ async function func_mergeData() {
     };
 
 // 发送 POST 请求到后端
-    await  fetch("http://127.0.0.1:5000/api/get_custom", {
+    await  fetch("http://10.250.101.238:5000/api/get_custom", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -820,7 +820,7 @@ async function triggerDrawingFunction() {
                                     borderRadius: '.1rem',
                                     backgroundColor: color,
                                     width: 'auto',                    // 根据文字长度自动撑开宽度
-                                    borderWidth: 0,
+                                    // borderWidth: 0,
                                     boxShadow: '0 2px 6px 0 rgba(114, 124, 245, .5)',
                                     textAlign: 'center',
                                     fontSize: '15px',                // 调小字体大小
@@ -830,6 +830,9 @@ async function triggerDrawingFunction() {
                                     overflow: 'hidden',               // 防止超出容器的文本显示
                                     textOverflow: 'ellipsis',        // 超过容器时显示省略号
                                     fontFamily: '"Times new Roman"', //
+                                    borderWidth: '0.7px',                // 设置边框宽度
+                                    borderColor: 'black',              // 设置边框颜色
+                                    borderStyle: 'solid',              // 设置边框样式
                                 },
                                 extData: {
                                     locationName,
@@ -1038,7 +1041,7 @@ async function create_dot_all() {
         // 获取最大 level
         for (const region of regions) {
             try {
-                const response = await fetch(`http://127.0.0.1:5000/api/partitions?parent=${encodeURIComponent(region)}`);
+                const response = await fetch(`http://10.250.101.238:5000/api/partitions?parent=${encodeURIComponent(region)}`);
                 const data = await response.json();
 
                 const regionData = data[region];
@@ -1058,14 +1061,15 @@ async function create_dot_all() {
 
     // 定义颜色数组（20种颜色）
     const colorPalette = [
-        "#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4",
-        "#42d4f4", "#f032e6", "#bfe745", "#fabed4", "#469990", "#dcbaff",
-        "#9a6324", "#fffac8", "#800000", "#aaffc3", "#808000", "#ffd8b1",
-        "#000075", "#a9a9a9"
+        "#e6194b", "#3cb44b", "#ffe119", "#4363d8",
+        "#f58231", "#911eb4", "#42d4f4", "#f032e6",
+        "#bfe745", "#fabed4", "#469990", "#dcbaff",
+        "#9a6324", "#fffac8", "#800000", "#aaffc3",
+        "#808000", "#ffd8b1", "#000075", "#a9a9a9"
     ];
 
     // 发送请求获取数据
-    const url = new URL("http://127.0.0.1:5000/api/get_coordinates");
+    const url = new URL("http://10.250.101.238:5000/api/get_coordinates");
     url.searchParams.append('locations', locations);
     url.searchParams.append('regions', regions);
     url.searchParams.append('iscustom', 'true');
@@ -1095,11 +1099,10 @@ async function create_dot_all() {
         const levelToUse = mapParams.max_level === 1 ? "level1" :
             mapParams.max_level === 2 ? "level2" : "level3";
 
-        // 为当前使用的 level 创建一个颜色映射
         const uniqueLevels = new Set();  // 用来存储唯一的 level 值
         for (const [locationName, coordinates] of all_locations_dot.coordinates_locations) {
             // 获取每个地点的 regions_data
-            let regionsData = await fetch(`http://127.0.0.1:5000/api/get_regions?input_data=${locationName}`)
+            let regionsData = await fetch(`http://10.250.101.238:5000/api/get_regions?input_data=${locationName}`)
                 .then(response => response.json())
                 .then(data => data.音典分區)
                 .catch(error => {
@@ -1114,10 +1117,11 @@ async function create_dot_all() {
                 let level2 = regions[1] || level1;
                 let level3 = regions[2] || level2;
 
-                // 将所有 level 的唯一值加入 Set 中
-                uniqueLevels.add(level1);
-                uniqueLevels.add(level2);
-                uniqueLevels.add(level3);
+                // // 将所有 level 的唯一值加入 Set 中
+                // uniqueLevels.add(level1);
+                // uniqueLevels.add(level2);
+                // uniqueLevels.add(level3);
+                uniqueLevels.add({ level1, level2, level3 }[levelToUse]);
 
                 result.push({
                     locationName: locationName,
@@ -1146,6 +1150,7 @@ async function create_dot_all() {
             // 根据 mapParams.max_level 确定当前 level，给对应的 level 添加颜色
             item.color = levelColorMap[item.regions_data[levelToUse]];  // 将颜色添加到 item 中
         });
+        // console.log("color", result)
 
         //如果数据存在，动态更新地图
         if (result) {
@@ -1206,8 +1211,12 @@ async function create_dot_all() {
                         const nativeEvent = e.originalEvent || e;  // 获取原生事件对象
                         const mouseY = nativeEvent.originEvent.clientY;  // 获取鼠标点击位置
                         const mouseX = nativeEvent.originEvent.clientX;  // 获取鼠标的水平位置
-                        const popupWidth = popup.offsetWidth;
-                        const popupHeight = popup.offsetHeight;
+                        let popupWidth = 300;
+                        let popupHeight = 150;
+                        if (popup.offsetWidth > 0 && popup.offsetHeight > 0) {
+                            popupWidth = popup.offsetWidth;
+                            popupHeight = popup.offsetHeight;
+                        }
 
                         if (popupHeight === 0) {
                             console.log("Popup height is 0! Make sure the popup is rendered correctly.");
@@ -1229,7 +1238,7 @@ async function create_dot_all() {
                         popup.style.left = `${Math.min(Math.max(popupLeft, maxLeft), maxRight)}px`;  // 确保弹窗不会超出页面左右边界
 
                         // 确保弹窗具有正确的定位
-                        // popup.style.position = 'fixed'; // 确保弹窗使用绝对定位
+                        popup.style.position = 'fixed'; // 确保弹窗使用绝对定位
                         // // 弹窗显示并滑动效果
                         // popup.style.opacity = '1';  // 设置弹窗为可见
                         // popup.style.visibility = 'visible';  // 显示弹窗
