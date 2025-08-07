@@ -309,7 +309,7 @@ if __name__ == "__main__":
         time.sleep(1)
         # webbrowser.open("http://127.0.0.1:5000")
         # 使用局域网 IP 地址，替换为你的本地 IP 地址（例如：10.250.101.238）
-        # webbrowser.open("http://10.250.101.238:5000")
+        webbrowser.open("http://10.250.101.238:5000")
 
 
     threading.Thread(target=open_browser).start()

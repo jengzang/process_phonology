@@ -4,7 +4,7 @@ import re
 from collections import Counter  # 用于统计频次
 
 # 假设文件名是 "語保字音表.xlsx"，并且该文件在当前路径下
-file_path = '語保字音表.xlsx'
+file_path = 'rawdata/語保字音表.xlsx'
 
 # 对应词语表
 word_list = {
