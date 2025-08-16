@@ -18,7 +18,7 @@ from starlette.staticfiles import StaticFiles
 
 from main import run_phonology_analysis
 from source.Extras_addplaces_searchchars import fetch_dialect_region, handle_form_submission, get_from_submission, \
-    search_characters, search_tones
+    search_characters, search_tones, match_custom_feature
 from source.config import SUPPLE_DB_PATH
 from source.process_input import read_partition_hierarchy, match_locations_batch, query_dialect_abbreviations, \
     get_coordinates_from_db
@@ -129,7 +129,7 @@ async def batch_match(data: MatchRequest):
         if success:
             responses.append({
                 "success": True,
-                "message": f"第{idx + 1}個“{part}”匹配成功",
+                "message": f"“{part}”匹配成功",
                 "items": res[0]
             })
         else:
@@ -169,6 +169,9 @@ async def get_coordinates(
         iscustom: bool = None,  # 默认值为 None
         flag: bool = True
 ):
+    if not regions.strip() and not locations.strip():
+        raise HTTPException(status_code=400, detail="請輸入地點或簡稱！")
+
     # 处理传入的字符串，转化为列表
     locations_list = locations.split(',')  # 用逗号分隔字符串，转换为列表
     regions_list = regions.split(',')  # 同样处理 regions
@@ -241,6 +244,35 @@ async def query_location_data(query_params: QueryParams):
 
         return result
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class FeatureQueryParams(BaseModel):
+    locations: List[str]
+    regions: List[str]
+    word: str
+
+
+@app.post("/api/get_custom_feature")
+async def get_custom_feature(query_params: FeatureQueryParams):
+    try:
+        # print(f"word:{query_params.word}")
+        result = match_custom_feature(
+            query_params.locations,
+            query_params.regions,
+            query_params.word
+        )
+        print("特徵匹配查詢成功！")
+
+        if not result:
+            raise HTTPException(status_code=404, detail="No matching features found")
+
+        return result
+    except HTTPException as e:
+        raise e  # 让 FastAPI 正常处理这个异常
+
+    except Exception as e:
+        # 捕获真正的代码错误，返回 500
         raise HTTPException(status_code=500, detail=str(e))
 
 

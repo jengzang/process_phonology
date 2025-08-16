@@ -15,7 +15,8 @@
 }
 
 /* 表格核心設定 */
-#resultTable {
+#resultTable,
+#detailTable {
     width: 100%;
     border-collapse: collapse;
     font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
@@ -23,22 +24,24 @@
     table-layout: fixed;
 }
 
-#resultTable th {
+#resultTable th,
+#detailTable th {
     font-weight: bold;
     background-color: #f2f2f2;
     border-bottom: 2px solid #666;
-    white-space: nowrap;             /* 不允許換行 */
-    overflow: hidden;                /* 超出隱藏 */
-    text-overflow: ellipsis;         /* 多餘的文字以...表示 */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     font-size: min(16px, 2vw);
 }
 
-#resultTable th:last-child {
+#resultTable th:last-child,
+#detailTable th:last-child {
     font-size: min(12px, 2vw);
-
 }
 
-/*#resultTable th .th-inner {*/
+/*#resultTable th .th-inner,*/
+/*#detailTable th .th-inner {*/
 /*    display: block;*/
 /*    width: 100%;*/
 /*    text-align: center;*/
@@ -48,11 +51,11 @@
 /*    font-size: clamp(5px, 1.6vw, 14px);*/
 /*}*/
 
-
-
 /* 表頭與單元格統一樣式 */
 #resultTable th,
-#resultTable td {
+#resultTable td,
+#detailTable th,
+#detailTable td {
     padding: 8px;
     text-align: center;
     vertical-align: middle;
@@ -60,41 +63,47 @@
     border: 1px solid #ddd;
 }
 
-/* 分隔線樣式 */
 /* 🔧 通用實線，非 group-break 的行 */
-#resultTable tbody tr:not(.group-break) td {
+#resultTable tbody tr:not(.group-break) td,
+#detailTable tbody tr:not(.group-break) td {
     border-bottom: 1px solid #ccc;
 }
 
 /* ✅ 五欄模式，才用虛線分隔不同特徵 */
-#resultTable.five-col tbody tr.group-break td {
+#resultTable.five-col tbody tr.group-break td,
+#detailTable.five-col tbody tr.group-break td {
     border-bottom: 2px dashed #666;
 }
 
 /* ✅ 四欄模式的 group-break 使用實線（覆蓋虛線） */
-#resultTable.four-col tbody tr.group-break td {
+#resultTable.four-col tbody tr.group-break td,
+#detailTable.four-col tbody tr.group-break td {
     border-bottom: 2px solid #666;
 }
 
 /* ✅ 強分隔（不同地點）統一實線 */
-#resultTable tbody tr.group-break-strong td {
+#resultTable tbody tr.group-break-strong td,
+#detailTable tbody tr.group-break-strong td {
     border-bottom: 3px solid #000;
 }
 
+
 /* ✅ 四欄模式 + 隱藏（col3 為對應字） */
-#resultTable.four-col.condensed-mode td.col3 {
+#resultTable.four-col.condensed-mode td.col3,
+#detailTable.four-col.condensed-mode td.col3 {
     font-size: 14px;
 }
 
 /* ✅ 五欄模式 + 隱藏（col4 為對應字） */
-#resultTable.five-col.condensed-mode td.col4 {
+#resultTable.five-col.condensed-mode td.col4,
+#detailTable.five-col.condensed-mode td.col4 {
     font-size: 14px;
 }
 
 
 
 /* ✅ 地點欄位：垂直書寫 */
-#resultTable td.col1 {
+#resultTable td.col1,#detailTable td.col1 {
     writing-mode: vertical-rl;
     text-orientation: upright;
     background-color: #f6f6f6;
@@ -103,7 +112,7 @@
 }
 
 /* 第二列樣式（增加不明顯邊框） */
-#resultTable td.col2 {
+#resultTable td.col2,#detailTable td.col2 {
     border: 1px solid #eee;
 }
 
@@ -157,12 +166,14 @@
 /*    vertical-align: top;*/
 /*}*/
 
-#resultTable.five-col td.col5 > div:first-child {
+#resultTable.five-col td.col5 > div:first-child,
+#detailTable.five-col td.col5 > div:first-child {
     font-size: 14px;
     font-weight: bold;
     margin-bottom: 4px;
 }
-#resultTable.five-col td.col5 > div:last-child {
+#resultTable.five-col td.col5 > div:last-child,
+#detailTable.five-col td.col5 > div:last-child {
     font-size: 12px;
     color: #888;
 }
@@ -172,7 +183,7 @@
 /* ------------------------- */
 .char.multi {
     font-style: italic;
-    margin: 0 4px;
+    margin: 0 2px;
     font-size: 100%;
     text-decoration: none;
     transition: color 0.2s ease;
@@ -207,7 +218,7 @@
 }
 
 /* 🪄 表格 hover 效果 */
-#resultTable tbody tr:hover {
+#resultTable tbody tr:hover ,#detailTable tbody tr:hover {
     background-color: #fafafa;
 }
 
@@ -242,6 +253,7 @@
 /* ------------------------------- */
 /* 🧩 四欄模式 (.four-col 表格用)  */
 /* ------------------------------- */
+/* -------- #resultTable 四欄模式欄寬 -------- */
 #resultTable.four-col col.col1 { width: 14.2857%; }
 #resultTable.four-col col.col2 { width: 14.2857%; }
 #resultTable.four-col col.col3 { width: 57.1429%; }
@@ -250,25 +262,65 @@
     text-align: left;
 }
 
-/* ✅ 四欄隱藏 col1 模式（只剩 col2~col4） */
-#resultTable.four-col.condensed-mode col.col1 { display: none; }
-#resultTable.four-col.condensed-mode col.col2 { width: 12%; }
-#resultTable.four-col.condensed-mode col.col3 { width: 78%; }
-#resultTable.four-col.condensed-mode col.col4 { width: 10%; }
+/* -------- #detailTable 四欄模式欄寬 -------- */
+#detailTable.four-col col.col1 { width: 10%; }         /* 可自由調整 */
+#detailTable.four-col col.col2 { width: 20%; }
+#detailTable.four-col col.col3 { width: 60%; }
+#detailTable.four-col col.col4 {
+    width: 10%;
+    text-align: left;
+}
 
+/* ✅ 四欄隱藏 col1 模式（只剩 col2~col4） */
+#resultTable.four-col.condensed-mode col.col1,
+#detailTable.four-col.condensed-mode col.col1 { display: none; }
+#resultTable.four-col.condensed-mode col.col2,
+#detailTable.four-col.condensed-mode col.col2 { width: 12%; }
+#resultTable.four-col.condensed-mode col.col3,
+#detailTable.four-col.condensed-mode col.col3 { width: 78%; }
+#resultTable.four-col.condensed-mode col.col4,
+#detailTable.four-col.condensed-mode col.col4 { width: 10%; }
+
+#detailTable.four-col td.col3{
+    font-size:14px;
+    margin: 0;
+    padding: 0;
+}
+#detailTable.four-col td.col2{
+    white-space: nowrap;
+    overflow: visible;
+    text-overflow: unset;
+}
 /* ✅ 四欄表格的最後一欄（col4）內容置中 */
-#resultTable.four-col td.col4 {
+#resultTable.four-col td.col4,#detailTable.four-col td.col4 {
     text-align: center;
 }
-#resultTable.four-col td.col4 > div:first-child {
+#resultTable.four-col td.col4 > div:first-child{
     font-size: 14px;
     font-weight: bold;
     margin-bottom: 4px;
+
 }
-#resultTable.four-col td.col4 > div:last-child {
+#detailTable.four-col td.col4 > div:first-child{
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 1px;
+    white-space: nowrap;
+    overflow: visible;
+    text-overflow: unset;
+}
+#resultTable.four-col td.col4 > div:last-child{
     font-size: 12px;
     color: #888;
 }
+#detailTable.four-col td.col4 > div:last-child {
+     font-size: 11px;
+     color: #888;
+    margin: 0;
+    white-space: nowrap;
+    overflow: visible;
+    text-overflow: unset;
+ }
 
 /* ------------------------------- */
 /* 🧩 五欄模式 (.five-col 表格用) */
@@ -276,11 +328,16 @@
 #resultTable.five-col col.col1,
 #resultTable.five-col col.col2,
 #resultTable.five-col col.col3,
-#resultTable.five-col col.col5 {
+#resultTable.five-col col.col5,
+#detailTable.five-col col.col1,
+#detailTable.five-col col.col2,
+#detailTable.five-col col.col3,
+#detailTable.five-col col.col5 {
     width: 12.5%;
 }
 
-#resultTable.five-col col.col4 {
+#resultTable.five-col col.col4,
+#detailTable.five-col col.col4 {
     width: 50%;
     font-size: 18px;
     line-height: 1.6;
@@ -289,35 +346,46 @@
 
 /* ✅ 五欄隱藏 col1 + col2 模式（剩 col3 ~ col5） */
 #resultTable.five-col.condensed-mode col.col1,
-#resultTable.five-col.condensed-mode col.col2 {
+#resultTable.five-col.condensed-mode col.col2,
+#detailTable.five-col.condensed-mode col.col1,
+#detailTable.five-col.condensed-mode col.col2 {
     display: none;
 }
-#resultTable.five-col.condensed-mode col.col3 { width: 12%; }
-#resultTable.five-col.condensed-mode col.col4 { width: 78%; }
-#resultTable.five-col.condensed-mode col.col5 { width: 10%; }
+#resultTable.five-col.condensed-mode col.col3,
+#detailTable.five-col.condensed-mode col.col3 { width: 12%; }
+#resultTable.five-col.condensed-mode col.col4,
+#detailTable.five-col.condensed-mode col.col4 { width: 78%; }
+#resultTable.five-col.condensed-mode col.col5,
+#detailTable.five-col.condensed-mode col.col5 { width: 10%; }
 
 /* ✅ 五欄表格的最後一欄（col5）內容置中 */
-#resultTable.five-col td.col5 {
+#resultTable.five-col td.col5,
+#detailTable.five-col td.col5 {
     text-align: center;
 }
-#resultTable.five-col td.col5 > div:first-child {
+#resultTable.five-col td.col5 > div:first-child,
+#detailTable.five-col td.col5 > div:first-child {
     font-size: 14px;
     font-weight: bold;
     margin-bottom: 4px;
 }
-#resultTable.five-col td.col5 > div:last-child {
+#resultTable.five-col td.col5 > div:last-child,
+#detailTable.five-col td.col5 > div:last-child {
     font-size: 12px;
     color: #888;
 }
 
 
-#resultTable tbody tr.group-break td {
+#resultTable tbody tr.group-break td,
+#detailTable tbody tr.group-break td {
     border-bottom: 2px dashed #666;
 }
 
-#resultTable tbody tr.group-break-strong td {
+#resultTable tbody tr.group-break-strong td,
+#detailTable tbody tr.group-break-strong td {
     border-bottom: 3px solid #000;
 }
+
 
 .inline-indicator {
     position: absolute;
@@ -350,7 +418,7 @@
     opacity: 1;                      /* 🔸 滑鼠懸浮時完全不透明 */
 }
 
-#resultTable td {
+#resultTable td , #detailTable td{
     position: relative;
 }
 

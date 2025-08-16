@@ -1,10 +1,13 @@
 import os
 import re
 import sqlite3
+from difflib import SequenceMatcher
 from typing import Union, List
 
 import numpy as np
 import pandas as pd
+from opencc import OpenCC
+from pypinyin import lazy_pinyin
 
 from source.config import QUERY_DB_PATH, SUPPLE_DB_PATH, DIALECTS_DB_PATH, CHARACTERS_DB_PATH
 
@@ -586,9 +589,83 @@ def search_tones(locations=None, regions=None, get_raw: bool = False):
     return new_result
 
 
+def match_custom_feature(locations, regions, keyword):
+    opencc_t2s = OpenCC('t2s')
+    # 候選集初始化
+    candidate_set = set()
+    candidate_set.add(keyword)
+
+    # 繁體 → 簡體
+    try:
+        simp = opencc_t2s.convert(keyword)
+        candidate_set.add(simp)
+    except:
+        pass
+
+    # 簡體 → 繁體候選（多對一）
+    try:
+        trad_string, trad_map = s2t_pro(keyword, level=2)
+        candidate_set.add(trad_string)
+        for _, 候選列表 in trad_map:
+            candidate_set.update(候選列表)
+    except:
+        pass
+
+    # 拼音比對預備
+    word_pinyin = ''.join(lazy_pinyin(keyword))
+
+    # 查詢資料庫位置
+    all_locations = query_dialect_abbreviations(
+        regions, locations, db_path=SUPPLE_DB_PATH, tables="informations"
+    )
+    # print(all_locations)
+    conn = sqlite3.connect(SUPPLE_DB_PATH)
+    cursor = conn.cursor()
+    result = []
+
+    for location in all_locations:
+        cursor.execute("""
+               SELECT "簡稱", "特徵"
+               FROM informations
+               WHERE "簡稱" = ?
+           """, (location,))
+        rows = cursor.fetchall()
+
+        for row in rows:
+            特徵 = row[1]
+
+            # 直接或轉換字匹配
+            if any(c in 特徵 for c in candidate_set):
+                result.append({
+                    "簡稱": row[0],
+                    "特徵": 特徵
+                })
+                continue
+
+            # 拼音模糊比對
+            特徵_pinyin = ''.join(lazy_pinyin(特徵))
+            ratio = SequenceMatcher(None, word_pinyin, 特徵_pinyin).ratio()
+            if ratio > 0.7:
+                result.append({
+                    "簡稱": row[0],
+                    "特徵": 特徵
+                })
+
+    conn.close()
+    return result
+
+
 # result = process_dialect_data()
 # print(result)
 # locations = ['南寧五塘']
 # # # chars = ['干']
 # result = search_tones(locations)
 # print(result)
+# results = match_custom_feature(
+#     locations=[],
+#     regions=["嶺南"],
+#     keyword="lai"
+# )
+#
+# for r in results:
+#     print(r)

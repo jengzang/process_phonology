@@ -1,5 +1,4 @@
 // let mergedData;
-
 // 配置安全代码
 window._AMapSecurityConfig = {
     securityJsCode: "06fece76cc6ddd8f7996819c28315b58",  // 替换为您自己的 securityJsCode
@@ -173,16 +172,15 @@ document.addEventListener('DOMContentLoaded', function () {
 async function create_map1(){
     const locations = document.getElementById('locations').value.trim().split(/\s+/);  // 获取地點，并拆分成数组
     const regions = document.getElementById('regions').value.trim().split(/\s+/);  // 获取分區，并拆分成数组
-    console.log('locations', locations);
+    // console.log('locations', locations);
     // let textall = []
     // if (textall.length > 0) {
     //     map.remove(textall);
     //     textall = [];
     // }
 
-    // 允许 locations 或 regions 其中之一为空
-    if (!locations && !regions) {
-        alert("請輸入地點或分區中的一個！");
+    if (isEmptyInput(locations) && isEmptyInput(regions)) {
+        alert("請輸入地點或分區！");
         return;
     }
 
@@ -338,8 +336,8 @@ async function func_mergeData() {
         console.log("数据未准备好！");
         return;
     }
-    locations_data = window.locations_data;
-    latestResults = window.latestResults;
+    let locations_data = window.locations_data;
+    let latestResults = window.latestResults;
     // 获取 zoom_level 和 center_coordinate
     let zoomLevel = locations_data.zoom_level;
     let centerCoordinate = locations_data.center_coordinate;
@@ -482,90 +480,88 @@ async function func_mergeData() {
     const regions = document.getElementById('regions').value.trim().split(/\s+/);
     const uniqueFeatures = [...new Set(latestResults.map(result => result.特徵值))];
 
-// 创建请求体
+    // 创建请求体
     const queryParams = {
         locations: locations,
         regions: regions,
         need_features: uniqueFeatures
     };
-
-// 发送 POST 请求到后端
-    await  fetch("http://10.250.101.238:5000/api/get_custom", {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(queryParams)
-    })
-        .then(response => response.json())  // 解析响应为 JSON
-        .then(result => {
-            // 检查 result 是否是数组
-            if (Array.isArray(result)) {
-                result.forEach(row => {
-                    const newCoordinate = row["經緯度"];
-                    const newLocation = row["簡稱"];
-                    const newFeature = row["特徵"];
-
-                    // 使用原来的 feature 字段查找是否已存在相同的 item
-                    const locationIndex = mergedData.findIndex(item => item.feature === newFeature);
-
-                    // 如果没有找到匹配的 feature，跳过当前数据
-                    if (locationIndex === -1) {
-                        return; // 跳过该数据项，不做任何操作
-                    }
-
-                    const existingItem = mergedData[locationIndex];
-
-                    // 检查经纬度是否相同
-                    if (JSON.stringify(existingItem.coordinate) === JSON.stringify(newCoordinate)) {
-                        // 如果经纬度相同，检查简称是否相同
-                        if (existingItem.location === newLocation) {
-                            // 如果简称相同，则合并数据
-                            existingItem.value += "║" + row["值"];
-                            existingItem.maxValue += "║" + row["maxValue"];
-                            existingItem.notes += "║" + row["說明"];
-                            existingItem.iscustoms = 1; // 确保标记为 1
-                        } else {
-                            // 如果简称不同，则照常写入
-                            mergedData.push({
-                                location: newLocation,
-                                feature: newFeature,
-                                value: row["值"],
-                                coordinate: newCoordinate,
-                                maxValue: row["maxValue"],
-                                notes: row["說明"],
-                                iscustoms: 1,
-                                zoomLevel: mergedData.length > 0 ? mergedData[0].zoomLevel : 10,
-                                centerCoordinate: mergedData.length > 0 ? mergedData[0].centerCoordinate : [0, 0],
-                                detailContent: []
-                            });
-                        }
-                    } else {
-                        // 如果经纬度不同，则照常写入
-                        mergedData.push({
-                            location: newLocation,
-                            feature: newFeature,
-                            value: row["值"],
-                            coordinate: newCoordinate,
-                            maxValue: row["maxValue"],
-                            notes: row["說明"],
-                            iscustoms: 1,
-                            zoomLevel: mergedData.length > 0 ? mergedData[0].zoomLevel : 10,
-                            centerCoordinate: mergedData.length > 0 ? mergedData[0].centerCoordinate : [0, 0],
-                            detailContent: []
-                        });
-                    }
-                });
-
-                // 你可以在这里处理更新后的 mergedData
-                console.log(mergedData);  // 查看更新后的 mergedData
-            } else {
-                console.error('返回的数据不是数组:', result);  // 输出错误，说明返回的数据格式有问题
-            }
-        })
-        .catch(error => {
-            console.error('请求失败:', error);  // 如果请求失败，捕获错误并输出
+    let shouldContinue = true;
+    let result = null;
+    try {
+        const response = await fetch("http://10.250.101.238:5000/api/get_custom", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(queryParams)
         });
+
+        if (!response.ok) {
+            // const errorData = await response.json().catch(() => ({}));
+            // const errorMessage = errorData.detail || "後端返回錯誤";
+            // alert(errorMessage);
+            shouldContinue = false; // 标记不要继续往下处理
+        }else {
+            result = await response.json();
+        }
+        // result = shouldContinue ? await response.json() : null;
+    } catch (error) {
+        // console.error("请求失败:", error);
+        // alert("請求失敗：" + error.message);
+        shouldContinue = false;
+    }
+    if (shouldContinue && Array.isArray(result)) {
+        result.forEach(row => {
+            const newCoordinate = row["經緯度"];
+            const newLocation = row["簡稱"];
+            const newFeature = row["特徵"];
+
+            const locationIndex = mergedData.findIndex(item => item.feature === newFeature);
+
+            if (locationIndex === -1) return;
+
+            const existingItem = mergedData[locationIndex];
+
+            if (JSON.stringify(existingItem.coordinate) === JSON.stringify(newCoordinate)) {
+                if (existingItem.location === newLocation) {
+                    existingItem.value += "║" + row["值"];
+                    existingItem.maxValue += "║" + row["maxValue"];
+                    existingItem.notes += "║" + row["說明"];
+                    existingItem.iscustoms = 1;
+                } else {
+                    mergedData.push({
+                        location: newLocation,
+                        feature: newFeature,
+                        value: row["值"],
+                        coordinate: newCoordinate,
+                        maxValue: row["maxValue"],
+                        notes: row["說明"],
+                        iscustoms: 1,
+                        zoomLevel: mergedData.length > 0 ? mergedData[0].zoomLevel : 10,
+                        centerCoordinate: mergedData.length > 0 ? mergedData[0].centerCoordinate : [0, 0],
+                        detailContent: []
+                    });
+                }
+            } else {
+                mergedData.push({
+                    location: newLocation,
+                    feature: newFeature,
+                    value: row["值"],
+                    coordinate: newCoordinate,
+                    maxValue: row["maxValue"],
+                    notes: row["說明"],
+                    iscustoms: 1,
+                    zoomLevel: mergedData.length > 0 ? mergedData[0].zoomLevel : 10,
+                    centerCoordinate: mergedData.length > 0 ? mergedData[0].centerCoordinate : [0, 0],
+                    detailContent: []
+                });
+            }
+        });
+        // console.log(mergedData);
+    } else {
+        console.log("當前地點/分區選擇不包含自定義數據", result);
+    }
 
     // 在 mergedData 之前，按特征分开统计独特的 maxPercentageValue 数量
     let featureMaxValuesToColor = {};
@@ -616,7 +612,7 @@ async function func_mergeData() {
     // 最终将合并后的数据设为 window 变量
     window.mergedData = mergedData;
     console.log("mergedData存储完成");
-    console.log(window.mergedData); // 输出结果以供调试
+    // console.log(window.mergedData); // 输出结果以供调试
 }
 
 
@@ -625,9 +621,9 @@ async function loadData() {
     return new Promise(resolve => {
         setTimeout(() => {
             // 这里模拟等待数据准备好。实际情况不需要这一步，数据应该已经准备好
-            console.log('Using existing window variables:');
-            console.log(window.latestResults); // 打印出 window.latestResults
-            console.log(window.locations_data); // 打印出 window.locations_data
+            // console.log('Using existing window variables:');
+            // console.log(window.latestResults); // 打印出 window.latestResults
+            // console.log(window.locations_data); // 打印出 window.locations_data
 
             // 直接使用已经在其他地方处理好的 window.latestResults 和 window.locations_data
             resolve(); // 一旦数据准备好，调用 resolve()
@@ -644,7 +640,7 @@ document.addEventListener("DOMContentLoaded", function() {
     // func_mergeData()
     // 绑定 runBtn 按钮点击事件
     runBtn.addEventListener('click', function() {
-        console.log("Run button clicked!"); // 确认按钮点击事件触发
+        // console.log("Run button clicked!"); // 确认按钮点击事件触发
 
         // 清空容器，以防重复添加内容
         featureContainer.innerHTML = '';  // 清空容器
@@ -685,10 +681,15 @@ document.addEventListener("DOMContentLoaded", function() {
             button.textContent = uniqueFeatures[0];  // 显示唯一的特徵值
             featureContainer.appendChild(button);
             // 为按钮添加点击事件，触发绘图函数并传递按钮内容
-            button.addEventListener("click", function() {
+            button.addEventListener("click", async function () {
                 // console.log("点击前的mergeddata:",mergedData)
                 window.selectedItem = button.textContent;
-                triggerDrawingFunction();  // 传递按钮的文本作为参数
+                // 等待 mergedData 填充完成
+                if (!window.mergedData) {
+                    // console.log("fuck", window.mergedData);
+                    await func_mergeData()
+                }
+                await triggerDrawingFunction();  // 传递按钮的文本作为参数
             });
         } else if (uniqueFeatures.length > 1) {
             // 如果有多个特徵值，创建下拉框
@@ -746,12 +747,17 @@ function setupEventListeners(dropdownArrow, dropdown, placeholder) {
     // 点击下拉框项时，更新placeholder
     const items = dropdown.querySelectorAll('.dropdown-item');
     items.forEach(item => {
-        item.addEventListener('click', function() {
+        item.addEventListener('click', async function () {
             placeholder.textContent = item.textContent;
             dropdown.classList.remove('expanded');  // 收起下拉框
             // 触发绘图函数，传递被选中的 item 作为参数
             window.selectedItem = item.textContent;
-            triggerDrawingFunction();  // 这里调用绘图函数
+            // 等待 mergedData 填充完成
+            if (!window.mergedData) {
+                // console.log("fuck", window.mergedData);
+                await func_mergeData()
+            }
+            await triggerDrawingFunction();  // 传递按钮的文本作为参数
         });
     });
 
@@ -766,15 +772,10 @@ function setupEventListeners(dropdownArrow, dropdown, placeholder) {
 
 // 再次触发绘图函数
 async function triggerDrawingFunction() {
-    selectedItem = window.selectedItem;
+    let selectedItem = window.selectedItem;
     console.log("绘图函数触发，选中的项是：", selectedItem);
     // 将 selectedItem 填入表单中的“特征”输入框
     document.getElementById("feature-input").value = selectedItem;
-    // 等待 mergedData 填充完成
-    if (!window.mergedData) {
-        // console.log("fuck", window.mergedData);
-        await func_mergeData()
-    }
 
     if (window.mergedData) {
         // console.log("绘图正常运行")
@@ -787,7 +788,7 @@ async function triggerDrawingFunction() {
 
         // 使用 for...of 循环遍历 mergedData 中的每个数组项
         for (const dataItem of window.mergedData) {
-            console.log("feature",dataItem.feature)
+            // console.log("feature",dataItem.feature)
             // 检查 dataItem 中的 feature 是否与 selectedItem 匹配
             if (dataItem.feature === selectedItem) {
                 const locationName = dataItem.location;  // 获取地点名称
@@ -806,7 +807,7 @@ async function triggerDrawingFunction() {
                         // 检查 iscustoms 不存在 或者 iscustoms 不为 1
                         if (!dataItem.hasOwnProperty('iscustoms') || dataItem.iscustoms !== 1) {
                             const text = new window.AMap.Text({
-                                text: value,  // 使用地点名作为文本
+                                text: value,
                                 anchor: 'center',
                                 draggable: false,
                                 cursor: 'pointer',
@@ -815,7 +816,7 @@ async function triggerDrawingFunction() {
                                 position: coordinates,
                                 clickable: true,
                                 style: {
-                                    padding: '.05rem .1rem',           // 调整 padding，更加紧凑
+                                    padding: '.05rem .05rem',           // 调整 padding，更加紧凑
                                     marginBottom: '.1rem',           // 调整底部 margin
                                     borderRadius: '.1rem',
                                     backgroundColor: color,
@@ -846,6 +847,7 @@ async function triggerDrawingFunction() {
 
                             // 绑定点击事件
                             text.on('click', (e) => {
+                                clearPopup();
                                 const {locationName, feature, detailContent} = text._opts.extData;
                                 // console.log("地点名称:", locationName);
                                 // console.log("特征：", feature);
@@ -913,11 +915,15 @@ async function triggerDrawingFunction() {
 
                                 // 弹窗显示并滑动效果
                                 popup.classList.add("active");
+                                document.getElementById("mini-btn").style.display = "inline-block";
 
-                                // 阻止事件冒泡，避免点击弹窗外的地方关闭弹窗
+                                // 阻止事件冒泡
                                 if (nativeEvent && typeof nativeEvent.stopPropagation === 'function') {
                                     nativeEvent.stopPropagation();
                                 }
+                                // 地图点击时更新全局变量
+                                window.detaillocation = locationName;
+                                window.detailfeature = feature;
                             });
 
                         }
@@ -934,12 +940,12 @@ async function triggerDrawingFunction() {
                                 position: coordinates,  // 使用转换后的高德坐标
                                 clickable: true,
                                 style: {
-                                    padding: '.05rem .1rem',           // 调整 padding，更加紧凑
+                                    padding: '.05rem .05rem',           // 调整 padding，更加紧凑
                                     marginBottom: '.1rem',           // 调整底部 margin
                                     borderRadius: '.1rem',
                                     backgroundColor: color,
                                     width: 'auto',                    // 根据文字长度自动撑开宽度
-                                    borderWidth: 0,
+                                    // borderWidth: 0,
                                     boxShadow: '0 2px 6px 0 rgba(114, 124, 245, .5)',
                                     textAlign: 'center',
                                     fontSize: '15px',                // 调小字体大小
@@ -949,6 +955,9 @@ async function triggerDrawingFunction() {
                                     overflow: 'hidden',               // 防止超出容器的文本显示
                                     textOverflow: 'ellipsis',        // 超过容器时显示省略号
                                     fontFamily: '"Times new Roman"', //
+                                    borderWidth: '0.7px',                // 设置边框宽度
+                                    borderColor: 'black',              // 设置边框颜色
+                                    borderStyle: 'solid',              // 设置边框样式
                                 },
                                 extData: {
                                     locationName,
@@ -962,6 +971,7 @@ async function triggerDrawingFunction() {
 
                             // 绑定点击事件
                             text.on('click', (e) => {
+                                clearPopup();
                                 const {locationName, feature, detailContent} = text._opts.extData;
                                 // 确保获取到正确的元素
                                 const locationNameEl = document.getElementById("location-name");
@@ -1003,7 +1013,7 @@ async function triggerDrawingFunction() {
 
                                 // 弹窗显示并滑动效果
                                 popup.classList.add("active");
-
+                                document.getElementById("mini-btn").style.display = "none";
                                 // 阻止事件冒泡，避免点击弹窗外的地方关闭弹窗
                                 if (nativeEvent && typeof nativeEvent.stopPropagation === 'function') {
                                     nativeEvent.stopPropagation();
@@ -1026,11 +1036,11 @@ async function create_dot_all() {
     const regions = document.getElementById('regions').value.trim().split(/\s+/);  // 获取分區，并拆分成数组
     let maxLevel = 0;  // 存储最大 level
 
-    // 如果 locations 或 regions 其中之一为空
-    if (!locations && !regions) {
-        alert("請輸入地點或分區中的一個！");
+    if (isEmptyInput(locations) && isEmptyInput(regions)) {
+        alert("請輸入地點或分區！");
         return;
     }
+
     // 获取用户选择的 maxLevel，如果用户选择了某个值
     const userSelectedLevel = document.getElementById('max-level').value;
     if (userSelectedLevel) {
@@ -1175,7 +1185,7 @@ async function create_dot_all() {
                 if (lng && lat) {
 
 
-                    const circleMarker = new AMap.CircleMarker({
+                    const circleMarker = new window.AMap.CircleMarker({
                         center: [lng, lat],
                         radius:5,//3D视图下，CircleMarker半径不要超过64px
                         strokeColor: '#000000',  // 设置边框颜色为黑色
@@ -1197,11 +1207,11 @@ async function create_dot_all() {
                     circleMarker.setMap(map)
 
                     circleMarker.on('click', (e) => {
-                        const popup = document.getElementById('popup');  // 确保弹窗的 id 或类名正确
+                        const popup = document.getElementById('popup2');  // 确保弹窗的 id 或类名正确
                         const {locationName, regions_detailed} = circleMarker._opts.extData;
                         // 确保获取到正确的元素
-                        const locationName2El = document.getElementById("location-name");
-                        const feature2El = document.getElementById("feature");
+                        const locationName2El = document.getElementById("location-name2");
+                        const feature2El = document.getElementById("feature2");
 
                         // 设置弹窗内容
                         locationName2El.textContent = ` ${locationName}`;
@@ -1236,6 +1246,7 @@ async function create_dot_all() {
                         const maxLeft = 20;  // 限制弹窗距离页面左侧的最小距离
                         const maxRight = window.innerWidth - popupWidth - 20;  // 限制弹窗右侧不能超出屏幕
                         popup.style.left = `${Math.min(Math.max(popupLeft, maxLeft), maxRight)}px`;  // 确保弹窗不会超出页面左右边界
+                        // console.log('popup element exists?', document.getElementById('popup'));
 
                         // 确保弹窗具有正确的定位
                         popup.style.position = 'fixed'; // 确保弹窗使用绝对定位
@@ -1243,7 +1254,9 @@ async function create_dot_all() {
                         // popup.style.opacity = '1';  // 设置弹窗为可见
                         // popup.style.visibility = 'visible';  // 显示弹窗
                         // 弹窗显示并滑动效果
-                        popup.classList.add("active2");
+                        popup.classList.add("active");
+                        // console.log('Popup classList after click:', popup.classList.value);
+
                         // popup.style.opacity = '1';            // 显示弹窗（完全可见）
                         // popup.style.visibility = 'visible';   // 弹窗可见
                         // console.log('Popup class after activation:', popup.classList);
@@ -1292,28 +1305,35 @@ document.addEventListener('click', (e) => {
     // const popup = document.getElementById('popup');  // 确保弹窗的 id 或类名正确/
     // 如果点击的不是弹窗和按钮，就关闭弹窗
     if (!popup.contains(e.target) && !e.target.closest('.amap-overlay-text-container')) {
-        closePopup();
+        popup.classList.remove("active");
+        // popup.style.opacity = '0';            // 隐藏弹窗
+        // popup.style.visibility = 'hidden';    // 确保弹窗不可见
+        // popup.style.display = 'none';         // 确保弹窗隐藏
+        clearPopup();
+    }
+    if(!popup2.contains(e.target) && !e.target.closest('.amap-layer')) {
+        popup2.classList.remove("active");
     }
 });
 
 
 // 关闭弹窗的函数
-function closePopup() {
-    popup.classList.remove("active", "active2");
-    // popup.style.opacity = '0';            // 隐藏弹窗
-    // popup.style.visibility = 'hidden';    // 确保弹窗不可见
-    // popup.style.display = 'none';         // 确保弹窗隐藏
+function clearPopup() {
     // 清空弹窗内容
     const locationNameEl = document.getElementById("location-name");
     const featureEl = document.getElementById("feature");
     const detailContentEl = document.getElementById("detail-content");
     const noteEl = document.getElementById("notes1");
+    // const locationNameEl2 = document.getElementById("location-name2");
+    // const featureEl2 = document.getElementById("feature2");
 
     // 清空内容
     if (locationNameEl) locationNameEl.textContent = '';
     if (featureEl) featureEl.textContent = '';
     if (detailContentEl) detailContentEl.innerHTML = '';  // 清空HTML内容
     if (noteEl) noteEl.innerHTML = '';  // 清空HTML内容
+    // if (locationNameEl2) locationNameEl2.textContent = '';
+    // if (featureEl2) featureEl2.textContent = '';
 }
 
 //轉換坐標函數，暫時不用

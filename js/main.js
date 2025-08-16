@@ -3,6 +3,8 @@ window.isPanelOpen = false;
 window.plotted = false
 // 初始狀態設定，默認為開啟狀態
 window.isButtonClosed = false; // 默認是開啟狀態（海量數據）
+//是否運行過
+window.isRun = false;
 // 🎛 通用控制：拖曳與最小化/最大化控制
 let currentMode = 1;
 let resultMode = 1;
@@ -166,6 +168,14 @@ document.addEventListener("DOMContentLoaded", () => {
         window.latestResults = []
         window.locations_data = []
         window.selectedItem = []
+        window.plotted = false;
+        const locations = document.getElementById('locations').value.trim().split(/\s+/);
+        const regions = document.getElementById('regions').value.trim().split(/\s+/);
+        if (isEmptyInput(locations) && isEmptyInput(regions)) {
+            alert("請輸入地點或分區！");
+            return;
+        }
+        window.isRun = true;
         // await runAnalysis();          // 先送出分析並記錄 log
         await analysis_from_db();
         if (window.isButtonClosed) {
@@ -177,7 +187,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         await create_map1();
         window.mergedData = []
-        console.log("重置数据")
+        // console.log("重置数据")
         // 假设点击按钮后，数据加载
         await loadData();
         // 数据加载完成后执行 mergeData 函数
@@ -211,3 +221,6 @@ document.getElementById('button-masschange').addEventListener('click', async fun
     }
 });
 
+function isEmptyInput(arr) {
+    return !arr || arr.length === 0 || (arr.length === 1 && arr[0].trim() === "");
+}

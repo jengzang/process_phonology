@@ -57,10 +57,11 @@
 /* 展开面板的动画效果 */
 .right-panel {
     position: absolute;
-    right: -50%;  /* 初始状态在页面右侧外面 */
+    right: -43%;  /* 初始状态在页面右侧外面 */
     top: 50%;
     transform: translateY(-50%);
-    width: 45%;  /* 宽度占页面右侧1/5 */
+    width: 38%;  /* 宽度占页面右侧1/5 */
+    max-width: 300px;
     height: 50%;  /* 高度居中 */
     background-color: #ffffff;
     border-radius: 15px 0 0 15px;
@@ -107,6 +108,9 @@
     /*gap: 12px;*/
 }
 
+.form-row input::placeholder{
+    font-size:12px;
+}
 /* 修改標籤字體大小 */
 .form-row label {
     width: 30%;  /* 標籤寬度 */
@@ -384,8 +388,10 @@ button[type="submit"]:active {
 }
 
 /* 输入框的炫酷hover效果 */
-.input-search:hover {
-    transform: scale(1.2);  /* 稍微放大 */
+.input-search:hover ,
+.form-row input:hover,
+#tipinput2:hover{
+    transform: scale(1.15);  /* 稍微放大 */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);  /* 更强的阴影效果 */
     border-color: #007aff;  /* 聚焦时边框变色 */
 }
@@ -568,4 +574,79 @@ button[type="submit"]:active {
     margin-top: 0;
     font-size: 16px;
     color: #333;
+}
+
+
+/* 输入框样式 */
+#tipinput2 {
+    width: 60%;  /* 宽度为100% */
+    padding: 8px;  /* 内边距，减少输入框和文本的空间 */
+    font-size: 14px;  /* 字体大小 */
+    border-radius: 6px;  /* 边角圆润 */
+    border: 1px solid #ccc;  /* 边框颜色 */
+    box-sizing: border-box;  /* 确保输入框内边距包含在宽度中 */
+    margin-top: 1px;  /* 输入框上方和文本的间距 */
+    margin-bottom: 5px;
+    z-index: 9999;   /* 确保在最顶层 */
+    pointer-events: auto; /* 强制可交互 */
+}
+
+#tipinput2::placeholder {
+    color: gray;       /* 字体颜色 */
+    font-size: 12px;   /* 字体大小 */
+    /*font-style: italic;!* 斜体 *!*/
+    opacity: 0.7;      /* 透明度 */
+}
+
+
+/* Apple风格的 Query Detail Panel */
+.query-detail-panel {
+    position: fixed;
+    top: 50%;
+    left: 0.5%; /* 页面左侧1/5 */
+    transform: translateY(-50%);
+    width: 20%;
+    height: 60vh;
+    background: #f8f8f8;
+    border-radius: 16px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    border: 1px solid #ccc;
+    display: none;
+    flex-direction: column;
+    padding: 0px;
+    z-index: 1000;
+    font-family: -apple-system, BlinkMacSystemFont, "San Francisco", "Helvetica Neue", sans-serif;
+}
+@media (max-aspect-ratio: 1/1) {
+    .query-detail-panel {
+        transform: translateY(-10%);
+        top: 10%;
+        left: 10%;
+        width: 80%;
+        height: 20vh;
+    }
+}
+
+/*!* 内容居中 *!*/
+/*.query-detail-panel .panel-content {*/
+/*    flex: 1;*/
+/*    display: flex;*/
+/*    flex-direction: column;*/
+/*    justify-content: center;*/
+/*}*/
+
+/* 关闭按钮 */
+.query-detail-panel .close-btn {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    color: #666;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+.query-detail-panel .close-btn:hover {
+    color: #000;
 }

@@ -211,7 +211,7 @@ def process_all2sql(tsv_paths, db_path, append=False):
             continue
 
         # tsv_name = os.path.splitext(os.path.basename(path))[0]
-        tsv_name = get_tsvs(single=path)[1]
+        tsv_name = get_tsvs(single=path)[1][0]
         now_process = f"\n🔍 正在處理：{tsv_name}"
         print(now_process)
         with open("logs/缺資料.txt", "a", encoding="utf-8") as f:

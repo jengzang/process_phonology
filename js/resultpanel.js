@@ -106,8 +106,6 @@ function toggleColumnVisibility(hideMode = true) {
     } else {
         table.classList.remove('condensed-mode', 'hide-loc-col', 'hide-feature-col');
     }
-
-
     renderResults(window.latestResults);
 }
 
@@ -141,18 +139,19 @@ document.getElementById('toggleColumnsBtn').addEventListener('click', () => {
 
 
 
-function renderResults(data) {
+function renderResults(data,table =  document.querySelector('#resultTable')) {
     if (!Array.isArray(data)) {
         console.error('❌ 結果不是數組');
         return;
     }
 
-    console.log('✅ 輸入資料筆數:', data.length);
+    // console.log('✅ 輸入資料筆數:', data.length);
     clearLoadingMessage();
 
-    const table = document.querySelector('#resultTable');
+    // const table = document.querySelector('#resultTable');
     const tbody = table.querySelector('tbody');
     const thead = table.querySelector('thead');
+
     if (!tbody || !thead) {
         console.warn('⚠️ 找不到表格結構');
         return;
@@ -165,8 +164,8 @@ function renderResults(data) {
     const useFiveCols = uniqueFeatures.size > 1;
     const featureName = !useFiveCols ? [...uniqueFeatures][0] : null;
 
-    console.log('🧩 使用欄位格式:', useFiveCols ? '5欄（多特徵）' : '4欄（唯一特徵）');
-    if (!useFiveCols) console.log('🧷 特徵名稱:', featureName);
+    // console.log('🧩 使用欄位格式:', useFiveCols ? '5欄（多特徵）' : '4欄（唯一特徵）');
+    // if (!useFiveCols) console.log('🧷 特徵名稱:', featureName);
 
     table.classList.remove('four-col', 'five-col');
     table.classList.add(useFiveCols ? 'five-col' : 'four-col');
@@ -175,7 +174,7 @@ function renderResults(data) {
     const headColsRaw = !useFiveCols
         ? ['地點', featureName, '對應字', '字數/佔比']
         : ['地點', '特徵', '值', '對應字', '字數/佔比'];
-
+    // console.log(table.classList)
     const shouldHideCol1 = table.classList.contains('hide-loc-col');
     const shouldHideCol2 = table.classList.contains('hide-feature-col');
 
@@ -185,6 +184,7 @@ function renderResults(data) {
         return !(colIdx === 2 && useFiveCols && shouldHideCol2);
 
     });
+
 
     thead.innerHTML = `<tr>${headCols.map((h, i) => `<th class="col${i + 1}"><div class="th-inner">${h}</div></th>`).join('')}</tr>`;
 
@@ -269,7 +269,7 @@ function renderResults(data) {
     let lastFeatureKey = null;
     let lastTr = null;
 
-// 渲染表格内容
+    // 渲染表格内容
     data.forEach(item => {
         if (table.classList.contains('condensed-mode')) {
             const 字數 = item.字數 || 0;
@@ -422,7 +422,7 @@ function renderResults(data) {
         lastTr = tr;
     });
 
-
+    if (!table || table.id !== 'resultTable') return;
     setupStickyContextObserver();
     clearLoadingMessage();
 }
@@ -518,6 +518,10 @@ async function analysis_from_db() {
     const group_inputs = parseMultilineListInput("group_inputs");
     const pho_values = parseMultilineListInput("pho_values");
 
+    if (isEmptyInput(locations) && isEmptyInput(regions)) {
+        alert("請輸入地點或分區！");
+        return;
+    }
 
     const payload = {
         mode,
@@ -560,14 +564,13 @@ async function analysis_from_db() {
 
         if (!res.ok || !result.success || !Array.isArray(result.results)) {
             console.error("❌ 回傳錯誤", result);
-            alert("後端錯誤或格式異常！");
+            alert("輸入的中古地位不正確！");
             clearLoadingMessage();
             return;
         }
         const data = result.results;
         // 清除字數为0的數據
-        const filteredData = data.filter(item => item.字數 !== 0);
-        window.latestResults = filteredData; // 👈 加上這一行，確保能在 toggle 時用
+        window.latestResults = data.filter(item => item.字數 !== 0); // 👈 加上這一行，確保能在 toggle 時用
         // console.log('🔍 data 第一筆:', data[0]);
         // console.log('🔍 整個data:', data);
         // console.log('🔍 data 第一筆特徵值的型別:', typeof data[0].特徵值, data[0].特徵值);
@@ -579,49 +582,90 @@ async function analysis_from_db() {
     }
 }
 
-async function js_table_render() {
-    let latestResults = window.latestResults;
-    if (!Array.isArray(latestResults) || latestResults.length === 0) {
-        alert("⚠️ 沒有有效的結果可渲染");
+async function js_table_render(small = false) {
+    if (small) {
+        let latestResults = window.latestdetailResults;
+        // console.log(latestResults)
+        if (!Array.isArray(latestResults) || latestResults.length === 0) {
+            alert("⚠️ 沒有有效的結果可渲染");
+            clearLoadingMessage();
+            return;
+        }
+        // 在渲染之前動態創建表格（如果表格不存在）
+        let resultTable = document.getElementById("detailTable");
+        if (!resultTable) {
+            const resultPanelContent = document.getElementById("display-detail");
+
+            resultTable = document.createElement("table");
+            resultTable.id = "detailTable";
+            resultTable.classList.add("four-col");
+
+            const thead = document.createElement("thead");
+            const headerRow = document.createElement("tr");
+
+            // 添加表格標題
+            const headers = ["地點", "特徵值", "對應字", "字數/佔比"];
+            headers.forEach(header => {
+                const th = document.createElement("th");
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+
+            thead.appendChild(headerRow);
+            resultTable.appendChild(thead);
+
+            const tbody = document.createElement("tbody");
+            resultTable.appendChild(tbody);
+
+            resultPanelContent.appendChild(resultTable);
+        }
+        const table = document.querySelector('#detailTable');
+        // table.classList.add('hide-loc-col','condensed-mod');
+        renderResults(latestResults,table);
+
+    } else {
+        let latestResults = window.latestResults;
+        if (!Array.isArray(latestResults) || latestResults.length === 0) {
+            alert("⚠️ 沒有有效的結果可渲染");
+            clearLoadingMessage();
+            return;
+        }
+        // 在渲染之前動態創建表格（如果表格不存在）
+        let resultTable = document.getElementById("resultTable");
+        if (!resultTable) {
+            const resultPanelContent = document.getElementById("resultPanelContent");
+
+            resultTable = document.createElement("table");
+            resultTable.id = "resultTable";
+            resultTable.classList.add("four-col");
+
+            const thead = document.createElement("thead");
+            const headerRow = document.createElement("tr");
+
+            // 添加表格標題
+            const headers = ["地點", "特徵值", "對應字", "字數/佔比"];
+            headers.forEach(header => {
+                const th = document.createElement("th");
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+
+            thead.appendChild(headerRow);
+            resultTable.appendChild(thead);
+
+            const tbody = document.createElement("tbody");
+            resultTable.appendChild(tbody);
+
+            resultPanelContent.appendChild(resultTable);
+        }
+
+        setLoadingMessage("📊 表格整理中…");
+        const renderStart = performance.now();
+        renderResults(latestResults);
+        const renderEnd = performance.now();
+        console.log(`🖥️ 表格渲染耗時：${(renderEnd - renderStart).toFixed(2)} ms`);
+
         clearLoadingMessage();
-        return;
     }
-
-    // 在渲染之前動態創建表格（如果表格不存在）
-    let resultTable = document.getElementById("resultTable");
-    if (!resultTable) {
-        const resultPanelContent = document.getElementById("resultPanelContent");
-
-        resultTable = document.createElement("table");
-        resultTable.id = "resultTable";
-        resultTable.classList.add("four-col");
-
-        const thead = document.createElement("thead");
-        const headerRow = document.createElement("tr");
-
-        // 添加表格標題
-        const headers = ["地點", "特徵值", "對應字", "字數/佔比"];
-        headers.forEach(header => {
-            const th = document.createElement("th");
-            th.textContent = header;
-            headerRow.appendChild(th);
-        });
-
-        thead.appendChild(headerRow);
-        resultTable.appendChild(thead);
-
-        const tbody = document.createElement("tbody");
-        resultTable.appendChild(tbody);
-
-        resultPanelContent.appendChild(resultTable);
-    }
-
-    setLoadingMessage("📊 表格整理中…");
-    const renderStart = performance.now();
-    renderResults(latestResults);
-    const renderEnd = performance.now();
-    console.log(`🖥️ 表格渲染耗時：${(renderEnd - renderStart).toFixed(2)} ms`);
-
-    clearLoadingMessage();
 }
 

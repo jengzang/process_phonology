@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
 <!--    <meta http-equiv="X-UA-Compatible" content="IE=edge">-->
 <!--    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">-->
-    <title>不羈🙌🏻地理語言學工具</title>
+    <title>方言比較-地理語言學</title>
 
     <!-- CSS 引入 -->
     <link rel="stylesheet" href="css/global.css" />
@@ -192,18 +192,26 @@
     <div id="mapPanelContent" class="panel-content">
                 <!-- 地图区域 -->
         <div id="mapContainer">
-            <div id="popup" class="popup">
-                <div class="popup-content">
-<!--                    <h4>详细信息</h4>-->
-                    <p id="location-name"></p>
-                    <p id="feature"></p>
-                    <p id="detail-content"></p>
-                    <p id="notes1"></p>
-                    <!--                <button id="close-popup" class="popup-close-btn">关闭</button>-->
-                </div>
-            </div>
             <!-- 地图将加载在这里 -->
         </div>
+        <div id="popup" class="popup">
+            <div class="popup-content">
+                <!--                    <h4>详细信息</h4>-->
+                <p id="location-name"></p>
+                <p id="feature"></p>
+                <p id="detail-content"></p>
+                <p id="notes1"></p>
+                <!--                <button id="close-popup" class="popup-close-btn">关闭</button>-->
+                <button id="mini-btn" class="mini-button">🔍詳情</button>
+            </div>
+        </div>
+        <div id="popup2" class="popup">
+            <div class="popup-content">
+                <p id="location-name2"></p>
+                <p id="feature2"></p>
+            </div>
+        </div>
+
 
            <!-- 控件控制面板（最小化和最大化是通过鼠标操作和点击控制）-->
         <div class="input-card" id="inputCard">
@@ -258,17 +266,24 @@
             <table>
                 <tr>
                     <td>
-                        <label>请输入关键字：</label>
+                        <label>地點搜索：</label>
                     </td>
                 </tr>
                 <tr>
                     <td>
-                        <input id="tipinput"/>
+                        <input id="tipinput" placeholder="請輸入關鍵字"/>
                     </td>
                 </tr>
             </table>
         </div>
     </div>
+
+    <div id="query-detail-panel" class="query-detail-panel">
+        <button id="close-panel" class="close-btn">×</button>
+        <div id='display-detail' class="panel-content">
+        </div>
+    </div>
+
     <!-- 右侧面板容器 -->
     <div id="rightPanel" class="right-panel">
         <div class="panel-content1">
@@ -276,15 +291,15 @@
             <form id="infoForm">
                 <div class="form-row">
                     <label for="location-input">地點(簡稱):</label>
-                    <input type="text" id="location-input" name="location" placeholder="請輸入地點簡稱">
+                    <input type="text" id="location-input" name="location" placeholder="請輸入地點，支持模糊匹配">
                 </div>
                 <div class="form-row">
                     <label for="region-input">音典分區:</label>
-                    <input type="text" id="region-input" name="region" placeholder="請輸入音典分區">
+                    <input type="text" id="region-input" name="region" placeholder="單擊地點選框 自動填入分區">
                 </div>
                 <div class="form-row">
                     <label for="coordinates-input">經緯度:</label>
-                    <input type="text" id="coordinates-input" name="coordinates" placeholder="請輸入經緯度">
+                    <input type="text" id="coordinates-input" name="coordinates" placeholder="點擊地圖自動填入經緯度">
                 </div>
                 <div class="form-row">
                     <label for="feature-input">特徵:</label>
@@ -292,7 +307,7 @@
                 </div>
                 <div class="form-row">
                     <label for="value-input">值:</label>
-                    <input type="text" id="value-input" name="value" placeholder="請輸入值">
+                    <input type="text" id="value-input" name="value" placeholder="請輸入用於繪圖的值">
                 </div>
                 <div class="form-row">
                     <label for="description-input">說明:</label>
@@ -346,5 +361,6 @@
 <script src="js/mappanel.js"></script>
 <script src="js/Extrapanel.js"></script>
 <script src="js/vue.js"></script>
+<script src="js/get_detail.js"></script>
 </body>
 </html>

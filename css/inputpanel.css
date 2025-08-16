@@ -675,19 +675,20 @@ label:hover {
 
 /* 展開時的樣式 */
 .dropdown-map option {
-    padding: 3px; /* 給選項適當的內邊距 */
-    font-size: 13px;
-    background-color: #f9f9f9; /* 輕微的背景色 */
-    color: #333;
-    text-align: center; /* 文字居中 */
-    transition: all 0.3s ease; /* 平滑過渡效果 */
-    border-radius: 8px; /* 設置選項圓角 */
+    padding: 8px 12px;               /* 更舒适的内边距 */
+    font-size: 14px;                 /* 稍大字体，更易读 */
+    background-color: #fefefe;       /* 明亮干净的背景 */
+    color: #1d1d1f;                  /* 苹果系深灰文字 */
+    text-align: left;                /* iOS 通常左对齐 */
+    border: none;
+    border-radius: 6px;              /* 微圆角，干净利落 */
+    transition: background-color 0.2s ease, color 0.2s ease;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 }
 
-/* 當用戶懸停在選項時，背景顏色改變 */
 .dropdown-map option:hover {
-    background-color: #007aff; /* 蘋果藍的高亮效果 */
-    color: white;
+    background-color: #eaeaea;       /* 悬停时淡灰色 */
+    color: #000;
 }
 
 /* focus 和 hover 時的樣式 */
@@ -697,3 +698,4 @@ label:hover {
     background-color: #e1f3ff; /* 輕微的藍色背景 */
     box-shadow: 0 4px 10px rgba(0, 122, 255, 0.2);
 }
+

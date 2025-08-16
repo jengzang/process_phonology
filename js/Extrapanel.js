@@ -36,12 +36,13 @@ document.getElementById("expandButton").addEventListener("click", function() {
 });
 
 // 获取 "地点（简称）" 输入框和提示框元素
-const inputadd = document.getElementById("location-input");  // 修改为“地点（简称）”输入框的 ID
-const suggestionadd = document.getElementById("inlineSuggestion");  // 保持原样，假设已定义
+const inputadd = document.getElementById("location-input");  // “地点（简称）”输入框的 ID
+const suggestionadd = document.getElementById("inlineSuggestion");  //
 const regionInput = document.getElementById("region-input");  // 音典分区输入框
 
 // 监听输入框的 keyup 事件
-inputadd.addEventListener("keyup",async () => {
+inputadd.addEventListener("keyup", debounce(locations2regions, 300));
+async function locations2regions(){
     if (!window.isPanelOpen) {
         return;  // 如果面板没有展开，则不执行输入框逻辑
     }
@@ -147,7 +148,7 @@ inputadd.addEventListener("keyup",async () => {
             suggestionadd.style.top = `${rect.bottom + 6 + window.scrollY}px`;
             suggestionadd.style.display = "block";
         });
-});
+};
 
 // 🔻 自動隱藏：若输入框失去焦点（但点击 suggestionadd 例外）
 inputadd.addEventListener("blur", () => {
@@ -197,7 +198,7 @@ document.getElementById("infoForm").addEventListener("submit", function(event) {
             if (data.success) {
                 alert("數據提交成功！");
                 // 可以選擇清空表單或其他操作
-                document.getElementById("infoForm").reset();  // 清空表單
+                // document.getElementById("infoForm").reset();  // 清空表單
             } else {
                 alert("提交失敗：" + data.message);
             }
@@ -231,16 +232,330 @@ customToggle.addEventListener('click', async function() {
         customLabel.innerText = "隱藏";
         // 在此处执行隐藏自定义信息的操作
     }
-    if(window.plotted === false){
-        // 运行 create_map1
-        await create_map1();
+    if(window.isRun){
+        if(window.plotted === false){
+            // 創建地點名稱圖
+            await create_map1();
+        }
+        else{
+            await func_mergeData();
+            await triggerDrawingFunction();
+        }
     }
     else{
-        await triggerDrawingFunction();
+        // console.log("進來了！");
+        const featureContainer = document.getElementById("featureContainer");
+        // 1) 用 children 判空，避免空白/註釋干扰
+        if (featureContainer.children.length === 0) {
+            const input = document.createElement("input");
+            input.type = "text";
+            input.id = "tipinput2";
+            input.placeholder = "請輸入自定義特徵...";
+            input.autocomplete = "off";
+            input.spellcheck = false;
+
+            // 防止任何上层全局 listener 抢走焦点/键盘
+            const forceFocus = (e) => {
+                // 不要 preventDefault，避免阻断浏览器的默认聚焦行为
+                e.stopPropagation(); // 阻断冒泡到 document 的全局拦截器
+                // 双保险：下一帧把焦点抢回
+                requestAnimationFrame(() => {
+                    if (document.activeElement !== input) input.focus({ preventScroll: true });
+                });
+            };
+            input.addEventListener("pointerdown", forceFocus, true); // 捕获阶段
+            input.addEventListener("mousedown", forceFocus, true);   // 兼容性
+            input.addEventListener("keydown", (e) => e.stopPropagation(), true); // 键盘事件不让出
+
+            // 输入时 → 调接口（防抖）
+            input.addEventListener("input", debounce(() => {
+                get_custom_feature();
+            }, 300));
+
+            featureContainer.appendChild(input);
+            input.focus();
+        }
     }
+
 
 });
 
+
+
+
+async function get_custom_feature(){
+    const locations = document.getElementById('locations').value.trim().split(/\s+/);
+    const regions = document.getElementById('regions').value.trim().split(/\s+/);
+    if (isEmptyInput(locations) && isEmptyInput(regions)) {
+        // alert("請輸入地點或分區！");
+        return;
+    }
+    // 用户输入框
+    const inputEl = document.getElementById('tipinput2');
+    const word = inputEl ? inputEl.value.trim() : "";
+    const suggestion = document.getElementById("inlineSuggestion");  // 渲染到这里
+
+    const queryParams = {
+        locations: locations,
+        regions: regions,
+        word: word
+    };
+
+    try {
+        const response = await fetch("http://10.250.101.238:5000/api/get_custom_feature", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(queryParams)
+        });
+
+        if (!response.ok) {
+            console.error("後端返回錯誤", response.status);
+            return;
+        }
+
+        const data = await response.json(); // 形如 [{簡稱:'…', 特徵:'…'}, ...]
+        // 扁平唯一特徵列表
+        const features = [...new Set(
+            (Array.isArray(data) ? data : []).map(d => d?.["特徵"]).filter(Boolean)
+        )];
+        // console.log('特徵列表:', features);
+        const cursorPos = inputEl.selectionStart;
+        const value = inputEl.value;
+
+        const separators = /[ ,;/，；、\n\t]/g;
+        let lastSepIndex = -1;
+        for (let i = cursorPos - 1; i >= 0; i--) {
+            if (separators.test(value[i])) {
+                lastSepIndex = i;
+                break;
+            }
+        }
+
+        const queryStart = lastSepIndex + 1;
+        // const query = value.slice(queryStart, cursorPos).trim();
+        // if (!query) {
+        //     suggestion.style.display = "none";
+        //     return;
+        // }
+        suggestion.innerHTML = ""; // ✅ 这里清空旧建议
+        features.forEach(item => {
+            const div = document.createElement("div");
+            div.className = "suggest-line";
+            div.textContent = item;
+
+            div.addEventListener("mousedown", async e => {
+                e.preventDefault();
+                inputEl.value = item;
+                suggestion.style.display = "none";
+                window.selectedItem = item;
+                await process_custom();
+                await triggerDrawingFunction();
+            });
+            suggestion.appendChild(div);
+        });
+        const rect = inputEl.getBoundingClientRect();
+        suggestion.style.left = `${rect.left + window.scrollX}px`;
+        suggestion.style.top = `${rect.bottom + 6 + window.scrollY}px`;
+        suggestion.style.display = "block";
+    } catch (err) {
+        console.error("請求失敗:", err);
+    }
+    // 🔻 自動隱藏：若輸入框失去焦點（但點擊 suggestion 例外）
+    inputEl.addEventListener("blur", () => {
+        setTimeout(() => {
+            suggestion.style.display = "none";
+        }, 200);
+    });
+}
+
+async function process_custom() {
+    // 获取前端页面数据
+    const locations = document.getElementById('locations').value.trim().split(/\s+/);
+    const regions = document.getElementById('regions').value.trim().split(/\s+/);
+    const featuresInput = document.getElementById('tipinput2');
+    const featureList = featuresInput?.value.trim().split(/\s+/).filter(Boolean) || [];
+
+    // 构建请求参数
+    const queryParams = {
+        locations: locations,
+        regions: regions,
+        need_features: featureList
+    };
+
+    let result = null;
+    let shouldContinue = true;
+
+    try {
+        const response = await fetch("http://10.250.101.238:5000/api/get_custom", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(queryParams)
+        });
+        if (!response.ok) {
+            shouldContinue = false;
+            // console.log("沒回應")
+        } else {
+            result = await response.json();
+            // console.log("有回應")
+        }
+    } catch (error) {
+        shouldContinue = false;
+    }
+
+    if (!shouldContinue || !Array.isArray(result)) {
+        console.log("自定義資料獲取失敗或格式錯誤", result);
+        return;
+    }
+
+    let mergedData = [];
+    if (!Array.isArray(result) || result.length === 0) {
+        alert("當前地點/分區不包含自定數據");
+        return;
+    }
+
+    function getCenterAndZoom(coordinates) {
+        const valid = coordinates.filter(c => Array.isArray(c) && c.length === 2);
+        if (!valid.length) return { centerCoordinate: [0, 0], zoomLevel: 10 };
+
+        const lats = valid.map(c => c[1]);
+        const lons = valid.map(c => c[0]);
+
+        const minLat = Math.min(...lats);
+        const maxLat = Math.max(...lats);
+        const minLon = Math.min(...lons);
+        const maxLon = Math.max(...lons);
+
+        const centerLat = Number(((maxLat + minLat) / 2).toFixed(6));
+        const centerLon = Number(((maxLon + minLon) / 2).toFixed(6));
+
+        const latSpan = maxLat - minLat;
+        const lonSpan = maxLon - minLon;
+        const maxSpan = Math.max(latSpan, lonSpan);
+
+        // 简化版 zoom 估算（你可以自己调这个阈值）
+        let zoomLevel = 10;
+        if (maxSpan > 1) zoomLevel = 7;
+        else if (maxSpan > 0.5) zoomLevel = 9;
+        else if (maxSpan > 0.2) zoomLevel = 11;
+        else if (maxSpan > 0.1) zoomLevel = 13;
+        else if (maxSpan > 0.05) zoomLevel = 15;
+        else zoomLevel = 17;
+
+        return {
+            centerCoordinate: [centerLon , centerLat],
+            zoomLevel
+        };
+    }
+    const coordinateList = result
+        .map(row => row["經緯度"])
+        .filter(coord => Array.isArray(coord) && coord.length === 2);
+    const { centerCoordinate, zoomLevel } = getCenterAndZoom(coordinateList);
+
+    result.forEach((row) => {
+        const newCoordinate = row["經緯度"];
+        const newLocation = row["簡稱"];
+        const newFeature = row["特徵"];
+
+        const locationIndex = mergedData.findIndex(item => item.feature === newFeature);
+
+        if (locationIndex === -1) {
+            mergedData.push({
+                location: newLocation,
+                feature: newFeature,
+                value: row["值"],
+                coordinate: newCoordinate,
+                maxValue: row["maxValue"],
+                notes: row["說明"],
+                iscustoms: 1,
+                zoomLevel: zoomLevel ?zoomLevel: 10,
+                centerCoordinate: centerCoordinate,
+                detailContent: []
+            });
+        } else {
+            const existingItem = mergedData[locationIndex];
+
+            if (JSON.stringify(existingItem.coordinate) === JSON.stringify(newCoordinate)) {
+                if (existingItem.location === newLocation) {
+                    existingItem.value += "║" + row["值"];
+                    existingItem.maxValue += "║" + row["maxValue"];
+                    existingItem.notes += "║" + row["說明"];
+                    existingItem.iscustoms = 1;
+                } else {
+                    mergedData.push({
+                        location: newLocation,
+                        feature: newFeature,
+                        value: row["值"],
+                        coordinate: newCoordinate,
+                        maxValue: row["maxValue"],
+                        notes: row["說明"],
+                        iscustoms: 1,
+                        zoomLevel: mergedData.length > 0 ? mergedData[0].zoomLevel : 10,
+                        centerCoordinate: mergedData.length > 0 ? mergedData[0].centerCoordinate : [0, 0],
+                        detailContent: []
+                    });
+                }
+            } else {
+                mergedData.push({
+                    location: newLocation,
+                    feature: newFeature,
+                    value: row["值"],
+                    coordinate: newCoordinate,
+                    maxValue: row["maxValue"],
+                    notes: row["說明"],
+                    iscustoms: 1,
+                    zoomLevel: mergedData.length > 0 ? mergedData[0].zoomLevel : 10,
+                    centerCoordinate: mergedData.length > 0 ? mergedData[0].centerCoordinate : [0, 0],
+                    detailContent: []
+                });
+            }
+        }
+    });
+
+    // 特征 maxValue 颜色分配逻辑
+    let featureMaxValuesToColor = {};
+
+    mergedData.forEach(item => {
+        const feature = item.feature;
+        const maxPercentageValue = item.maxValue;
+
+        if (!featureMaxValuesToColor[feature]) {
+            featureMaxValuesToColor[feature] = new Set();
+        }
+
+        featureMaxValuesToColor[feature].add(maxPercentageValue);
+    });
+
+    const colorScale = [
+        '#FFB3B3', '#FFB366', '#FFFF99', '#B3FFB3', '#99CCFF', '#D4A6FF',
+        '#FF6666', '#FFD699', '#99CCCC', '#D1D1FF', '#FF9999', '#FFB3FF',
+        '#FFFF66', '#B3FF99', '#99CCFF', '#FFCC99', '#CCCCFF', '#FF66CC',
+        '#FFFF66', '#B3FFCC'
+    ];
+
+    let featureToColor = {};
+
+    Object.keys(featureMaxValuesToColor).forEach(feature => {
+        const uniqueValues = Array.from(featureMaxValuesToColor[feature]);
+        featureToColor[feature] = {};
+        uniqueValues.forEach((value, index) => {
+            featureToColor[feature][value] = colorScale[index % colorScale.length];
+        });
+    });
+
+    mergedData.forEach(item => {
+        const feature = item.feature;
+        const maxValue = item.maxValue;
+        item.color = featureToColor[feature][maxValue];
+    });
+
+    // 存入全局变量
+    window.mergedData = mergedData;
+    // console.log("mergedData存储完成", window.mergedData);
+}
 
 
 

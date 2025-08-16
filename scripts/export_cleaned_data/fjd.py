@@ -8,12 +8,14 @@ from pathlib import Path
 from collections import defaultdict
 import ast
 
+
 # 替代 ast.literal_eval 的解析方法
 def parse_sql_tuple(tup_str):
     # 将 SQL 格式的 (value1, 'value2', 'value3') 转为 CSV 行
     fake_csv = StringIO(tup_str.strip()[1:-1])  # 去掉外层括号
     reader = csv.reader(fake_csv, delimiter=',', quotechar="'", skipinitialspace=True)
     return next(reader)
+
 
 # === 配置 ===
 SQL_FILE = "rawdata/jyutdict.sql"
@@ -50,8 +52,8 @@ for match in insert_pattern.finditer(sql_text):
                 print(f"   ➤ 解析结果：{row}")
                 print(f"   ➤ 原始元组：{tup}")
                 continue
-            table_data[table_name].append(dict(zip(columns, row)))
-            parse_stats[table_name]["success"] += 1  # 只有这时才统计为成功
+            # table_data[table_name].append(dict(zip(columns, row)))
+
 
             # 清理字符串中形如 '(書)' 的字段 → '書'
             cleaned_row = []
@@ -62,6 +64,7 @@ for match in insert_pattern.finditer(sql_text):
                     cleaned_row.append(item)
 
             table_data[table_name].append(dict(zip(columns, cleaned_row)))
+            parse_stats[table_name]["success"] += 1  # 只有这时才统计为成功
 
         except Exception as e:
             print("❌ 无法解析：")
@@ -108,3 +111,33 @@ for table, rows in table_data.items():
     df.to_excel(out_path, index=False)
     print(f"✅ 导出：{out_path.name}，共 {exported} 行，有 {ignored} 行被忽略")
 
+print("\n=== 📦 开始 IPA 拆分后处理 ===")
+
+for excel_file in OUTPUT_DIR.glob("*.xlsx"):
+    df = pd.read_excel(excel_file)
+    if "ipa" not in df.columns:
+        print(f"⚠️ 文件 {excel_file.name} 缺少 ipa 列，跳过")
+        continue
+
+    new_rows = []
+    split_count = 0
+    total_split_lines = 0
+
+    for idx, row in df.iterrows():
+        ipa_value = str(row["ipa"])
+        if "=" in ipa_value:
+            split_ipas = ipa_value.split("=")
+            total_split_lines += len(split_ipas)
+            split_count += 1
+            print(f"  ➤ 第 {idx+1} 行 ipa 拆分为 {len(split_ipas)} 项：{split_ipas}")
+            for ipa in split_ipas:
+                new_row = row.copy()
+                new_row["ipa"] = ipa.strip()
+                new_rows.append(new_row)
+        else:
+            new_rows.append(row)
+
+    new_df = pd.DataFrame(new_rows)
+    new_df.to_excel(excel_file, index=False)
+    print(f"✅ 文件 {excel_file.name}：拆分 {split_count} 行，新增 {total_split_lines - split_count} 行，"
+          f"最终总数 {len(new_df)} 行")

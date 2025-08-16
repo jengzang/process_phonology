@@ -1,3 +1,7 @@
+#mapPanel {
+    overflow-x: hidden;  /* 禁止水平方向滚动 */
+}
+
 /* 控件面板 */
 .input-card {
     display: flex;
@@ -101,16 +105,17 @@
 /* 使 #myPageTop 在 mapPanel 内部悬浮 */
 #myPageTop {
     position: absolute;  /* 相对于父容器 #mapPanel 定位 */
-    top: 20px;  /* 设置距离顶部的距离 */
+    top: 50px;  /* 设置距离顶部的距离 */
     left: 50%;  /* 水平居中 */
     transform: translateX(-50%);  /* 使元素水平居中 */
     z-index: 1000;  /* 确保它位于其他内容之上 */
     background-color: rgba(255, 255, 255, 0.7);  /* 背景色，保持半透明效果 */
-    padding: 10px 15px;  /* 减小内边距，使内容更紧凑 */
+    padding: 5px 8px;  /* 减小内边距，使内容更紧凑 */
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* 添加阴影 */
     width: 80%;  /* 控制宽度，可以根据需要调整 */
     max-width: 200px;  /* 设置最大宽度 */
+    display: none;
 }
 
 /* 优化 #myPageTop 中 table 样式 */
@@ -120,10 +125,15 @@
     padding: 0;  /* 去掉默认的内边距 */
 }
 
+#myPageTop td{
+    margin: 0;  /* 去掉默认的间距 */
+    padding: 0;  /* 去掉默认的内边距 */
+}
+
 /* 优化 label 和输入框之间的间距 */
 #myPageTop label {
     font-size: 16px;
-    margin-bottom: 5px;  /* 缩小文本和输入框之间的距离 */
+    margin-bottom: 1px;  /* 缩小文本和输入框之间的距离 */
     color: #333;
 }
 
@@ -135,7 +145,8 @@
     border-radius: 4px;  /* 边角圆润 */
     border: 1px solid #ccc;  /* 边框颜色 */
     box-sizing: border-box;  /* 确保输入框内边距包含在宽度中 */
-    margin-top: 5px;  /* 输入框上方和文本的间距 */
+    margin-top: 1px;  /* 输入框上方和文本的间距 */
+    margin-bottom: 5px;
 }
 
 /* 在你的 CSS 文件中定义样式 */
@@ -166,10 +177,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1;
+    z-index: 9999;
     min-width: 150px;
     min-height: 35px;
     padding: 5px;
+    pointer-events: auto; /* 确保可交互 */
 }
 
 
@@ -269,7 +281,8 @@
 }
 
 /* 弹窗的基本样式 */
-.popup {
+.popup,
+.popup2{
     position: fixed;
     left: 50%;
     transform: translateX(-50%);
@@ -292,7 +305,7 @@
     transform: translateX(-50%) translateY(20px); /* 适当的偏移量 */
 }
 
-.popup.active2 {
+.popup2.active {
     opacity: 1!important;
     z-index: 99999;
     visibility: visible!important;
@@ -355,4 +368,20 @@
 
 .popup-close-btn:hover {
     background-color: #005bb5;
+}
+
+.mini-button {
+    margin-top: 2px;
+    padding: 1px 2px;
+    font-size: 11px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.mini-button:hover {
+    background-color: #1a682b;
 }
