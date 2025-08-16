@@ -3,18 +3,17 @@ import sys
 import threading
 import time
 import webbrowser
+import asyncio
+import re
+import pandas as pd
 from typing import List, Optional, Union
 
 import uvicorn
-from pydantic import BaseModel, Field
-import asyncio
-import pandas as pd
-import re
-
-from fastapi import FastAPI, Query, HTTPException
+from fastapi import FastAPI, Query, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import HTMLResponse
 from starlette.staticfiles import StaticFiles
+from pydantic import BaseModel, Field
 
 from main import run_phonology_analysis
 from source.Extras_addplaces_searchchars import fetch_dialect_region, handle_form_submission, get_from_submission, \
@@ -23,15 +22,20 @@ from source.config import SUPPLE_DB_PATH
 from source.process_input import read_partition_hierarchy, match_locations_batch, query_dialect_abbreviations, \
     get_coordinates_from_db
 
+# 引入日志统计模块
+from logs.api_logger  import update_count, log_detailed_api, log_all_fields
+
+app = FastAPI()
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+
+
+# 静态资源
 
 def get_resource_path(relative_path):
     if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, relative_path)
     return os.path.abspath(relative_path)
 
-
-app = FastAPI()
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 app.mount("/css", StaticFiles(directory=get_resource_path("css")), name="css")
 app.mount("/js", StaticFiles(directory=get_resource_path("js")), name="js")
@@ -41,16 +45,14 @@ app.mount("/data", StaticFiles(directory=get_resource_path("data")), name="data"
 
 @app.get("/", response_class=HTMLResponse)
 async def index():
-    # 获取 index.html 的文件路径
     index_path = get_resource_path("index.html")
-    # 打开并读取文件内容
     with open(index_path, encoding="utf-8") as f:
         content = f.read()
-    # 返回 HTML 内容，带上 Cache-Control 响应头
     headers = {"Cache-Control": "no-cache, must-revalidate"}
     return HTMLResponse(content=content, headers=headers)
 
 
+# === API Models ===
 class AnalysisPayload(BaseModel):
     mode: str
     locations: List[str] = Field(default_factory=list)
@@ -62,50 +64,40 @@ class AnalysisPayload(BaseModel):
 
 
 @app.post("/api/phonology")
-async def api_run_phonology_analysis(payload: AnalysisPayload):
+async def api_run_phonology_analysis(request: Request, payload: AnalysisPayload):
+    update_count(request.url.path)
+    log_all_fields(request.url.path, payload.dict())
+    start = time.time()
     try:
-        analysis_result = await asyncio.to_thread(
-            run_phonology_analysis,
-            mode=payload.mode,
-            locations=payload.locations,
-            regions=payload.regions,
-            features=payload.features,
-            status_inputs=payload.status_inputs,
-            group_inputs=payload.group_inputs,
-            pho_values=payload.pho_values
-        )
-
-        # 假設只回傳一個 DataFrame
-        if isinstance(analysis_result, pd.DataFrame):
-            return {
-                "success": True,
-                "results": analysis_result.to_dict(orient="records")
-            }
-
-        # 若是清單，合併所有 DataFrame
-        if isinstance(analysis_result, list) and all(isinstance(df, pd.DataFrame) for df in analysis_result):
-            merged_df = pd.concat(analysis_result, ignore_index=True)
-            return {
-                "success": True,
-                "results": merged_df.to_dict(orient="records")
-            }
-
-        return {
-            "success": False,
-            "error": "未識別的分析結果格式"
-        }
-
+        result = await asyncio.to_thread(run_phonology_analysis, **payload.dict())
+        status = 200
+        if isinstance(result, pd.DataFrame):
+            return {"success": True, "results": result.to_dict(orient="records")}
+        if isinstance(result, list) and all(isinstance(df, pd.DataFrame) for df in result):
+            merged = pd.concat(result, ignore_index=True)
+            return {"success": True, "results": merged.to_dict(orient="records")}
+        return {"success": False, "error": "未識別的分析結果格式"}
     except Exception as e:
+        status = 500
         return {"success": False, "error": str(e)}
+    finally:
+        duration = time.time() - start
+        log_detailed_api(request.url.path, duration, status, request.client.host, request.headers.get("user-agent", ""),
+                         request.headers.get("referer", ""))
 
 
 @app.get("/api/partitions")
-async def api_get_partitions(parent: Optional[str] = Query(None)):
+async def api_get_partitions(request: Request, parent: Optional[str] = Query(None)):
+    update_count(request.url.path)
+    log_all_fields(request.url.path, {"parent": parent})
+    start = time.time()
     try:
         result = read_partition_hierarchy(parent)
         return result
-    except Exception as e:
-        return {"error": str(e)}
+    finally:
+        duration = time.time() - start
+        log_detailed_api(request.url.path, duration, 200, request.client.host, request.headers.get("user-agent", ""),
+                         request.headers.get("referer", ""))
 
 
 class MatchRequest(BaseModel):
@@ -114,91 +106,104 @@ class MatchRequest(BaseModel):
 
 
 @app.post("/api/batch_match")
-async def batch_match(data: MatchRequest):
-    input_string = data.input_string.strip()
-    filter_valid_abbrs_only = data.filter_valid_abbrs_only  # 从请求体获取这个值
-    if not input_string:
-        return []
-
-    results = match_locations_batch(input_string, filter_valid_abbrs_only)
-    responses = []
-
-    for idx, res in enumerate(results):
-        part = re.split(r"[ ,;/，；、]+", input_string)[idx].strip()
-        success = bool(res[1])
-        if success:
-            responses.append({
-                "success": True,
-                "message": f"“{part}”匹配成功",
-                "items": res[0]
-            })
-        else:
-            merged = []
-            seen = set()  # 用來跟踪已經加入 merged 的元素
-            for i in [0, 3, 5, 7]:
-                val = res[i]
-                if isinstance(val, list):
-                    for item in val:
-                        if item not in seen:  # 確保只加入未添加過的元素
-                            merged.append(item)
-                            seen.add(item)
-                else:
-                    if val not in seen:  # 確保只加入未添加過的元素
+async def batch_match(request: Request, data: MatchRequest):
+    update_count(request.url.path)
+    log_all_fields(request.url.path, data.dict())
+    start = time.time()
+    try:
+        input_string = data.input_string.strip()
+        if not input_string:
+            return []
+        results = match_locations_batch(input_string, data.filter_valid_abbrs_only)
+        responses = []
+        for idx, res in enumerate(results):
+            part = re.split(r"[ ,;/，；、]+", input_string)[idx].strip()
+            success = bool(res[1])
+            if success:
+                responses.append({
+                    "success": True,
+                    "message": f"“{part}”匹配成功",
+                    "items": res[0]
+                })
+            else:
+                merged, seen = [], set()
+                for i in [0, 3, 5, 7]:
+                    val = res[i]
+                    if isinstance(val, list):
+                        for item in val:
+                            if item not in seen:
+                                merged.append(item)
+                                seen.add(item)
+                    elif val not in seen:
                         merged.append(val)
                         seen.add(val)
-
-            responses.append({
-                "success": False,
-                "message": f"第{idx + 1}個“{part}”未匹配",
-                "items": merged  # 保留順序，並確保不重複
-            })
-
-    return responses
+                responses.append({
+                    "success": False,
+                    "message": f"第{idx + 1}個“{part}”未匹配",
+                    "items": merged
+                })
+        return responses
+    finally:
+        duration = time.time() - start
+        log_detailed_api(request.url.path, duration, 200, request.client.host, request.headers.get("user-agent", ""),
+                         request.headers.get("referer", ""))
 
 
 @app.get("/api/get_regions")
-async def get_regions(input_data: Union[str, List[str]] = Query(..., alias="input_data")):
-    # 调用重构后的函数
-    return fetch_dialect_region(input_data)
+async def get_regions(request: Request, input_data: Union[str, List[str]] = Query(..., alias="input_data")):
+    update_count(request.url.path)
+    log_all_fields(request.url.path, {"input_data": input_data})
+    start = time.time()
+    try:
+        return fetch_dialect_region(input_data)
+    finally:
+        duration = time.time() - start
+        log_detailed_api(request.url.path, duration, 200, request.client.host, request.headers.get("user-agent", ""),
+                         request.headers.get("referer", ""))
 
 
 @app.get("/api/get_coordinates")
 async def get_coordinates(
+        request: Request,
         regions: str = Query(...),
         locations: str = Query(...),
-        iscustom: bool = None,  # 默认值为 None
+        iscustom: bool = None,
         flag: bool = True
 ):
-    if not regions.strip() and not locations.strip():
-        raise HTTPException(status_code=400, detail="請輸入地點或簡稱！")
+    update_count(request.url.path)
+    log_all_fields(request.url.path, {
+        "regions": regions,
+        "locations": locations,
+        "iscustom": iscustom,
+        "flag": flag
+    })
+    start = time.time()
+    try:
+        if not regions.strip() and not locations.strip():
+            raise HTTPException(status_code=400, detail="請輸入地點或簡稱！")
 
-    # 处理传入的字符串，转化为列表
-    locations_list = locations.split(',')  # 用逗号分隔字符串，转换为列表
-    regions_list = regions.split(',')  # 同样处理 regions
+        locations_list = locations.split(',')
+        regions_list = regions.split(',')
+        locations_processed = []
+        for location in locations_list:
+            matched = match_locations_batch(location)
+            extracted = [res[0][0] for res in matched if res[0]]
+            locations_processed.extend(extracted)
 
-    locations_processed = []
-    for location in locations_list:
-        # print(f"location:{location}")
-        matched_locations = match_locations_batch(location)
-        extracted_locations = [res[0][0] for res in matched_locations if res[0]]  # 只提取非空的地名
-        locations_processed.extend(extracted_locations)  # 使用 extend 扩展到 locations_processed 列表中
+        if iscustom:
+            abbr1 = query_dialect_abbreviations(regions_list, locations_list, db_path=SUPPLE_DB_PATH,
+                                                tables="informations")
+            abbr2 = query_dialect_abbreviations(regions_list, locations_processed, need_storage_flag=flag)
+            result = get_coordinates_from_db(abbr2, abbr1, use_supplementary_db=True)
+        else:
+            abbrs = query_dialect_abbreviations(regions_list, locations_processed)
+            result = get_coordinates_from_db(abbrs)
 
-    # Step 2: 如果 iscustom 为 True，则进行特殊处理
-    if iscustom:  # 如果 iscustom 被设置为 True
-        # 在这里添加自定义处理逻辑
-        abbreviations_list1 = query_dialect_abbreviations(regions_list, locations_list,
-                                                          db_path=SUPPLE_DB_PATH, tables="informations")
-        abbreviations_list2 = query_dialect_abbreviations(regions_list, locations_processed, need_storage_flag=flag)
-        result = get_coordinates_from_db(abbreviations_list2, abbreviations_list1,
-                                         use_supplementary_db=True)
-
-    else:
-        # 默认行为，调用数据库获取坐标
-        # Step 1: 查询方言缩写列表，基于 regions 和 locations
-        abbreviations_list = query_dialect_abbreviations(regions_list, locations_processed)
-        result = get_coordinates_from_db(abbreviations_list)
-
-    return result
+        return result
+    finally:
+        duration = time.time() - start
+        log_detailed_api(request.url.path, duration, 200, request.client.host, request.headers.get("user-agent", ""),
+                         request.headers.get("referer", ""))
 
 
 class FormData(BaseModel):
@@ -207,24 +212,27 @@ class FormData(BaseModel):
     coordinates: str
     feature: str
     value: str
-    description: Optional[str] = None  # 允许为空
+    description: Optional[str] = None
 
 
 @app.post("/api/submit_form")
-async def submit_form(payload: FormData):
+async def submit_form(request: Request, payload: FormData):
+    update_count(request.url.path)
+    log_all_fields(request.url.path, payload.dict())
+    start = time.time()
     try:
-        # 打印接收到的数据
         print(payload.dict())
-        # 调用处理表单数据的函数
         handle_form_submission(payload.dict())
         return {"success": True, "message": "数据提交成功！"}
     except Exception as e:
-        # 捕获并打印异常，方便调试
         print(f"Error: {str(e)}")
         raise HTTPException(status_code=422, detail="数据格式错误")
+    finally:
+        duration = time.time() - start
+        log_detailed_api(request.url.path, duration, 200, request.client.host, request.headers.get("user-agent", ""),
+                         request.headers.get("referer", ""))
 
 
-# 定义输入数据模型
 class QueryParams(BaseModel):
     locations: List[str]
     regions: List[str]
@@ -232,19 +240,21 @@ class QueryParams(BaseModel):
 
 
 @app.post("/api/get_custom")
-async def query_location_data(query_params: QueryParams):
+async def query_location_data(request: Request, query_params: QueryParams):
+    update_count(request.url.path)
+    log_all_fields(request.url.path, query_params.dict())
+    start = time.time()
     try:
-        # print("嘗試自用數據庫")
-        # 调用数据库查询函数
         result = get_from_submission(query_params.locations, query_params.regions, query_params.need_features)
-        print("自用數據庫讀取成功！")
-        # 如果结果为空，返回404
         if not result:
             raise HTTPException(status_code=404, detail="No matching data found")
-
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        duration = time.time() - start
+        log_detailed_api(request.url.path, duration, 200, request.client.host, request.headers.get("user-agent", ""),
+                         request.headers.get("referer", ""))
 
 
 class FeatureQueryParams(BaseModel):
@@ -254,98 +264,84 @@ class FeatureQueryParams(BaseModel):
 
 
 @app.post("/api/get_custom_feature")
-async def get_custom_feature(query_params: FeatureQueryParams):
+async def get_custom_feature(request: Request, query_params: FeatureQueryParams):
+    update_count(request.url.path)
+    log_all_fields(request.url.path, query_params.dict())
+    start = time.time()
     try:
-        # print(f"word:{query_params.word}")
         result = match_custom_feature(
             query_params.locations,
             query_params.regions,
             query_params.word
         )
-        print("特徵匹配查詢成功！")
-
         if not result:
             raise HTTPException(status_code=404, detail="No matching features found")
-
         return result
     except HTTPException as e:
-        raise e  # 让 FastAPI 正常处理这个异常
-
+        raise e
     except Exception as e:
-        # 捕获真正的代码错误，返回 500
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        duration = time.time() - start
+        log_detailed_api(request.url.path, duration, 200, request.client.host, request.headers.get("user-agent", ""),
+                         request.headers.get("referer", ""))
 
 
 class SearchRequest(BaseModel):
-    chars: List[str]  # List of characters to search for
-    locations: List[str] = None  # List of locations (optional)
-    regions: List[str] = None  # List of regions (optional)
+    chars: List[str]
+    locations: List[str] = None
+    regions: List[str] = None
 
 
 @app.post("/api/search_chars/")
-async def search_chars(request: SearchRequest):
-    # print(request.chars)
-    # print(request.locations)
-    # print(request.regions)
-    # print("开始运行")
+async def search_chars(request: Request, data: SearchRequest):
+    update_count(request.url.path)
+    log_all_fields(request.url.path, data.dict())
+    start = time.time()
     try:
         locations_processed = []
-        for location in request.locations:
-            # print(f"location:{location}")
-            matched_locations = match_locations_batch(location)
-            extracted_locations = [res[0][0] for res in matched_locations if res[0]]  # 只提取非空的地名
-            locations_processed.extend(extracted_locations)  # 使用 extend 扩展到 locations_processed 列表中
-        # Call the search_characters function with the provided parameters
-        result = search_characters(chars=request.chars, locations=locations_processed, regions=request.regions)
-
-        # Return the result
+        for location in data.locations or []:
+            matched = match_locations_batch(location)
+            extracted = [res[0][0] for res in matched if res[0]]
+            locations_processed.extend(extracted)
+        result = search_characters(chars=data.chars, locations=locations_processed, regions=data.regions)
         return {"result": result}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        duration = time.time() - start
+        log_detailed_api(request.url.path, duration, 200, request.client.host, request.headers.get("user-agent", ""),
+                         request.headers.get("referer", ""))
 
 
 class SearchRequest2(BaseModel):
-    locations: List[str] = None  # List of locations (optional)
-    regions: List[str] = None  # List of regions (optional)
+    locations: List[str] = None
+    regions: List[str] = None
 
 
 @app.post("/api/search_tones/")
-async def search_tones_o(request: SearchRequest2):
+async def search_tones_o(request: Request, data: SearchRequest2):
+    update_count(request.url.path)
+    log_all_fields(request.url.path, data.dict())
+    start = time.time()
     try:
         locations_processed = []
-        for location in request.locations:
-            # print(f"location:{location}")
-            matched_locations = match_locations_batch(location)
-            extracted_locations = [res[0][0] for res in matched_locations if res[0]]  # 只提取非空的地名
-            locations_processed.extend(extracted_locations)  # 使用 extend 扩展到 locations_processed 列表中
-        # Call the search_characters function with the provided parameters
-        result = search_tones(locations=locations_processed, regions=request.regions)
-
-        # Return the result
+        for location in data.locations or []:
+            matched = match_locations_batch(location)
+            extracted = [res[0][0] for res in matched if res[0]]
+            locations_processed.extend(extracted)
+        result = search_tones(locations=locations_processed, regions=data.regions)
         return {"tones_result": result}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        duration = time.time() - start
+        log_detailed_api(request.url.path, duration, 200, request.client.host, request.headers.get("user-agent", ""),
+                         request.headers.get("referer", ""))
 
 
-# @app.get("/proxy")
-# async def proxy(url: str):
-#     # 使用 httpx 获取目标 URL 的响应
-#     async with httpx.AsyncClient() as client:
-#         response = await client.get(url)
-#
-#     # 返回目标 URL 的响应内容
-#     return JSONResponse(content=response.json(), status_code=response.status_code)
-
+# 启动服务并自动打开浏览器
 if __name__ == "__main__":
     def open_browser():
         time.sleep(1)
-        # webbrowser.open("http://127.0.0.1:5000")
-        # 使用局域网 IP 地址，替换为你的本地 IP 地址（例如：10.250.101.238）
         webbrowser.open("http://10.250.101.238:5000")
 
 
     threading.Thread(target=open_browser).start()
-
-    # uvicorn.run("app:app", host="127.0.0.1", port=5000, reload=True)
-    # 让 FastAPI 监听所有网络接口
     uvicorn.run("app:app", host="0.0.0.0", port=5000, reload=True)

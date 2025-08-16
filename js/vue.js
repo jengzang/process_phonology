@@ -113,7 +113,7 @@ async function initVue() {
                         characters.push(
                             h('span', {
                                 class: 'char-vue multi-vue',
-                                title: multiCharDetails[ch]
+                                datatitle: multiCharDetails[ch]
                             }, ch)
                         );
                     } else {

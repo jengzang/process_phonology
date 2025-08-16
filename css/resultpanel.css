@@ -189,10 +189,41 @@
     font-size: 100%;
     text-decoration: none;
     transition: color 0.2s ease;
+    position: relative;
+    display: inline-block;
+    padding: 2px 2px;
+    cursor: pointer;
 }
 .char.multi:hover {
     color: #d33;
 }
+
+
+.char.multi::after {
+    content: attr(data-title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: #fff;
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 999;
+    pointer-events: none;
+    font-style: normal;
+}
+
+.char.multi:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
 
 /* sticky 標籤 */
 .sticky-label {

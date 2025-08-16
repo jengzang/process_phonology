@@ -399,7 +399,7 @@ function renderResults(data,table =  document.querySelector('#resultTable')) {
             const span = document.createElement('span');
             span.className = 'char multi';
             span.textContent = ch;
-            span.title = detail.split('|').join(' ｜ ');
+            span.setAttribute('data-title', detail.split('|').join(' ｜ '));
             tdChar.appendChild(span);
         });
 

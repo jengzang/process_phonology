@@ -27,8 +27,8 @@
 }
 
 /* 提示框樣式 */
-.char-vue.multi-vue[title]:hover::after {
-    content: attr(title); /* 顯示 title 屬性的內容 */
+.char-vue.multi-vue[datatitle]:hover::after {
+    content: attr(datatitle); /* 顯示 title 屬性的內容 */
     position: absolute;
     bottom: 100%; /* 顯示在字上方 */
     left: 50%;
@@ -47,9 +47,10 @@
 
 
 /* 鼠標懸停時顯示提示框 */
-.char-vue.multi-vue[title]:hover::after {
+.char-vue.multi-vue[datatitle]:hover::after {
     opacity: 1;
     visibility: visible;
+    z-index: 10000;
 }
 
 /* 針對整體的字體和排版 */
