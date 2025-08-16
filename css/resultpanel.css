@@ -18,6 +18,8 @@
 #resultTable,
 #detailTable {
     width: 100%;
+    background: #ffffff;
+    backdrop-filter: none;       /* 禁用继承的模糊效果 */
     border-collapse: collapse;
     font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);

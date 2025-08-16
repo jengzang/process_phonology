@@ -282,20 +282,37 @@
 
 /* 弹窗的基本样式 */
 .popup,
-.popup2{
+.popup2 {
     position: fixed;
     left: 50%;
     transform: translateX(-50%);
-    background-color: rgba(255, 255, 255, 0.6);  /* 设置半透明背景 (90% 不透明) */
-    padding: 6px 6px;  /* 减小 padding，减少字与边框的间距 */
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+
+    /* 🍏 液态玻璃渐变 + 半透明 */
+    background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.05));
+    backdrop-filter: blur(8px) saturate(180%);
+    -webkit-backdrop-filter: blur(8px) saturate(180%);
+
+    padding: 6px 10px;  /* 微调内边距 */
+    border-radius: 12px;
+
+    /* 🌫️ 内外阴影：柔和漂浮感 */
+    box-shadow:
+            inset 0 0 1px rgba(255,255,255,0.3),
+            0 4px 14px rgba(0, 0, 0, 0.2),
+            0 0 8px rgba(255,255,255,0.2);
+
+    border: 1px solid rgba(255, 255, 255, 0.3);  /* 高光边框 */
+
     z-index: 99999;
     opacity: 0;
     visibility: hidden;
+
     transition: opacity 0.3s ease, transform 0.3s ease;
-    text-align: center;  /* 文字水平居中 */
+    text-align: center;
+    color: #222; /* 字体深灰更适配亮背景 */
+    font-weight: 500;
 }
+
 
 
 .popup.active {
@@ -342,13 +359,26 @@
 }
 
 .popup li {
-    margin: 2px 0;  /* 缩小上下间距 */
-    font-size: 12px;  /* 调整字体大小，稍微缩小 */
-    background-color: rgba(230, 230, 230, 1);  /* 灰色底色，30% 不透明 */
-    padding: 0;  /* 去掉内边距，确保底色紧贴文字 */
-    border-radius: 5px;  /* 圆角效果 */
+    margin: 2px 0;
+    font-size: 12px;
     font-weight: bold;
+    padding: 1px 6px;  /* 微内边距让边框显得更自然 */
+
+    /* 🍏 半透明玻璃子项背景 */
+    background: linear-gradient(135deg, rgba(240,240,240,0.4), rgba(255,255,255,0.2));
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+
+    /* 🔲 液态边框 */
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 6px;
+
+    /* 💡 阴影让列表项浮起来 */
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1), inset 0 0 1px rgba(255,255,255,0.5);
+
+    color: #333;  /* 深灰文字更适配玻璃底 */
 }
+
 
 .popup li span {
     font-weight: bold;

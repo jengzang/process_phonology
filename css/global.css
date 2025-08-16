@@ -11,8 +11,8 @@ html, body {
 /* 通用 panel 外觀樣式 */
 .panel {
     position: fixed;
-    resize: both;
-    overflow: auto;
+    resize: both;        /* ✅ 允许横向和纵向都可以调整大小 */
+    overflow: auto;      /* ✅ 必须有 overflow 才能启用 resize */
     background: #ffffff;
     border-radius: 12px;
     border: 1px solid #e0e0e0;
@@ -320,3 +320,4 @@ input:checked + .slider:before {
     transform:  translateX(18.2px) scale(1.1); /* 滑块放大 */
     box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);  /* 添加滑块的发光效果 */
 }
+
