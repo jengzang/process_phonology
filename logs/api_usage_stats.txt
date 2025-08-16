@@ -1,0 +1,30 @@
+=== Total Counts ===
+/	8
+/api/batch_match	51
+/api/get_coordinates	61
+/api/get_custom	58
+/api/get_regions	1676
+/api/partitions	83
+/api/phonology	293
+/api/search_chars/	1
+/api/search_tones/	1
+/api/submit_form	1
+
+=== Daily Counts ===
+2025-08-16
+/	8
+/api/batch_match	6
+/api/get_coordinates	18
+/api/get_custom	15
+/api/get_regions	1676
+/api/partitions	72
+/api/phonology	28
+/api/search_chars/	1
+/api/search_tones/	1
+/api/submit_form	1
+2025-08-17
+/api/batch_match	45
+/api/get_coordinates	43
+/api/get_custom	43
+/api/partitions	11
+/api/phonology	265

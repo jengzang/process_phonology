@@ -23,7 +23,7 @@ from source.process_input import read_partition_hierarchy, match_locations_batch
     get_coordinates_from_db
 
 # 引入日志统计模块
-from logs.api_logger  import update_count, log_detailed_api, log_all_fields
+from logs.api_logger import update_count, log_detailed_api, log_all_fields
 
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -44,7 +44,9 @@ app.mount("/data", StaticFiles(directory=get_resource_path("data")), name="data"
 
 
 @app.get("/", response_class=HTMLResponse)
-async def index():
+async def index(request: Request):
+    update_count(request.url.path)  # 记录主页访问次数
+
     index_path = get_resource_path("index.html")
     with open(index_path, encoding="utf-8") as f:
         content = f.read()

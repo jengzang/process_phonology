@@ -287,7 +287,7 @@ function renderResults(data,table =  document.querySelector('#resultTable')) {
         tr.dataset.loc = loc;
 
         const group = item.分組值 || {};
-        const [featKey, featVal] = Object.entries(group)[0] || ['', ''];
+        let [featKey, featVal] = Object.entries(group)[0] || ['', ''];
         if (useFiveCols) tr.dataset.feature = featKey;
 
         // 分隔線邏輯
@@ -329,9 +329,53 @@ function renderResults(data,table =  document.querySelector('#resultTable')) {
             }
 
             const tdValue = document.createElement('td');
-            tdValue.textContent = featVal;
             tdValue.className = 'col3';
             tdValue.title = featVal;
+
+            const span = document.createElement('span');
+            span.textContent = featVal;
+            span.className = 'feature-value';
+            span.addEventListener('click', (e) => {
+                // console.log('🔍 點擊了特徵值:', featVal);
+
+                const popup = document.querySelector('#popup3');
+                if (!popup) return;
+                const nativeEvent = e.originalEvent || e;
+                const originEvent = nativeEvent.originEvent || nativeEvent;
+                const mouseY = originEvent.clientY;
+                const mouseX = originEvent.clientX;
+                const popupWidth = popup.offsetWidth;
+                const popupHeight = popup.offsetHeight;
+                // 设置弹窗初始位置，根据鼠标点击的位置来确定
+                const offsetTop = 30;  // 增加的垂直偏移量，控制弹窗离鼠标点击位置更远
+                const offsetLeft = 30; // 增加的水平偏移量，控制弹窗向左移动
+                // 垂直位置计算
+                const popupTop = mouseY - popupHeight - offsetTop; // 通过增加偏移量向上移动
+                const maxTop = 20; // 限制弹窗距离顶部的最小距离
+                popup.style.top = `${Math.max(popupTop, maxTop)}px`; // 确保弹窗不会超出页面顶部
+                // 水平位置计算
+                const popupLeft = mouseX - popupWidth / 2 + offsetLeft; // 通过增加偏移量让弹窗向左偏移
+                const maxLeft = 20;  // 限制弹窗距离页面左侧的最小距离
+                const maxRight = window.innerWidth - popupWidth - 20;  // 限制弹窗右侧不能超出屏幕
+                popup.style.left = `${Math.min(Math.max(popupLeft, maxLeft), maxRight)}px`;  // 确保弹窗不会超出页面左右边界
+                // 确保弹窗具有正确的定位
+                popup.style.position = 'fixed'; // 确保弹窗使用绝对定位
+                // 弹窗显示并滑动效果
+                popup.classList.add("active");
+
+                if (featVal.includes('·')) {
+                    featVal = featVal.split('·')[0];
+                }
+
+                window.detailfeature2 = featVal;
+                window.detaillocation2 = loc;
+                // console.log(after,loc);
+                // 阻止事件冒泡
+                if (nativeEvent && typeof nativeEvent.stopPropagation === 'function') {
+                    nativeEvent.stopPropagation();
+                }
+            });
+            tdValue.appendChild(span);
 
             if (isNewGroup && shouldHideCol1 && shouldHideCol2) {
                 const tag = document.createElement('div');
@@ -350,12 +394,58 @@ function renderResults(data,table =  document.querySelector('#resultTable')) {
             lastFeatureKey = featureKey;
         } else {
             const val = item.分組值?.[featureName] || '';
-            const after = val.includes(':') ? val.split(':')[1] : val;
+            let after = val.includes(':') ? val.split(':')[1] : val;
 
             const td = document.createElement('td');
-            td.textContent = after;
             td.className = 'col2';
             td.title = after;
+
+            const span = document.createElement('span');
+            span.textContent = after;
+            span.className = 'feature-value';
+            span.addEventListener('click', (e) => {
+                // console.log('🔍 點擊了特徵值:', after);
+
+                const popup = document.querySelector('#popup3');
+                if (!popup) return;
+                const nativeEvent = e.originalEvent || e;
+                const originEvent = nativeEvent.originEvent || nativeEvent;
+                const mouseY = originEvent.clientY;
+                const mouseX = originEvent.clientX;
+                const popupWidth = popup.offsetWidth;
+                const popupHeight = popup.offsetHeight;
+                // 设置弹窗初始位置，根据鼠标点击的位置来确定
+                const offsetTop = 30;  // 增加的垂直偏移量，控制弹窗离鼠标点击位置更远
+                const offsetLeft = 30; // 增加的水平偏移量，控制弹窗向左移动
+                // 垂直位置计算
+                const popupTop = mouseY - popupHeight - offsetTop; // 通过增加偏移量向上移动
+                const maxTop = 20; // 限制弹窗距离顶部的最小距离
+                popup.style.top = `${Math.max(popupTop, maxTop)}px`; // 确保弹窗不会超出页面顶部
+                // 水平位置计算
+                const popupLeft = mouseX - popupWidth / 2 + offsetLeft; // 通过增加偏移量让弹窗向左偏移
+                const maxLeft = 20;  // 限制弹窗距离页面左侧的最小距离
+                const maxRight = window.innerWidth - popupWidth - 20;  // 限制弹窗右侧不能超出屏幕
+                popup.style.left = `${Math.min(Math.max(popupLeft, maxLeft), maxRight)}px`;  // 确保弹窗不会超出页面左右边界
+                // 确保弹窗具有正确的定位
+                popup.style.position = 'fixed'; // 确保弹窗使用绝对定位
+                // 弹窗显示并滑动效果
+                popup.classList.add("active");
+
+                if (after.includes('·')) {
+                    after = after.split('·')[0];
+                }
+
+                window.detailfeature2 = after;
+                window.detaillocation2 = loc;
+                // console.log(after,loc);
+                // 阻止事件冒泡
+                if (nativeEvent && typeof nativeEvent.stopPropagation === 'function') {
+                    nativeEvent.stopPropagation();
+                }
+            });
+
+            td.appendChild(span);
+
 
             if (isNewLoc && shouldHideCol1) {
                 const tag = document.createElement('div');
@@ -582,7 +672,7 @@ async function analysis_from_db() {
     }
 }
 
-async function js_table_render(small = false) {
+async function js_table_render(small = false,number = false) {
     if (small) {
         let latestResults = window.latestdetailResults;
         // console.log(latestResults)
@@ -591,19 +681,24 @@ async function js_table_render(small = false) {
             clearLoadingMessage();
             return;
         }
-        // 在渲染之前動態創建表格（如果表格不存在）
-        let resultTable = document.getElementById("detailTable");
-        if (!resultTable) {
-            const resultPanelContent = document.getElementById("display-detail");
+        const tableId = number ? "detailTable2" : "detailTable";
+        const resultPanelContent = document.getElementById(
+            number ? "display-detail2" : "display-detail"
+        );
+        // console.log("使用容器:", resultPanelContent.id);
 
+        // 檢查容器中是否已經有該表格
+        let resultTable = resultPanelContent.querySelector(`#${tableId}`);
+
+        if (!resultTable) {
+            // console.log("創建表格:", tableId);
             resultTable = document.createElement("table");
-            resultTable.id = "detailTable";
+            resultTable.id = tableId;
             resultTable.classList.add("four-col");
 
             const thead = document.createElement("thead");
             const headerRow = document.createElement("tr");
 
-            // 添加表格標題
             const headers = ["地點", "特徵值", "對應字", "字數/佔比"];
             headers.forEach(header => {
                 const th = document.createElement("th");
@@ -619,9 +714,14 @@ async function js_table_render(small = false) {
 
             resultPanelContent.appendChild(resultTable);
         }
-        const table = document.querySelector('#detailTable');
-        // table.classList.add('hide-loc-col','condensed-mod');
-        renderResults(latestResults,table);
+
+// 使用區分 ID 的表格傳入 renderResults
+        renderResults(latestResults, resultTable);
+
+        // if (table) {
+        //     table.innerHTML = '';
+        // }
+
 
     } else {
         let latestResults = window.latestResults;
@@ -669,3 +769,8 @@ async function js_table_render(small = false) {
     }
 }
 
+document.addEventListener('click', (e) => {
+    if(!popup3.contains(e.target)){
+        popup3.classList.remove("active");
+    }
+});

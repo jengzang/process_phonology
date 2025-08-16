@@ -16,7 +16,8 @@
 
 /* 表格核心設定 */
 #resultTable,
-#detailTable {
+#detailTable,
+#detailTable2 {
     width: 100%;
     background: #ffffff;
     backdrop-filter: none;       /* 禁用继承的模糊效果 */
@@ -27,7 +28,8 @@
 }
 
 #resultTable th,
-#detailTable th {
+#detailTable th,
+#detailTable2 th {
     font-weight: bold;
     background-color: #f2f2f2;
     border-bottom: 2px solid #666;
@@ -38,7 +40,8 @@
 }
 
 #resultTable th:last-child,
-#detailTable th:last-child {
+#detailTable th:last-child,
+#detailTable2 th:last-child {
     font-size: min(12px, 2vw);
 }
 
@@ -57,7 +60,9 @@
 #resultTable th,
 #resultTable td,
 #detailTable th,
-#detailTable td {
+#detailTable td,
+#detailTable2 th,
+#detailTable2 td {
     padding: 8px;
     text-align: center;
     vertical-align: middle;
@@ -67,45 +72,50 @@
 
 /* 🔧 通用實線，非 group-break 的行 */
 #resultTable tbody tr:not(.group-break) td,
-#detailTable tbody tr:not(.group-break) td {
+#detailTable tbody tr:not(.group-break) td,
+#detailTable2 tbody tr:not(.group-break) td {
     border-bottom: 1px solid #ccc;
 }
 
 /* ✅ 五欄模式，才用虛線分隔不同特徵 */
 #resultTable.five-col tbody tr.group-break td,
-#detailTable.five-col tbody tr.group-break td {
+#detailTable.five-col tbody tr.group-break td,
+#detailTable2.five-col tbody tr.group-break td {
     border-bottom: 2px dashed #666;
 }
 
 /* ✅ 四欄模式的 group-break 使用實線（覆蓋虛線） */
 #resultTable.four-col tbody tr.group-break td,
-#detailTable.four-col tbody tr.group-break td {
+#detailTable.four-col tbody tr.group-break td,
+#detailTable2.four-col tbody tr.group-break td {
     border-bottom: 2px solid #666;
 }
 
 /* ✅ 強分隔（不同地點）統一實線 */
 #resultTable tbody tr.group-break-strong td,
-#detailTable tbody tr.group-break-strong td {
+#detailTable tbody tr.group-break-strong td,
+#detailTable2 tbody tr.group-break-strong td {
     border-bottom: 3px solid #000;
 }
 
-
 /* ✅ 四欄模式 + 隱藏（col3 為對應字） */
 #resultTable.four-col.condensed-mode td.col3,
-#detailTable.four-col.condensed-mode td.col3 {
+#detailTable.four-col.condensed-mode td.col3,
+#detailTable2.four-col.condensed-mode td.col3 {
     font-size: 14px;
 }
 
 /* ✅ 五欄模式 + 隱藏（col4 為對應字） */
 #resultTable.five-col.condensed-mode td.col4,
-#detailTable.five-col.condensed-mode td.col4 {
+#detailTable.five-col.condensed-mode td.col4,
+#detailTable2.five-col.condensed-mode td.col4 {
     font-size: 14px;
 }
 
-
-
 /* ✅ 地點欄位：垂直書寫 */
-#resultTable td.col1,#detailTable td.col1 {
+#resultTable td.col1,
+#detailTable td.col1,
+#detailTable2 td.col1 {
     writing-mode: vertical-rl;
     text-orientation: upright;
     background-color: #f6f6f6;
@@ -114,7 +124,9 @@
 }
 
 /* 第二列樣式（增加不明顯邊框） */
-#resultTable td.col2,#detailTable td.col2 {
+#resultTable td.col2,
+#detailTable td.col2,
+#detailTable2 td.col2 {
     border: 1px solid #eee;
 }
 
@@ -169,15 +181,28 @@
 /*}*/
 
 #resultTable.five-col td.col5 > div:first-child,
-#detailTable.five-col td.col5 > div:first-child {
+#detailTable.five-col td.col5 > div:first-child,
+#detailTable2.five-col td.col5 > div:first-child {
     font-size: 14px;
     font-weight: bold;
     margin-bottom: 4px;
 }
 #resultTable.five-col td.col5 > div:last-child,
-#detailTable.five-col td.col5 > div:last-child {
+#detailTable.five-col td.col5 > div:last-child,
+#detailTable2.five-col td.col5 > div:last-child {
     font-size: 12px;
     color: #888;
+}
+
+
+.feature-value {
+    cursor: pointer;
+    text-decoration: underline dotted transparent;
+    transition: all 0.2s ease;
+}
+
+.feature-value:hover {
+    text-decoration-color: #888;
 }
 
 /* ------------------------- */
@@ -251,11 +276,9 @@
 }
 
 /* 🪄 表格 hover 效果 */
-#resultTable tbody tr:hover ,#detailTable tbody tr:hover {
+#resultTable tbody tr:hover ,#detailTable tbody tr:hover, #detailTable2 tbody tr:hover {
     background-color: #fafafa;
 }
-
-
 
 /* 🔘 隱藏欄位控制按鈕 */
 #toggleColumnsBtn {
@@ -282,7 +305,6 @@
     background: #ddd;
 }
 
-
 /* ------------------------------- */
 /* 🧩 四欄模式 (.four-col 表格用)  */
 /* ------------------------------- */
@@ -296,36 +318,45 @@
 }
 
 /* -------- #detailTable 四欄模式欄寬 -------- */
-#detailTable.four-col col.col1 { width: 10%; }         /* 可自由調整 */
-#detailTable.four-col col.col2 { width: 20%; }
-#detailTable.four-col col.col3 { width: 60%; }
-#detailTable.four-col col.col4 {
+#detailTable.four-col col.col1,
+#detailTable2.four-col col.col1 { width: 10%; }
+#detailTable.four-col col.col2,
+#detailTable2.four-col col.col2 { width: 20%; }
+#detailTable.four-col col.col3,
+#detailTable2.four-col col.col3 { width: 60%; }
+#detailTable.four-col col.col4,
+#detailTable2.four-col col.col4 {
     width: 10%;
     text-align: left;
 }
 
 /* ✅ 四欄隱藏 col1 模式（只剩 col2~col4） */
 #resultTable.four-col.condensed-mode col.col1,
-#detailTable.four-col.condensed-mode col.col1 { display: none; }
+#detailTable.four-col.condensed-mode col.col1,
+#detailTable2.four-col.condensed-mode col.col1 { display: none; }
 #resultTable.four-col.condensed-mode col.col2,
-#detailTable.four-col.condensed-mode col.col2 { width: 12%; }
+#detailTable.four-col.condensed-mode col.col2,
+#detailTable2.four-col.condensed-mode col.col2 { width: 12%; }
 #resultTable.four-col.condensed-mode col.col3,
-#detailTable.four-col.condensed-mode col.col3 { width: 78%; }
+#detailTable.four-col.condensed-mode col.col3,
+#detailTable2.four-col.condensed-mode col.col3 { width: 78%; }
 #resultTable.four-col.condensed-mode col.col4,
-#detailTable.four-col.condensed-mode col.col4 { width: 10%; }
+#detailTable.four-col.condensed-mode col.col4,
+#detailTable2.four-col.condensed-mode col.col4 { width: 10%; }
 
-#detailTable.four-col td.col3{
+#detailTable.four-col td.col3,
+#detailTable2.four-col td.col3 {
     font-size:14px;
     margin: 0;
     padding: 0;
 }
-#detailTable.four-col td.col2 {
+#detailTable.four-col td.col2,
+#detailTable2.four-col td.col2 {
     white-space: nowrap;
     overflow: hidden;
     /*text-overflow: ellipsis;*/
     text-align: center;
     padding-left: 1px;
-    /* 自动根据屏幕宽度调整字体，但限制最大/最小 */
     font-size: clamp(6px, 2vw, 14px);
     font-weight: bold;
     transform-origin: left center;
@@ -333,16 +364,20 @@
 }
 
 /* ✅ 四欄表格的最後一欄（col4）內容置中 */
-#resultTable.four-col td.col4,#detailTable.four-col td.col4 {
+#resultTable.four-col td.col4,
+#detailTable.four-col td.col4,
+#detailTable2.four-col td.col4 {
     text-align: center;
 }
-#resultTable.four-col td.col4 > div:first-child{
+#resultTable.four-col td.col4 > div:first-child,
+#detailTable.four-col td.col4 > div:first-child,
+#detailTable2.four-col td.col4 > div:first-child {
     font-size: 14px;
     font-weight: bold;
     margin-bottom: 4px;
-
 }
-#detailTable.four-col td.col4 > div:first-child{
+#detailTable.four-col td.col4 > div:first-child,
+#detailTable2.four-col td.col4 > div:first-child {
     font-size: 13px;
     font-weight: bold;
     margin-bottom: 1px;
@@ -350,18 +385,21 @@
     overflow: visible;
     text-overflow: unset;
 }
-#resultTable.four-col td.col4 > div:last-child{
+#resultTable.four-col td.col4 > div:last-child,
+#detailTable.four-col td.col4 > div:last-child,
+#detailTable2.four-col td.col4 > div:last-child {
     font-size: 12px;
     color: #888;
 }
-#detailTable.four-col td.col4 > div:last-child {
-     font-size: 11px;
-     color: #888;
+#detailTable.four-col td.col4 > div:last-child,
+#detailTable2.four-col td.col4 > div:last-child {
+    font-size: 11px;
+    color: #888;
     margin: 0;
     white-space: nowrap;
     overflow: visible;
     text-overflow: unset;
- }
+}
 
 /* ------------------------------- */
 /* 🧩 五欄模式 (.five-col 表格用) */
@@ -371,14 +409,19 @@
 #resultTable.five-col col.col3,
 #resultTable.five-col col.col5,
 #detailTable.five-col col.col1,
+#detailTable2.five-col col.col1,
 #detailTable.five-col col.col2,
+#detailTable2.five-col col.col2,
 #detailTable.five-col col.col3,
-#detailTable.five-col col.col5 {
+#detailTable2.five-col col.col3,
+#detailTable.five-col col.col5,
+#detailTable2.five-col col.col5 {
     width: 12.5%;
 }
 
 #resultTable.five-col col.col4,
-#detailTable.five-col col.col4 {
+#detailTable.five-col col.col4,
+#detailTable2.five-col col.col4 {
     width: 50%;
     font-size: 18px;
     line-height: 1.6;
@@ -389,41 +432,50 @@
 #resultTable.five-col.condensed-mode col.col1,
 #resultTable.five-col.condensed-mode col.col2,
 #detailTable.five-col.condensed-mode col.col1,
-#detailTable.five-col.condensed-mode col.col2 {
+#detailTable2.five-col.condensed-mode col.col1,
+#detailTable.five-col.condensed-mode col.col2,
+#detailTable2.five-col.condensed-mode col.col2 {
     display: none;
 }
 #resultTable.five-col.condensed-mode col.col3,
-#detailTable.five-col.condensed-mode col.col3 { width: 12%; }
+#detailTable.five-col.condensed-mode col.col3,
+#detailTable2.five-col.condensed-mode col.col3 { width: 12%; }
 #resultTable.five-col.condensed-mode col.col4,
-#detailTable.five-col.condensed-mode col.col4 { width: 78%; }
+#detailTable.five-col.condensed-mode col.col4,
+#detailTable2.five-col.condensed-mode col.col4 { width: 78%; }
 #resultTable.five-col.condensed-mode col.col5,
-#detailTable.five-col.condensed-mode col.col5 { width: 10%; }
+#detailTable.five-col.condensed-mode col.col5,
+#detailTable2.five-col.condensed-mode col.col5 { width: 10%; }
 
 /* ✅ 五欄表格的最後一欄（col5）內容置中 */
 #resultTable.five-col td.col5,
-#detailTable.five-col td.col5 {
+#detailTable.five-col td.col5,
+#detailTable2.five-col td.col5 {
     text-align: center;
 }
 #resultTable.five-col td.col5 > div:first-child,
-#detailTable.five-col td.col5 > div:first-child {
+#detailTable.five-col td.col5 > div:first-child,
+#detailTable2.five-col td.col5 > div:first-child {
     font-size: 14px;
     font-weight: bold;
     margin-bottom: 4px;
 }
 #resultTable.five-col td.col5 > div:last-child,
-#detailTable.five-col td.col5 > div:last-child {
+#detailTable.five-col td.col5 > div:last-child,
+#detailTable2.five-col td.col5 > div:last-child {
     font-size: 12px;
     color: #888;
 }
 
-
 #resultTable tbody tr.group-break td,
-#detailTable tbody tr.group-break td {
+#detailTable tbody tr.group-break td,
+#detailTable2 tbody tr.group-break td {
     border-bottom: 2px dashed #666;
 }
 
 #resultTable tbody tr.group-break-strong td,
-#detailTable tbody tr.group-break-strong td {
+#detailTable tbody tr.group-break-strong td,
+#detailTable2 tbody tr.group-break-strong td {
     border-bottom: 3px solid #000;
 }
 
