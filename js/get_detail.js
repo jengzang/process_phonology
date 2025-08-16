@@ -20,7 +20,7 @@ async function get_detail(){
     let status_inputs = [];
     let pho_values = [];
     let regions = [];
-    let groups = [];
+    let group_inputs = [];
     const mode = document.querySelector('input[name="mode"]:checked').value;
     const features = Array.from(document.querySelectorAll('#features-group input:checked')).map(cb => cb.value);
     // console.log("feature",features)
@@ -29,10 +29,12 @@ async function get_detail(){
         : [window.detaillocation];
     // console.log("locations",locations)
     if (mode === 's2p'){
-        status_inputs = window.detailfeature;
+        status_inputs = [window.detailfeature];
+        // console.log(window.detailfeature);
     }
     else if(mode === 'p2s'){
-        pho_values = window.detailfeature;
+        pho_values = [window.detailfeature];
+        // console.log( pho_values);
     }
     const payload = {
         mode,
@@ -40,10 +42,10 @@ async function get_detail(){
         regions,
         features,
         status_inputs,
-        groups,
+        group_inputs,
         pho_values
     };
-    // console.log(payload);
+    console.log(payload);
     try {
         const res = await window.fetch("http://10.250.101.238:5000/api/phonology", {
             method: "POST",

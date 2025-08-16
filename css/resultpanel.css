@@ -288,11 +288,19 @@
     margin: 0;
     padding: 0;
 }
-#detailTable.four-col td.col2{
+#detailTable.four-col td.col2 {
     white-space: nowrap;
-    overflow: visible;
-    text-overflow: unset;
+    overflow: hidden;
+    /*text-overflow: ellipsis;*/
+    text-align: center;
+    padding-left: 1px;
+    /* 自动根据屏幕宽度调整字体，但限制最大/最小 */
+    font-size: clamp(6px, 2vw, 14px);
+    font-weight: bold;
+    transform-origin: left center;
+    max-width: 100%;
 }
+
 /* ✅ 四欄表格的最後一欄（col4）內容置中 */
 #resultTable.four-col td.col4,#detailTable.four-col td.col4 {
     text-align: center;

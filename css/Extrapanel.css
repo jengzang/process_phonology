@@ -74,8 +74,8 @@
     -webkit-backdrop-filter: blur(10px) saturate(200%);
 
     /* 🍏 玻璃边框 + 高光描边 */
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    outline: 1px solid rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    outline: 2px solid rgba(255, 255, 255, 0.2);
     outline-offset: -4px;
     border-radius: 18px 0 0 18px;
 
@@ -343,29 +343,95 @@ button[type="submit"]:active {
     width: 50%;
     max-width: 700px;
     min-width: 300px;
+    z-index: 9999;
 }
 
-/* 可展开的面板样式 */
+/* 可展开的面板样式（多层玻璃升级版） */
 .expansion-panel-search {
     position: fixed;
     top: 0;
     left: 29%;
     width: 22%;
-
-    /* 🍏 液态玻璃背景替换 */
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.05));
-    backdrop-filter: blur(10px) saturate(180%);
-    -webkit-backdrop-filter: blur(10px) saturate(180%);
-
-    border: 1px solid rgba(255, 255, 255, 0.3); /* 高光边框 */
-
+    resize: horizontal;
+    /* base glass */
+    background: linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.05));
+    backdrop-filter: blur(10px) saturate(150%);
+    -webkit-backdrop-filter: blur(10px) saturate(150%);
+    border: 1px solid rgba(255,255,255,0.35);
     border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15); /* 柔和阴影 */
+    /* 外部景深 + 柔光 */
+    box-shadow:
+            0 8px 28px rgba(0, 0, 0, 0.18),
+            0 1px 0 rgba(255,255,255,0.25) inset; /* 轻微顶边高光 */
     height: 6%;
     overflow: hidden;
-    transition: height 0.3s ease;
+    transition: height 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
     justify-content: center;
+    isolation: isolate; /* 让伪元素分层更干净 */
 }
+
+/* --- 多层玻璃：高光层 + 折射层 --- */
+.expansion-panel-search::before,
+.expansion-panel-search::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none; /* 不挡交互 */
+}
+
+/* 高光折射层：边缘内发光 + 角落高光 */
+.expansion-panel-search::before {
+    /* 角落高光 + 轻微内发光模拟厚玻璃边缘 */
+    background:
+            radial-gradient(180px 60px at 100% 0%, rgba(255,255,255,0.45), transparent 60%),
+            radial-gradient(120px 50px at 0% 100%, rgba(255,255,255,0.25), transparent 60%),
+            linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.02));
+    box-shadow:
+            inset 0 0 0.5px rgba(255,255,255,0.6),
+            inset 0 0 18px rgba(255,255,255,0.08);
+    mix-blend-mode: screen;
+}
+
+/*!* 折射/噪点层：极淡噪点 + 侧向光带（更真实） *!*/
+/*.expansion-panel-search::after {*/
+/*    !* 轻微噪点纹理（用渐变模拟，保证纯 CSS）+ 右侧光带 *!*/
+/*    background:*/
+/*            linear-gradient(90deg, rgba(255,255,255,0.18), rgba(255,255,255,0.02) 30%, rgba(255,255,255,0) 60%) ,*/
+/*            repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0, rgba(255,255,255,0.02) 1px, rgba(0,0,0,0.02) 2px, rgba(0,0,0,0.02) 3px);*/
+/*    opacity: 0.9;*/
+/*    filter: blur(0.2px); !* 让噪点不尖锐 *!*/
+/*}*/
+
+/* 悬停：轻微放大 + 提亮高光与阴影，像真实玻璃被光线扫过 */
+.expansion-panel-search:hover {
+    box-shadow:
+            0 12px 34px rgba(0, 0, 0, 0.22),
+            0 1px 0 rgba(255,255,255,0.3) inset,
+            0 0 0 1px rgba(255,255,255,0.06); /* 边缘薄雾 */
+    transform: translateZ(0) scale(1.01);
+}
+
+/*!* 可选：轻微高光“擦拭”动画（仅在 hover 时出现） *!*/
+/*.expansion-panel-search:hover::before {*/
+/*    animation: glass-sheen 1.6s ease forwards;*/
+/*}*/
+
+/*@keyframes glass-sheen {*/
+/*    0%   { background-position: 120% 0, 0 100%, 0 0; opacity: 0.85; }*/
+/*    60%  { background-position: 0% 0, 0 100%, 0 0; opacity: 1; }*/
+/*    100% { background-position: -20% 0, 0 100%, 0 0; opacity: 0.95; }*/
+/*}*/
+
+/*!* 用户减少动效时，关闭动画 *!*/
+/*@media (prefers-reduced-motion: reduce) {*/
+/*    .expansion-panel-search,*/
+/*    .expansion-panel-search::before {*/
+/*        animation: none !important;*/
+/*        transition: none !important;*/
+/*    }*/
+/*}*/
+
 
 
 @media (max-aspect-ratio: 1/1) {
@@ -388,22 +454,35 @@ button[type="submit"]:active {
     max-height: calc(100% - 70px); /* 限制内容区域的最大高度，防止超过底部按钮 */
 }
 
-/* 底部按钮和输入框 */
 .footer-search {
     display: flex;
-    /*position: relative;*/
-    flex-shrink: 1; /* 防止按钮区域被挤压 */
-    flex-grow: 0;   /* 确保 footer 不会被压缩 */
+    width: 90%;
+    flex-shrink: 1;
+    flex-grow: 0;
     justify-content: space-between;
     align-items: center;
     padding: 6px 20px;
-    background-color: #fff;
+
+    /* 🧊 液态玻璃背景（替换原背景） */
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.03));
+    backdrop-filter: blur(5px) saturate(180%);
+    -webkit-backdrop-filter: blur(10px) saturate(180%);
+
+    /* ✨ 边角和上边框增强玻璃感 */
     border-radius: 0 0 12px 12px;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+
+    /* 🌫️ 向上轻微发光感 */
+    box-shadow:
+            inset 0 1px 1px rgba(255, 255, 255, 0.3),
+            0 -2px 10px rgba(0, 0, 0, 0.05),
+            0 -1px 4px rgba(255, 255, 255, 0.2);
+
     position: absolute;
     bottom: 0;
-    /*width: 100%;*/
+    /*width: 100%;*/  /* ✅ 按你原注释保持不变 */
 }
+
 
 
 .input-search {
@@ -590,19 +669,39 @@ button[type="submit"]:active {
 /* 弹窗样式 */
 .popup-tones {
     position: absolute;
-    background-color: rgba(255, 255, 255, 0.9);
+
+    /* 🧊 更淡的液态玻璃背景 */
+    background: linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.18),  /* 透明度更低 */
+            rgba(255, 255, 255, 0.05)
+    );
+    backdrop-filter: blur(20px) saturate(140%); /* 降低饱和度 */
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+
     padding: 15px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+
+    /* ✨ 柔和边框（减弱白边） */
+    border: 2px solid rgba(255, 255, 255, 0.25);
+
+    /* 🌫️ 阴影更轻柔，避免厚重 */
+    box-shadow:
+            inset 0 0 1px rgba(255,255,255,0.2),
+            0 4px 12px rgba(0, 0, 0, 0.15);
+
     max-width: 300px;
     min-width: 150px;
     font-size: 14px;
-    z-index: 1000;
-    display: none; /* 初始隐藏 */
-    white-space: pre-wrap; /* 保证内容换行 */
-    transition: opacity 0.3s ease; /* 加入过渡效果 */
+    color: #000000; /* 保持易读性 */
+
+    z-index: 10000;
+    display: none;
+    white-space: pre-wrap;
+
+    transition: opacity 0.3s ease, transform 0.3s ease;
 }
+
 
 .popup-tones h3 {
     margin-top: 0;
