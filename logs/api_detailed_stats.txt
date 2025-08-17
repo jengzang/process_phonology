@@ -1,88 +1,209 @@
 === Total Summary ===
 /api/partitions
-  Count: 1
-  Avg Response Time: 0.008s
-  Status Codes: 200:1
+  Count: 22
+  Avg Response Time: 0.006s
+  Status Codes: 200:22
   IPs:
     - 10.250.101.238
+    - 10.250.101.55
+    - 10.250.190.227
   User-Agents:
     - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0
+    - Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36
+    - Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Mobile/15E148 Safari/604.1
   Referers:
     - http://10.250.101.238:5000/
 
 /api/phonology
-  Count: 1
-  Avg Response Time: 1.086s
-  Status Codes: 200:1
+  Count: 209
+  Avg Response Time: 0.300s
+  Status Codes: 200:197, 500:12
   IPs:
     - 10.250.101.238
+    - 10.250.101.55
+    - 10.250.190.227
   User-Agents:
+    - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36
     - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0
+    - Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36
+    - Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Mobile/15E148 Safari/604.1
   Referers:
     - http://10.250.101.238:5000/
+    - http://localhost:63343/
 
 /api/get_coordinates
-  Count: 1
-  Avg Response Time: 0.011s
-  Status Codes: 200:1
+  Count: 75
+  Avg Response Time: 0.020s
+  Status Codes: 200:75
   IPs:
     - 10.250.101.238
+    - 10.250.101.55
+    - 10.250.190.227
   User-Agents:
+    - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36
     - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0
+    - Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36
+    - Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Mobile/15E148 Safari/604.1
+  Referers:
+    - http://10.250.101.238:5000/
+    - http://localhost:63343/
+
+/api/get_custom
+  Count: 73
+  Avg Response Time: 0.002s
+  Status Codes: 200:73
+  IPs:
+    - 10.250.101.238
+    - 10.250.101.55
+    - 10.250.190.227
+  User-Agents:
+    - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36
+    - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0
+    - Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36
+    - Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Mobile/15E148 Safari/604.1
+  Referers:
+    - http://10.250.101.238:5000/
+    - http://localhost:63343/
+
+/api/batch_match
+  Count: 37
+  Avg Response Time: 0.078s
+  Status Codes: 200:37
+  IPs:
+    - 10.250.101.238
+    - 10.250.101.55
+    - 10.250.190.227
+  User-Agents:
+    - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36
+    - Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36
+    - Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Mobile/15E148 Safari/604.1
+  Referers:
+    - http://10.250.101.238:5000/
+    - http://localhost:63343/
+
+/api/search_chars/
+  Count: 3
+  Avg Response Time: 0.150s
+  Status Codes: 200:3
+  IPs:
+    - 10.250.101.55
+    - 10.250.190.227
+  User-Agents:
+    - Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36
+    - Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Mobile/15E148 Safari/604.1
   Referers:
     - http://10.250.101.238:5000/
 
-/api/get_custom
+/api/search_tones/
   Count: 1
-  Avg Response Time: 0.003s
+  Avg Response Time: 0.029s
   Status Codes: 200:1
   IPs:
-    - 10.250.101.238
+    - 10.250.190.227
   User-Agents:
-    - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0
+    - Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36
   Referers:
     - http://10.250.101.238:5000/
 
 === Daily Summary ===
 2025-08-17
 /api/partitions
-  Count: 1
-  Avg Response Time: 0.008s
-  Status Codes: 200:1
+  Count: 22
+  Avg Response Time: 0.006s
+  Status Codes: 200:22
   IPs:
     - 10.250.101.238
+    - 10.250.101.55
+    - 10.250.190.227
   User-Agents:
     - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0
+    - Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36
+    - Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Mobile/15E148 Safari/604.1
   Referers:
     - http://10.250.101.238:5000/
 /api/phonology
-  Count: 1
-  Avg Response Time: 1.086s
-  Status Codes: 200:1
+  Count: 209
+  Avg Response Time: 0.300s
+  Status Codes: 200:197, 500:12
   IPs:
     - 10.250.101.238
+    - 10.250.101.55
+    - 10.250.190.227
   User-Agents:
+    - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36
     - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0
+    - Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36
+    - Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Mobile/15E148 Safari/604.1
   Referers:
     - http://10.250.101.238:5000/
+    - http://localhost:63343/
 /api/get_coordinates
-  Count: 1
-  Avg Response Time: 0.011s
-  Status Codes: 200:1
+  Count: 75
+  Avg Response Time: 0.020s
+  Status Codes: 200:75
   IPs:
     - 10.250.101.238
+    - 10.250.101.55
+    - 10.250.190.227
   User-Agents:
+    - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36
     - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0
+    - Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36
+    - Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Mobile/15E148 Safari/604.1
   Referers:
     - http://10.250.101.238:5000/
+    - http://localhost:63343/
 /api/get_custom
-  Count: 1
-  Avg Response Time: 0.003s
-  Status Codes: 200:1
+  Count: 73
+  Avg Response Time: 0.002s
+  Status Codes: 200:73
   IPs:
     - 10.250.101.238
+    - 10.250.101.55
+    - 10.250.190.227
   User-Agents:
+    - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36
     - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0
+    - Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36
+    - Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Mobile/15E148 Safari/604.1
+  Referers:
+    - http://10.250.101.238:5000/
+    - http://localhost:63343/
+/api/batch_match
+  Count: 37
+  Avg Response Time: 0.078s
+  Status Codes: 200:37
+  IPs:
+    - 10.250.101.238
+    - 10.250.101.55
+    - 10.250.190.227
+  User-Agents:
+    - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36
+    - Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36
+    - Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Mobile/15E148 Safari/604.1
+  Referers:
+    - http://10.250.101.238:5000/
+    - http://localhost:63343/
+/api/search_chars/
+  Count: 3
+  Avg Response Time: 0.150s
+  Status Codes: 200:3
+  IPs:
+    - 10.250.101.55
+    - 10.250.190.227
+  User-Agents:
+    - Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36
+    - Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Mobile/15E148 Safari/604.1
+  Referers:
+    - http://10.250.101.238:5000/
+/api/search_tones/
+  Count: 1
+  Avg Response Time: 0.029s
+  Status Codes: 200:1
+  IPs:
+    - 10.250.190.227
+  User-Agents:
+    - Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36
   Referers:
     - http://10.250.101.238:5000/
 

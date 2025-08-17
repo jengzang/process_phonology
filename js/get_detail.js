@@ -1,19 +1,4 @@
-
-const panel = document.getElementById("query-detail-panel");
-const closeBtn = document.getElementById("close-panel");
-closeBtn.addEventListener("click", () => {
-    panel.querySelector(".panel-content").innerHTML = "";
-    panel.style.display = "none";
-});
-
-const miniBtn = document.getElementById("mini-btn");
-miniBtn.addEventListener("click", async () => {
-    panel.style.display = "flex";
-    panel.querySelector(".panel-content").innerHTML = "";
-    await get_detail(window.detaillocation,window.detailfeature,false);
-});
-
-async function get_detail(location,feature,bool=false){
+async function get_detail(location,feature,bool=false,vue = false,mountTarget){
     if(!location || !feature){
         return
     }
@@ -28,26 +13,31 @@ async function get_detail(location,feature,bool=false){
         ? location
         : [location];
     // console.log("locations",locations)
-    if(bool){
+    if (bool) {
         if (mode === 'p2s') {
-            status_inputs = [feature];
-            mode = 's2p'
-            // console.log(window.detailfeature);
+            // ❗检查是否是合法汉字（+允许 -）
+            if (!/^[\u4e00-\u9fa5\-]+$/.test(feature)) {
+                status_inputs = []; // 清空
+            } else {
+                status_inputs = [feature];
+            }
+            mode = 's2p';
         } else if (mode === 's2p') {
             pho_values = [feature];
-            mode = 'p2s'
-            // console.log( pho_values);
+            mode = 'p2s';
         }
-    }else {
-        // console.log("okok");
+    } else {
         if (mode === 's2p') {
-            status_inputs = [feature];
-            // console.log(window.detailfeature);
+            if (!/^[\u4e00-\u9fa5\-]+$/.test(feature)) {
+                status_inputs = [];
+            } else {
+                status_inputs = [feature];
+            }
         } else if (mode === 'p2s') {
             pho_values = [feature];
-            // console.log( pho_values);
         }
     }
+
     const payload = {
         mode,
         locations,
@@ -76,14 +66,37 @@ async function get_detail(location,feature,bool=false){
         // 清除字數为0的數據
         window.latestdetailResults = data.filter(item => item.字數 !== 0);
         // console.log(window.latestdetailResults);
-        await js_table_render(true, number = bool);
-        window.latestdetailResults = [];
+        if(!vue) {
+            await js_table_render(true, number = bool);
+            window.latestdetailResults = [];
+        }
+        else{
+            console.log("vue")
+            await initVue(mountTarget,window.latestdetailResults,false);
+        }
     } catch (error) {
         console.error("分析失敗", error);
         alert("❌ 請求後端錯誤：" + error.message);
     }
 }
 
+//地图上的详情查询
+const panel = document.getElementById("query-detail-panel");
+const closeBtn = document.getElementById("close-panel");
+closeBtn.addEventListener("click", () => {
+    panel.querySelector(".panel-content").innerHTML = "";
+    panel.style.display = "none";
+});
+
+const miniBtn = document.getElementById("mini-btn");
+miniBtn.addEventListener("click", async () => {
+    panel.style.display = "flex";
+    panel.querySelector(".panel-content").innerHTML = "";
+    //同向查询
+    await get_detail(window.detaillocation,window.detailfeature,false);
+});
+
+//表格中的详情查询
 const panel2 = document.getElementById("query-detail-panel2");
 const closeBtn2 = document.getElementById("close-panel2");
 closeBtn2.addEventListener("click", () => {
@@ -95,6 +108,7 @@ const miniBtn2 = document.getElementById("mini-btn2");
 miniBtn2.addEventListener("click", async () => {
     panel2.style.display = "flex";
     panel2.querySelector(".panel-content").innerHTML = "";
+    //反向查询
     await get_detail(window.detaillocation2,window.detailfeature2,true);
     popup3.classList.remove("active");
 });

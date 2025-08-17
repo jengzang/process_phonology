@@ -663,7 +663,7 @@ async function analysis_from_db() {
 
         if (!res.ok || !result.success || !Array.isArray(result.results)) {
             console.error("❌ 回傳錯誤", result);
-            alert("輸入的中古地位不正確！");
+            alert("查詢參數輸入不正確！");
             clearLoadingMessage();
             return;
         }

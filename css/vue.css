@@ -219,3 +219,90 @@
     background: linear-gradient(145deg, #ddd, #f1f1f1);
     box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.1);
 }
+
+/* 🔳 弹窗基础样式（苹果玻璃风） */
+.popup-vue {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.05));
+    backdrop-filter: blur(5px) saturate(180%);
+    -webkit-backdrop-filter: blur(5px) saturate(180%);
+    padding: 6px 10px;
+    max-width: 300px;
+    border-radius: 12px;
+    box-shadow:
+            inset 0 0 1px rgba(255,255,255,0.3),
+            0 4px 14px rgba(0, 0, 0, 0.2),
+            0 0 8px rgba(255,255,255,0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    z-index: 99999;
+    text-align: center;
+    color: #222;
+    font-weight: 500;
+    opacity: 1;
+    visibility: visible;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.popup-vue p {
+    font-size: 14px;      /* 字体调小 */
+    font-weight: bold;    /* 加粗 */
+    margin-top: 1px;      /* 上间距 1px */
+    margin-bottom: 2px;   /* 下间距 1px */
+    line-height: 1.2;     /* 可选：控制行高更紧凑 */
+    display: block;
+}
+.popup-vue span {
+    font-size: 13px;      /* 字体调小 */
+    font-weight: normal;
+    margin-top: 1px;      /* 上间距 1px */
+    margin-bottom: 1px;   /* 下间距 1px */
+    line-height: 1.1;     /* 可选：控制行高更紧凑 */
+    display: block;
+}
+
+
+/* 🎞️ 弹窗入场动画 */
+.popup-animated {
+    animation: popup-bounce-in 0.4s ease-out forwards;
+}
+
+@keyframes popup-bounce-in {
+    0% {
+        transform: translateX(-50%) translateY(0px) scale(0.8);
+        opacity: 0;
+    }
+    60% {
+        transform: translateX(-50%) translateY(10px) scale(1.05);
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(-50%) translateY(20px) scale(1);
+    }
+}
+
+/* 🎯 可点击特征值：hover 炫酷动效 */
+.feature-value-clickable {
+    cursor: pointer;
+    color: #007bff;
+    text-decoration: underline;
+    display: inline-block;
+    transition: transform 0.2s ease, color 0.2s ease, text-shadow 0.3s ease;
+}
+
+.feature-value-clickable:hover {
+    transform: scale(1.2);
+    color: #3c8dbc;
+    text-shadow: 0 0 8px rgba(60, 141, 188, 0.6);
+}
+
+.grid-slot {
+    /* 位置和尺寸由脚本赋值 */
+    border: 2px dashed rgba(0,123,255,0.35);
+    border-radius: 12px;
+    box-sizing: border-box;
+    pointer-events: none;
+    z-index: 9998;
+    transition: box-shadow .12s ease, border-color .12s ease, opacity .12s ease;
+}
