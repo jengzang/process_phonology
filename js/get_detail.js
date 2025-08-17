@@ -1,14 +1,14 @@
-async function get_detail(location,feature,bool=false,vue = false,mountTarget){
-    if(!location || !feature){
+async function get_detail(location,feature_value,bool=false,vue = false,
+                          mountTarget, group_inputs = []){
+    if(!location || !feature_value){
         return
     }
     let status_inputs = [];
     let pho_values = [""];
     let regions = [""];
-    let group_inputs = [];
     let mode = document.querySelector('input[name="mode"]:checked').value;
     const features = Array.from(document.querySelectorAll('#features-group input:checked')).map(cb => cb.value);
-    // console.log("feature",features)
+    // console.log("feature_value",features)
     const locations = Array.isArray(location)
         ? location
         : [location];
@@ -16,25 +16,25 @@ async function get_detail(location,feature,bool=false,vue = false,mountTarget){
     if (bool) {
         if (mode === 'p2s') {
             // ❗检查是否是合法汉字（+允许 -）
-            if (!/^[\u4e00-\u9fa5\-]+$/.test(feature)) {
+            if (!/^[\u4e00-\u9fa5\-]+$/.test(feature_value)) {
                 status_inputs = []; // 清空
             } else {
-                status_inputs = [feature];
+                status_inputs = [feature_value];
             }
             mode = 's2p';
         } else if (mode === 's2p') {
-            pho_values = [feature];
+            pho_values = [feature_value];
             mode = 'p2s';
         }
     } else {
         if (mode === 's2p') {
-            if (!/^[\u4e00-\u9fa5\-]+$/.test(feature)) {
+            if (!/^[\u4e00-\u9fa5\-]+$/.test(feature_value)) {
                 status_inputs = [];
             } else {
-                status_inputs = [feature];
+                status_inputs = [feature_value];
             }
         } else if (mode === 'p2s') {
-            pho_values = [feature];
+            pho_values = [feature_value];
         }
     }
 
@@ -71,7 +71,7 @@ async function get_detail(location,feature,bool=false,vue = false,mountTarget){
             window.latestdetailResults = [];
         }
         else{
-            console.log("vue")
+            // console.log("vue")
             await initVue(mountTarget,window.latestdetailResults,false);
         }
     } catch (error) {
@@ -90,10 +90,13 @@ closeBtn.addEventListener("click", () => {
 
 const miniBtn = document.getElementById("mini-btn");
 miniBtn.addEventListener("click", async () => {
-    panel.style.display = "flex";
-    panel.querySelector(".panel-content").innerHTML = "";
-    //同向查询
-    await get_detail(window.detaillocation,window.detailfeature,false);
+    // panel.style.display = "flex";
+    // panel.querySelector(".panel-content").innerHTML = "";
+    // 同向查询
+    // await get_detail(window.detaillocation,window.detailfeature,false);
+    //地图的也改成用vue
+    const mountTarget_new = createNewVuePanel();
+    await get_detail(window.detaillocation,window.detailfeature,false,true,mountTarget_new);
 });
 
 //表格中的详情查询

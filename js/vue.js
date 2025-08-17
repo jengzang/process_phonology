@@ -14,6 +14,116 @@ function clearLoadingMessage_new() {
     }
 }
 
+const column_values = {
+    "攝": ['假', '咸', '宕', '山', '效', '曾', '果', '梗', '止', '江', '流', '深', '臻', '蟹', '通', '遇'],
+    "呼": ['合', '開'],
+    "等": ['一', '三', '二', '四'],
+    "韻": ['之', '仙', '佳', '侯', '侵', '元', '先', '冬', '凡', '刪', '咍', '咸', '唐', '嚴', '夬', '宵', '寒',
+        '尤', '山', '幽', '庚', '廢', '微', '支', '文', '東', '桓', '模', '欣', '歌', '江', '泰', '添', '清',
+        '灰', '痕', '登', '皆', '真', '祭', '耕', '肴', '脂', '臻', '蒸', '蕭', '虞', '覃', '談', '豪', '銜',
+        '鐘', '陽', '青', '魂', '魚', '鹽', '麻', '齊'],
+    "入": ['入', '舒'],
+    "調": ['上', '入', '去', '平'],
+    "清濁": ['全清', '全濁', '次清', '次濁', '清', '濁'],
+    "系": ['幫', '知', '端', '見'],
+    "組": ['幫', '影', '日', '曉', '泥', '知', '章', '端', '精', '莊', '見', '非'],
+    "聲": ['並', '云', '以', '來', '初', '匣', '奉', '娘', '定', '崇', '常', '幫', '影', '從', '微', '徹', '心',
+        '敷', '日', '昌', '明', '曉', '書', '泥', '清', '溪', '滂', '澄', '生', '疑', '知', '禪', '章', '端',
+        '精', '群', '船', '莊', '見', '透', '邪', '非']
+};
+
+function buildReverseMap() {
+    const map = {};
+    const conflictSet = new Set();
+
+    for (const [field, values] of Object.entries(column_values)) {
+        for (const val of values) {
+            if (!map[val]) {
+                map[val] = field;
+            } else {
+                conflictSet.add(val);
+                map[val] = null;
+            }
+        }
+    }
+
+    return { map, conflictSet };
+}
+
+function parseFeatureString(featureStr) {
+    const matched_fields = {};
+    const usedChars = new Set();
+
+    const { map: reverseMap, conflictSet } = buildReverseMap();
+    const allFieldNames = Object.keys(column_values);
+
+    const allValues = Object.values(column_values).flat();
+
+    // ✅ Step 0: 如果 featureStr 不包含任何一个值，直接返回 null
+    const hasAnyValue = allValues.some(val => featureStr.includes(val));
+    if (!hasAnyValue) {
+        return {
+            matched_fields: null,
+            unmatched_fields: allFieldNames
+        };
+    }
+
+    const usedFields = new Set();
+
+    // Step 1: 显式字段标记处理
+    for (const field of allFieldNames) {
+        const fieldIdx = featureStr.indexOf(field);
+        if (fieldIdx !== -1) {
+            usedFields.add(field);
+
+            const possibleVal = featureStr.slice(Math.max(0, fieldIdx - 2), fieldIdx); // 1-2 chars
+            let foundVal = null;
+
+            for (let len = 2; len >= 1; len--) {
+                const val = possibleVal.slice(-len);
+                if (column_values[field].includes(val)) {
+                    foundVal = val;
+                    break;
+                }
+            }
+
+            if (foundVal) {
+                matched_fields[field] = foundVal;
+                usedChars.add(field);
+                usedChars.add(foundVal);
+            } else {
+                matched_fields[field] = null;
+                usedChars.add(field);
+            }
+        }
+    }
+
+    // Step 2: 移除 used 字符
+    let remaining = featureStr;
+    for (const val of usedChars) {
+        remaining = remaining.replace(val, '');
+    }
+
+    // Step 3: 自动识别唯一值（非冲突）栏位
+    for (let i = 0; i < remaining.length; i++) {
+        const char = remaining[i];
+        if (!char.trim()) continue;
+        const field = reverseMap[char];
+        if (field && !matched_fields[field]) {
+            matched_fields[field] = char;
+            usedFields.add(field);
+        }
+    }
+
+    const unmatched_fields = allFieldNames.filter(f => !usedFields.has(f));
+
+    return {
+        matched_fields,
+        unmatched_fields
+    };
+}
+
+
 
 async function initVue(mountTarget = '#resultPanelContent',
                        data = window.latestResults, isCondensed = true) {
@@ -30,24 +140,32 @@ async function initVue(mountTarget = '#resultPanelContent',
             }
             const totalRows = ref(tableData.value.length);  // 总行数
 
-            const showPopup = ref(false);//弹窗默认隐藏
+            const showPopup = ref(false);//
             const popupData = ref({ location: '', feature: '', value: '' });
             const popupRef = ref(null); // 弹窗 DOM 元素引用
+            const showPopup2 = ref(false);
+            const popupData2 = ref({ location: '', feature: '', value: '' });
+            const popupRef2 = ref(null);
+
             const handleOutsideClick = (event) => {
-                if (!popupRef.value || !showPopup.value) {
-                    // console.log(popupRef.value);
-                    // console.log(showPopup.value);
-                    return;
-                }
-                if (popupRef.value.contains(event.target)) {
-                    return;// 点击在弹窗内，不关闭
-                }
-                if (event.target.closest('.feature-value-clickable')) return;
-                if (!popupRef.value.contains(event.target)) {
+                const clickedInsidePopup1 = popupRef.value && popupRef.value.contains(event.target);
+                const clickedInsidePopup2 = popupRef2.value && popupRef2.value.contains(event.target);
+                const clickedOnFeatureValue = event.target.closest('.feature-value-clickable');
+
+                // 如果点击在任意弹窗内部，或是触发点击元素（特征或值）上，不关闭
+                if (clickedInsidePopup1 || clickedInsidePopup2 || clickedOnFeatureValue) return;
+
+                // 否则，关闭所有弹窗
+                if (showPopup.value) {
                     showPopup.value = false;
-                    document.removeEventListener('click', handleOutsideClick);
                 }
+                if (showPopup2.value) {
+                    showPopup2.value = false;
+                }
+
+                document.removeEventListener('click', handleOutsideClick);
             };
+
 
             onUnmounted(() => {
                 document.removeEventListener('click', handleOutsideClick); // 组件销毁时清除
@@ -106,66 +224,82 @@ async function initVue(mountTarget = '#resultPanelContent',
             });
             const popupPosition = ref({ top: 100, left: 100 }); // 默认初始位置
 
+            const triggerPopup = (type, item, feature, value, e) => {
+                const dataObj = {
+                    location: item.地點,
+                    feature,
+                    value: String(value).replace(/·/g, '')
+                };
+
+                const mouseX = e.clientX;
+                const mouseY = e.clientY;
+
+                const popupWidth = 250;
+                const popupHeight = 100;
+                const offsetTop = 5;
+                const offsetLeft = 10;
+
+                const popupTop = mouseY - popupHeight - offsetTop;
+                const maxTop = 20;
+
+                const popupLeft = mouseX + popupWidth / 2 - offsetLeft;
+                const maxLeft = 20;
+                const maxRight = window.innerWidth - 0.5*popupWidth;
+
+                const finalPos = {
+                    top: Math.max(popupTop, maxTop),
+                    left: Math.min(Math.max(popupLeft, maxLeft), maxRight)
+                };
+
+                // ✨ 根据类型分别控制状态
+                if (type === 'value') {
+                    popupData.value = dataObj;
+                    showPopup.value = true;
+                    showPopup2.value = false; // 👈 保证互斥
+                    popupPosition.value = finalPos;
+                } else if (type === 'feature') {
+                    popupData2.value = dataObj;
+                    showPopup2.value = true;
+                    showPopup.value = false; // 👈 保证互斥
+                    popupPosition.value = finalPos;
+                }
+
+                nextTick(() => {
+                    setTimeout(() => {
+                        document.addEventListener('click', handleOutsideClick);
+                    }, 0);
+                });
+            };
+
+
             const getFeatureValue = (item) => {
                 const groupValues = item.分組值 || {};
                 const feature = Object.keys(groupValues)[0];
                 const value = groupValues[feature];
 
-                const handleClick = (e) => {
-                    // console.log("点击了")
-                    popupData.value = {
-                        location: item.地點,
-                        feature,
-                        value: String(value).replace(/·/g, '') // 👈 过滤所有“·”
-                    };
-                    showPopup.value = true;
-
-                    // 获取鼠标坐标
-                    const mouseX = e.clientX;
-                    const mouseY = e.clientY;
-
-                    // 设置弹窗宽高（你可以用静态值，也可以从 DOM 获取）
-                    const popupWidth = 180;
-                    const popupHeight = 100;
-                    const offsetTop = 5;
-                    const offsetLeft = 10;
-
-                    // 垂直位置
-                    const popupTop = mouseY - popupHeight - offsetTop;
-                    const maxTop = 20;
-
-                    // 水平位置
-                    const popupLeft = mouseX + popupWidth / 2 - offsetLeft;
-                    const maxLeft = 20;
-                    const maxRight = window.innerWidth - popupWidth - 20;
-
-                    popupPosition.value = {
-                        top: Math.max(popupTop, maxTop),
-                        left: Math.min(Math.max(popupLeft, maxLeft), maxRight)
-                    };
-                    // ✅ 延迟监听点击事件（关键）
-                    nextTick(() => {
-                        setTimeout(() => {
-                            document.addEventListener('click', handleOutsideClick);
-                        }, 0);
-                    });
-
+                const spanStyle = {
+                    cursor: 'pointer',
+                    color: '#007bff'
                 };
 
-
                 return [
-                    h('span', {}, `${feature} ☞ `),
                     h('span', {
                         class: 'feature-value-clickable',
-                        style: {
-                            cursor: 'pointer',
-                            color: '#007bff',
-                            textDecoration: 'underline'
-                        },
-                        onClick: handleClick
+                        style: spanStyle,
+                        onClick: (e) => triggerPopup('feature', item, feature, value, e)
+                    }, feature),
+
+                    h('span', {}, ' ☞ '),
+
+                    h('span', {
+                        class: 'feature-value-clickable',
+                        style: spanStyle,
+                        onClick: (e) => triggerPopup('value', item, feature, value, e)
                     }, String(value))
                 ];
             };
+
+
 
             const getCorrespondingCharacters = (item) => {
                 const multiCharDetails = {};
@@ -318,12 +452,17 @@ async function initVue(mountTarget = '#resultPanelContent',
                 getFeatureValue,
                 renderData,
                 showPopup,
+                showPopup2,         // ✅ 新增
                 popupData,
+                popupData2,         // ✅ 新增
                 popupPosition,
                 popupRef,
+                popupRef2,          // ✅ 新增
                 getCheckedFeatures,
-                getModeLabels
+                getModeLabels,
+                parseFeatureString,
             };
+
         },
 
         render(ctx) {
@@ -354,7 +493,7 @@ async function initVue(mountTarget = '#resultPanelContent',
                                     position: 'fixed',
                                     top: `${ctx.popupPosition.top}px`,
                                     left: `${ctx.popupPosition.left}px`,
-                                    zIndex: 9999 // ✅ 确保在最上层
+                                    zIndex: 999999 // ✅ 确保在最上层
                                 }
                             }, [
                                 h('div', { class: 'popup-content' }, [
@@ -362,37 +501,129 @@ async function initVue(mountTarget = '#resultPanelContent',
                                     h('p', {}, `🧩 特征: ${ctx.getCheckedFeatures()}`),
                                     h('span', {}, ` ${currentLabel}: ${getModeText(currentLabel, ctx.popupData.value)}`),
                                     h('span', {}, ` ${oppositeLabel}: ${getModeText(oppositeLabel, ctx.popupData.value)}`),
-                                    h('button', {
-                                        class: 'mini-button',
-                                        onClick: () => {
-                                            const mountTarget_new = createNewVuePanel();
-                                            get_detail(
-                                                ctx.popupData.location,
-                                                ctx.popupData.value,
-                                                false,
-                                                true,
-                                                mountTarget_new
+                                    // ✅ 调用解析函数判断
+                                    (() => {
+                                        const parseResult = ctx.parseFeatureString?.(ctx.popupData.feature);
+                                        const fontSizeStyle = { fontSize: '17px' };
+                                        const shouldApplyFontSize = (label, parseResult) => {
+                                            return (
+                                                (label === '字本位' && parseResult.matched_fields === null) ||
+                                                (label === '音本位' && parseResult.matched_fields !== null)
                                             );
-                                        }
-                                    }, `🔍${currentLabel}`),
-                                    h('button', {
-                                        class: 'mini-button',
-                                        onClick: () => {
-                                            const mountTarget_new = createNewVuePanel();
-                                            get_detail(
-                                                ctx.popupData.location,
-                                                ctx.popupData.value,
-                                                true,
-                                                true,
-                                                mountTarget_new
-                                            );
-                                        }
-                                    }, `🔍${oppositeLabel}`),
+                                        };
+
+                                        return [
+                                            h('button', {
+                                                class: 'mini-button',
+                                                style: shouldApplyFontSize(currentLabel,parseResult) ? fontSizeStyle : {},
+                                                onClick: () => {
+                                                    const mountTarget_new = createNewVuePanel();
+                                                    get_detail(
+                                                        ctx.popupData.location,
+                                                        ctx.popupData.value,
+                                                        false,
+                                                        true,
+                                                        mountTarget_new
+                                                    );
+                                                    ctx.showPopup = false;
+                                                }
+                                            }, `🔍${currentLabel}`),
+
+                                            h('button', {
+                                                class: 'mini-button',
+                                                style: shouldApplyFontSize(oppositeLabel,parseResult) ? fontSizeStyle : {},
+                                                onClick: () => {
+                                                    const mountTarget_new = createNewVuePanel();
+                                                    get_detail(
+                                                        ctx.popupData.location,
+                                                        ctx.popupData.value,
+                                                        true,
+                                                        true,
+                                                        mountTarget_new
+                                                    );
+                                                    ctx.showPopup = false;
+                                                }
+                                            }, `🔍${oppositeLabel}`)
+                                        ];
+                                    })()
+
+                                ])
+                            ])
+                        ]
+                    )
+                    : null,
+                ctx.showPopup2
+                    ? h(
+                        Teleport,
+                        { to: 'body' },
+                        [
+                            h('div', {
+                                ref: el => { ctx.popupRef2 = el },
+                                class: ['popup-vue', 'popup-animated'],
+                                style: {
+                                    position: 'fixed',
+                                    top: `${ctx.popupPosition.top}px`,
+                                    left: `${ctx.popupPosition.left}px`,
+                                    zIndex: 999999
+                                }
+                            }, [
+                                h('div', { class: 'popup-content' }, [
+
+                                    // 现有内容
+                                    h('p', {}, `📍 地點: ${ctx.popupData2.location}`),
+                                    h('p', {}, `🧩 特征: ${ctx.getCheckedFeatures()}`),
+                                    h('p', {}, `🔍 查詢: ${ctx.popupData2.feature} + (單擊按鈕選擇)`),
+                                    // h('span', {}, ` ${currentLabel}: ${getModeText(currentLabel, ctx.popupData2.value)}`),
+                                    // h('span', {}, ` ${oppositeLabel}: ${getModeText(oppositeLabel, ctx.popupData2.value)}`),
+
+                                    // ✅ 新增按钮：根据未匹配栏位动态生成
+                                    (() => {
+                                        const parseResult = ctx.parseFeatureString(ctx.popupData2.feature);
+                                        const unmatchedFields =  parseResult.unmatched_fields;
+
+                                        return unmatchedFields.map(field =>
+                                            h('button', {
+                                                class: 'mini-button',
+                                                style:{
+                                                    fontSize: '16px',
+                                                    marginRight: '2px',
+                                                    marginLeft:'2px',
+                                                },
+                                                onClick: () => {
+                                                    if (parseResult.matched_fields === null) {
+                                                        // console.log(field);
+                                                        const mountTarget_new = createNewVuePanel();
+                                                        get_detail(
+                                                            ctx.popupData2.location,
+                                                            ctx.popupData2.feature,
+                                                            true,
+                                                            true,
+                                                            mountTarget_new,
+                                                            [field]
+                                                        );
+                                                        ctx.showPopup2 = false;
+                                                    } else {
+                                                        // console.log(`${ctx.popupData2.feature}-${field}`);
+                                                        const mountTarget_new = createNewVuePanel();
+                                                        get_detail(
+                                                            ctx.popupData2.location,
+                                                            `${ctx.popupData2.feature.replace(/·/g, '')}-${field}`,
+                                                            false,
+                                                            true,
+                                                            mountTarget_new,
+                                                        );
+                                                        ctx.showPopup2 = false;
+                                                    }
+                                                }
+                                            }, `${field}`)
+                                        );
+                                    })()
                                 ])
                             ])
                         ]
                     )
                     : null
+
             ]);
         }
     });
@@ -413,7 +644,7 @@ async function initVue(mountTarget = '#resultPanelContent',
 const ROW_GAP_PX = 120;         // 行距（竖向间隔）
 const ROW_BOTTOM_START = 10;    // 底部起始偏移
 const PANEL_HEIGHT = '50vh';    // 面板高度
-const EXTRA_EMPTY_ROWS = 2;      // 拖拽时额外提供的空行数用于吸附
+const EXTRA_EMPTY_ROWS = 3;      // 拖拽时额外提供的空行数用于吸附
 
 const panelSlots = [];           // 槽位数组：索引=槽位，值=容器DOM或null
 const panelsList = [];           // 仅现存的面板（创建顺序）
@@ -433,10 +664,10 @@ function slotToRB(idx) {
     const { cols, widthPct, gapPct } = getLayoutSpec();
     const col = idx % cols;                // 0 = 最右列
     const row = Math.floor(idx / cols);    // 0 = 最底行
-    const rightPct = col * (widthPct + gapPct);
+    const leftPct = col * (widthPct + gapPct);
     const bottomPx = ROW_BOTTOM_START + row * ROW_GAP_PX;
     return {
-        right:  `${rightPct}%`,
+        left:  `${leftPct}%`,
         bottom: `${bottomPx}px`,
         width:  `${widthPct}%`,
         height: PANEL_HEIGHT,
@@ -448,10 +679,9 @@ function slotRectPx(idx) {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const widthPx  = (parseFloat(rb.width) / 100) * vw;
-    const rightPx  = (parseFloat(rb.right) / 100) * vw;
     const heightPx = rb.height.endsWith('vh') ? (parseFloat(rb.height) / 100) * vh : parseFloat(rb.height);
     const bottomPx = parseFloat(rb.bottom);
-    const left = vw - rightPx - widthPx;
+    const left = (parseFloat(rb.left) / 100) * vw;
     const top  = vh - bottomPx - heightPx;
     return { left, top, width: widthPx, height: heightPx };
 }
@@ -462,9 +692,9 @@ function applySlotPosition(container, idx) {
         position: 'fixed',
         display: 'flex',
         transform: 'none',
-        left: 'auto',
+        right: 'auto',
         top: 'auto',
-        right: rb.right,
+        left: rb.left,
         bottom: rb.bottom,
         width: rb.width,
         height: rb.height
@@ -501,7 +731,7 @@ function showGridOverlays(origSlotIndex) {
         Object.assign(o.style, {
             position: 'fixed',
             pointerEvents: 'none',
-            right: rb.right,
+            left: rb.left,               // ✅ 改 right → left
             bottom: rb.bottom,
             width: rb.width,
             height: rb.height,
@@ -512,6 +742,7 @@ function showGridOverlays(origSlotIndex) {
             background: 'transparent',
             transition: 'box-shadow .12s ease, border-color .12s ease',
         });
+
         o.dataset.slotIndex = String(i);
         frag.appendChild(o);
         gridOverlays.push(o);
@@ -569,32 +800,32 @@ function enableDragSnap(container) {
     const onMouseDown = (e) => {
         if (e.target.closest('.close-btn')) return; // 不从关闭按钮拖
 
-        dragging = true;
         const rect = container.getBoundingClientRect();
-        startX = e.clientX;
-        startY = e.clientY;
-        offsetX = e.clientX - rect.left;
-        offsetY = e.clientY - rect.top;
 
-        // 用 left/top 像素定位拖拽
-        Object.assign(container.style, {
-            right: 'auto',
-            bottom: 'auto',
-            left: `${rect.left}px`,
-            top:  `${rect.top}px`,
-            zIndex: 10001
+        const timeout = setTimeout(() => {
+            dragging = true;
+
+            Object.assign(container.style, {
+                right: 'auto',
+                bottom: 'auto',
+                left: `${rect.left}px`,
+                top: `${rect.top}px`,
+                zIndex: 10001
+            });
+
+            releaseSlot(origSlot);
+            showGridOverlays(origSlot);
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+            document.body.style.userSelect = 'none';
+        }, 300);
+
+        document.addEventListener('mouseup', function cancelEarly() {
+            clearTimeout(timeout);
+            document.removeEventListener('mouseup', cancelEarly);
         });
-
-        // 临时释放原槽
-        releaseSlot(origSlot);
-
-        // 显示栅格高亮（包含原槽和额外空槽）
-        showGridOverlays(origSlot);
-
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-        document.body.style.userSelect = 'none';
-    };
+    }
 
     const onMouseMove = (e) => {
         if (!dragging) return;
@@ -650,7 +881,7 @@ function createNewVuePanel() {
 
     const container = document.createElement('div');
     container.id = id;
-    container.classList.add('query-detail-panel2');
+    container.classList.add('query-detail-panel');
 
     applySlotPosition(container, slotIndex);
 

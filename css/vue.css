@@ -285,14 +285,15 @@
 /* 🎯 可点击特征值：hover 炫酷动效 */
 .feature-value-clickable {
     cursor: pointer;
+    text-decoration: none;
     color: #007bff;
-    text-decoration: underline;
     display: inline-block;
     transition: transform 0.2s ease, color 0.2s ease, text-shadow 0.3s ease;
 }
 
 .feature-value-clickable:hover {
-    transform: scale(1.2);
+    transform: scale(1.3);
+    text-decoration: underline;
     color: #3c8dbc;
     text-shadow: 0 0 8px rgba(60, 141, 188, 0.6);
 }

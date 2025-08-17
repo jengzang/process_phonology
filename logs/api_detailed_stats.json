@@ -1,10 +1,10 @@
 {
   "detailed_stats": {
     "/api/partitions": {
-      "count": 22,
-      "total_time": 0.14022254943847656,
+      "count": 49,
+      "total_time": 0.3379228115081787,
       "status_codes": {
-        "200": 22
+        "200": 49
       },
       "ips": [
         "10.250.101.238",
@@ -12,20 +12,22 @@
         "10.250.101.55"
       ],
       "agents": [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36",
         "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Mobile/15E148 Safari/604.1",
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
         "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
       ],
       "referers": [
+        "http://localhost:63343/",
         "http://10.250.101.238:5000/"
       ]
     },
     "/api/phonology": {
-      "count": 209,
-      "total_time": 62.768712759017944,
+      "count": 368,
+      "total_time": 180.06507849693298,
       "status_codes": {
-        "200": 197,
-        "500": 12
+        "200": 355,
+        "500": 13
       },
       "ips": [
         "10.250.101.238",
@@ -44,10 +46,10 @@
       ]
     },
     "/api/get_coordinates": {
-      "count": 75,
-      "total_time": 1.4701194763183594,
+      "count": 136,
+      "total_time": 2.6653409004211426,
       "status_codes": {
-        "200": 75
+        "200": 136
       },
       "ips": [
         "10.250.101.238",
@@ -66,10 +68,10 @@
       ]
     },
     "/api/get_custom": {
-      "count": 73,
-      "total_time": 0.11960554122924805,
+      "count": 126,
+      "total_time": 0.21422648429870605,
       "status_codes": {
-        "200": 73
+        "200": 126
       },
       "ips": [
         "10.250.101.238",
@@ -88,10 +90,10 @@
       ]
     },
     "/api/batch_match": {
-      "count": 37,
-      "total_time": 2.882751941680908,
+      "count": 67,
+      "total_time": 4.802262544631958,
       "status_codes": {
-        "200": 37
+        "200": 67
       },
       "ips": [
         "10.250.101.55",
@@ -109,20 +111,23 @@
       ]
     },
     "/api/search_chars/": {
-      "count": 3,
-      "total_time": 0.4494340419769287,
+      "count": 4,
+      "total_time": 9.369210004806519,
       "status_codes": {
-        "200": 3
+        "200": 4
       },
       "ips": [
         "10.250.101.55",
+        "10.250.101.238",
         "10.250.190.227"
       ],
       "agents": [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36",
         "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Mobile/15E148 Safari/604.1",
         "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
       ],
       "referers": [
+        "http://localhost:63343/",
         "http://10.250.101.238:5000/"
       ]
     },
@@ -141,15 +146,31 @@
       "referers": [
         "http://10.250.101.238:5000/"
       ]
+    },
+    "/api/get_regions": {
+      "count": 154,
+      "total_time": 0.17713665962219238,
+      "status_codes": {
+        "200": 154
+      },
+      "ips": [
+        "10.250.190.227"
+      ],
+      "agents": [
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+      ],
+      "referers": [
+        "http://10.250.101.238:5000/"
+      ]
     }
   },
   "daily_stats": {
     "2025-08-17": {
       "/api/partitions": {
-        "count": 22,
-        "total_time": 0.14022254943847656,
+        "count": 49,
+        "total_time": 0.3379228115081787,
         "status_codes": {
-          "200": 22
+          "200": 49
         },
         "ips": [
           "10.250.101.238",
@@ -157,20 +178,22 @@
           "10.250.101.55"
         ],
         "agents": [
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36",
           "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Mobile/15E148 Safari/604.1",
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
           "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
         ],
         "referers": [
+          "http://localhost:63343/",
           "http://10.250.101.238:5000/"
         ]
       },
       "/api/phonology": {
-        "count": 209,
-        "total_time": 62.768712759017944,
+        "count": 368,
+        "total_time": 180.06507849693298,
         "status_codes": {
-          "200": 197,
-          "500": 12
+          "200": 355,
+          "500": 13
         },
         "ips": [
           "10.250.101.238",
@@ -189,10 +212,10 @@
         ]
       },
       "/api/get_coordinates": {
-        "count": 75,
-        "total_time": 1.4701194763183594,
+        "count": 136,
+        "total_time": 2.6653409004211426,
         "status_codes": {
-          "200": 75
+          "200": 136
         },
         "ips": [
           "10.250.101.238",
@@ -211,10 +234,10 @@
         ]
       },
       "/api/get_custom": {
-        "count": 73,
-        "total_time": 0.11960554122924805,
+        "count": 126,
+        "total_time": 0.21422648429870605,
         "status_codes": {
-          "200": 73
+          "200": 126
         },
         "ips": [
           "10.250.101.238",
@@ -233,10 +256,10 @@
         ]
       },
       "/api/batch_match": {
-        "count": 37,
-        "total_time": 2.882751941680908,
+        "count": 67,
+        "total_time": 4.802262544631958,
         "status_codes": {
-          "200": 37
+          "200": 67
         },
         "ips": [
           "10.250.101.55",
@@ -254,20 +277,23 @@
         ]
       },
       "/api/search_chars/": {
-        "count": 3,
-        "total_time": 0.4494340419769287,
+        "count": 4,
+        "total_time": 9.369210004806519,
         "status_codes": {
-          "200": 3
+          "200": 4
         },
         "ips": [
           "10.250.101.55",
+          "10.250.101.238",
           "10.250.190.227"
         ],
         "agents": [
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36",
           "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Mobile/15E148 Safari/604.1",
           "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
         ],
         "referers": [
+          "http://localhost:63343/",
           "http://10.250.101.238:5000/"
         ]
       },
@@ -276,6 +302,22 @@
         "total_time": 0.029325008392333984,
         "status_codes": {
           "200": 1
+        },
+        "ips": [
+          "10.250.190.227"
+        ],
+        "agents": [
+          "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+        ],
+        "referers": [
+          "http://10.250.101.238:5000/"
+        ]
+      },
+      "/api/get_regions": {
+        "count": 154,
+        "total_time": 0.17713665962219238,
+        "status_codes": {
+          "200": 154
         },
         "ips": [
           "10.250.190.227"

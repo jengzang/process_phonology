@@ -78,7 +78,7 @@ html, body {
 
 #resultPanel.panel-medium {
     left: 20vw;
-    width: 40vw;
+    width: 35vw;
 }
 .panel-fullscreen {
     top: 0;
@@ -102,8 +102,8 @@ html, body {
 }
 
 #mapPanel.panel-medium {
-    left: 60vw; /* 右侧 2/5 */
-    width: 40vw; /* 右侧占 2/5 */
+    left: 55vw; /* 右侧 2/5 */
+    width: 45vw; /* 右侧占 2/5 */
     overflow-x: hidden; /* 禁止水平滚动 */
 }
 

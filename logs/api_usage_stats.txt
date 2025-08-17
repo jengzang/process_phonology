@@ -1,12 +1,12 @@
 === Total Counts ===
-/	19
-/api/batch_match	113
-/api/get_coordinates	215
-/api/get_custom	180
-/api/get_regions	1676
-/api/partitions	131
-/api/phonology	649
-/api/search_chars/	35
+/	28
+/api/batch_match	143
+/api/get_coordinates	276
+/api/get_custom	233
+/api/get_regions	1830
+/api/partitions	158
+/api/phonology	808
+/api/search_chars/	36
 /api/search_tones/	3
 /api/submit_form	1
 
@@ -23,11 +23,12 @@
 /api/search_tones/	1
 /api/submit_form	1
 2025-08-17
-/	11
-/api/batch_match	107
-/api/get_coordinates	197
-/api/get_custom	165
-/api/partitions	59
-/api/phonology	621
-/api/search_chars/	34
+/	20
+/api/batch_match	137
+/api/get_coordinates	258
+/api/get_custom	218
+/api/get_regions	154
+/api/partitions	86
+/api/phonology	780
+/api/search_chars/	35
 /api/search_tones/	2
