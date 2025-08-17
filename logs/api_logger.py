@@ -1,3 +1,4 @@
+import json
 import os
 import threading
 import queue
@@ -15,6 +16,8 @@ KEYWORD_LOG_FILE = os.path.join(log_dir, "api_keywords_log.txt")
 SUMMARY_FILE = os.path.join(log_dir, "api_keywords_summary.txt")
 API_USAGE_FILE = os.path.join(log_dir, "api_usage_stats.txt")
 API_DETAILED_FILE = os.path.join(log_dir, "api_detailed_stats.txt")
+API_DETAILED_JSON = os.path.join(log_dir, "api_detailed_stats.json")
+
 
 # === 队列 ===
 keyword_queue = queue.Queue()
@@ -51,7 +54,7 @@ threading.Thread(target=keyword_writer, daemon=True).start()
 # === 聚合关键词日志 ===
 def aggregate_keyword_log():
     total_counts = defaultdict(lambda: defaultdict(int))
-    today_counts = defaultdict(lambda: defaultdict(int))
+    daily_counts = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
     today = datetime.now().strftime("%Y-%m-%d")
 
     if not os.path.exists(KEYWORD_LOG_FILE):
@@ -69,8 +72,7 @@ def aggregate_keyword_log():
                     value = [value]
                 for item in value:
                     total_counts[field][item] += 1
-                    if date == today:
-                        today_counts[field][item] += 1
+                    daily_counts[date][field][item] += 1
             except Exception as e:
                 print(f"[aggregate_keyword_log] Error: {e} | Line: {line}")
 
@@ -82,12 +84,14 @@ def aggregate_keyword_log():
                 f.write(f"\n  {k}: {v}")
             f.write("\n")
 
-        f.write(f"\n=== Today: {today} ===\n")
-        for field, keywords in today_counts.items():
-            f.write(f"{field}:")
-            for k, v in sorted(keywords.items(), key=lambda x: -x[1]):
-                f.write(f"\n  {k}: {v}")
-            f.write("\n")
+        f.write("\n=== Daily Summary ===\n")
+        for date in sorted(daily_counts.keys()):
+            f.write(f"{date}:\n")
+            for field, keywords in daily_counts[date].items():
+                f.write(f"{field}:")
+                for k, v in sorted(keywords.items(), key=lambda x: -x[1]):
+                    f.write(f"\n  {k}: {v}")
+                f.write("\n")
 
 
 threading.Thread(target=aggregate_keyword_log, daemon=True).start()
@@ -152,14 +156,42 @@ def log_detailed_api(path, duration, status_code, ip, user_agent, referer):
 
 # === 后台线程写入详细响应 ===
 def detailed_writer():
-    detailed_stats = defaultdict(lambda: {
-        "count": 0, "total_time": 0.0, "status_codes": defaultdict(int),
-        "ips": set(), "agents": set(), "referers": set()
-    })
-    daily_stats = defaultdict(lambda: defaultdict(lambda: {
-        "count": 0, "total_time": 0.0, "status_codes": defaultdict(int),
-        "ips": set(), "agents": set(), "referers": set()
-    }))
+    # 初始化数据结构
+    def init_stats():
+        return {
+            "count": 0, "total_time": 0.0, "status_codes": defaultdict(int),
+            "ips": set(), "agents": set(), "referers": set()
+        }
+
+    # 从 JSON 加载旧数据
+    if os.path.exists(API_DETAILED_JSON):
+        with open(API_DETAILED_JSON, "r", encoding="utf-8") as f:
+            raw = json.load(f)
+            detailed_stats = defaultdict(init_stats, {
+                k: {
+                    "count": v["count"],
+                    "total_time": v["total_time"],
+                    "status_codes": defaultdict(int, v["status_codes"]),
+                    "ips": set(v["ips"]),
+                    "agents": set(v["agents"]),
+                    "referers": set(v["referers"]),
+                } for k, v in raw["detailed_stats"].items()
+            })
+            daily_stats = defaultdict(lambda: defaultdict(init_stats))
+            for date, paths in raw["daily_stats"].items():
+                for path, v in paths.items():
+                    daily_stats[date][path] = {
+                        "count": v["count"],
+                        "total_time": v["total_time"],
+                        "status_codes": defaultdict(int, v["status_codes"]),
+                        "ips": set(v["ips"]),
+                        "agents": set(v["agents"]),
+                        "referers": set(v["referers"]),
+                    }
+    else:
+        detailed_stats = defaultdict(init_stats)
+        daily_stats = defaultdict(lambda: defaultdict(init_stats))
+
     while True:
         item = detailed_queue.get()
         if item is None:
@@ -184,6 +216,34 @@ def detailed_writer():
         if referer:
             d_day["referers"].add(referer)
 
+        # 写入结构化 JSON 文件（持久化）
+        with open(API_DETAILED_JSON, "w", encoding="utf-8") as f:
+            json.dump({
+                "detailed_stats": {
+                    k: {
+                        "count": v["count"],
+                        "total_time": v["total_time"],
+                        "status_codes": dict(v["status_codes"]),
+                        "ips": list(v["ips"]),
+                        "agents": list(v["agents"]),
+                        "referers": list(v["referers"]),
+                    } for k, v in detailed_stats.items()
+                },
+                "daily_stats": {
+                    date: {
+                        path: {
+                            "count": v["count"],
+                            "total_time": v["total_time"],
+                            "status_codes": dict(v["status_codes"]),
+                            "ips": list(v["ips"]),
+                            "agents": list(v["agents"]),
+                            "referers": list(v["referers"]),
+                        } for path, v in paths.items()
+                    } for date, paths in daily_stats.items()
+                }
+            }, f, ensure_ascii=False, indent=2)
+
+        # 写入可读汇总（和原来一样）
         with open(API_DETAILED_FILE, "w", encoding="utf-8") as f:
             f.write("=== Total Summary ===\n")
             for path, d in detailed_stats.items():

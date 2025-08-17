@@ -262,20 +262,33 @@ def auto_convert_single(user_input: str) -> Union[Tuple[str, int], Tuple[bool, i
                     i += j
                     matched = True
                     break
+                # 特別優先處理清濁的多字值
+                if frag in column_values.get("清濁", []) and "清濁" not in used_columns:
+                    result.append(f"[{frag}]{{清濁}}")
+                    used_columns.add("清濁")
+                    match_count += 1
+                    i += j
+                    matched = True
+                    break
 
-                for col in HIERARCHY_COLUMNS:
+                for col in sorted(HIERARCHY_COLUMNS, key=len, reverse=True):  # 長欄位名優先
                     if col == "入":
                         continue
                     if frag.endswith(col) and len(frag) > len(col):
                         val = frag[:-len(col)]
+                        # print(f"🧪 嘗試匹配 frag='{frag}' → val='{val}', col='{col}'")
                         if val in column_values.get(col, []):
                             if col not in used_columns:
+                                # print(f"✅ 命中：[ {val} ]{{ {col} }}")
                                 result.append(f"[{val}]{{{col}}}")
                                 used_columns.add(col)
                                 match_count += 1
                                 i += j
                                 matched = True
-                                break
+                                break  # ✅ 跳出 col 的排序迴圈
+
+                if matched:
+                    break  # ✅ 跳出 j 的迴圈（for j in 3,2,1）
 
                 if frag not in value_to_columns:
                     continue
@@ -833,14 +846,15 @@ def read_partition_hierarchy(parent_regions=None, db_path=QUERY_DB_PATH):
 
     return result
 
-# # results = auto_convert_single("通开一")
+
+# results = auto_convert_single("宕")
 # locations = [""]
 # regions = ["嶺南","閩西"]
 # abbreviations_list = query_dialect_abbreviations(regions,locations)
 # # print(abbreviations_list)
 # result = get_coordinates_from_db(abbreviations_list)
 # # # # results = match_locations_batch("東莞")
-# print(result)
+# print(results)
 # print(results[1])
 # print(results[2])
 # print(results[3])

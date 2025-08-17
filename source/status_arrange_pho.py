@@ -258,6 +258,29 @@ def run_status(
     """
     results_summary = []
 
+    AMBIG_VALUES = {
+        '咸', '山', '江', '臻', '微', '清',
+        '莊', '幫', '知', '端', '見', '非',
+        '影', '日', '曉', '泥', '章', '精'
+    }
+
+    def convert_path_str(path_str: str) -> str:
+        """
+        將格式 [莊]{組}[宕]{攝} 轉換為：
+        - 若值在 AMBIG_VALUES 中（有歧義），保留 {欄位} → 莊組
+        - 否則只保留值 → 宕
+        最終以 - 串接
+        """
+        items = re.findall(r'[\[\{](.*?)[\]\}]', path_str)
+        pairs = []
+        for i in range(0, len(items), 2):
+            val, col = items[i], items[i + 1]
+            if val in AMBIG_VALUES:
+                pairs.append(val + col)
+            else:
+                pairs.append(val)
+        return '·'.join(pairs)
+
     for s in input_strings:
         if "-" in s:
             # ➤ 保留原邏輯：含有破折號，直接處理整體
@@ -280,7 +303,10 @@ def run_status(
                     characters, multi_chars = query_characters_by_path(
                         path_str, db_path=db_path, table=table
                     )
-                    simplified_input = ''.join(re.findall(r'\[(.*?)\]', path_str))
+                    # simplified_input = ''.join(re.findall(r'\[(.*?)\]', path_str))
+                    simplified_input = convert_path_str(path_str)
+                    # print(f"path_str0{path_str}")
+                    # print(f"simpilfied0_input{simplified_input}")
                     path_results.append({
                         "path": simplified_input,
                         "characters": characters,
@@ -325,7 +351,7 @@ def run_status(
                         )
                         all_chars.extend(characters)
                         all_multi.extend(multi_chars)
-
+            # print(f"s{s}")
             if all_chars:
                 results_summary.append((
                     s,
@@ -364,7 +390,10 @@ def run_status(
                     characters, multi_chars = query_characters_by_path(
                         path_str, db_path=db_path, table=table
                     )
-                    simplified_input = ''.join(re.findall(r'\[(.*?)\]', path_str))
+                    # simplified_input = ''.join(re.findall(r'\[(.*?)\]', path_str))
+                    simplified_input = convert_path_str(path_str)
+                    # print(f"path_str{path_str}")
+                    # print(f"simpilfied_input{simplified_input}")
                     path_results.append({
                         "path": simplified_input,
                         "characters": characters,

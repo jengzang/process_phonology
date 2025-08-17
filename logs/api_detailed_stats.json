@@ -1,0 +1,136 @@
+{
+  "detailed_stats": {
+    "/api/partitions": {
+      "count": 1,
+      "total_time": 0.008090972900390625,
+      "status_codes": {
+        "200": 1
+      },
+      "ips": [
+        "10.250.101.238"
+      ],
+      "agents": [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+      ],
+      "referers": [
+        "http://10.250.101.238:5000/"
+      ]
+    },
+    "/api/phonology": {
+      "count": 1,
+      "total_time": 1.0857315063476562,
+      "status_codes": {
+        "200": 1
+      },
+      "ips": [
+        "10.250.101.238"
+      ],
+      "agents": [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+      ],
+      "referers": [
+        "http://10.250.101.238:5000/"
+      ]
+    },
+    "/api/get_coordinates": {
+      "count": 1,
+      "total_time": 0.010816097259521484,
+      "status_codes": {
+        "200": 1
+      },
+      "ips": [
+        "10.250.101.238"
+      ],
+      "agents": [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+      ],
+      "referers": [
+        "http://10.250.101.238:5000/"
+      ]
+    },
+    "/api/get_custom": {
+      "count": 1,
+      "total_time": 0.002597808837890625,
+      "status_codes": {
+        "200": 1
+      },
+      "ips": [
+        "10.250.101.238"
+      ],
+      "agents": [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+      ],
+      "referers": [
+        "http://10.250.101.238:5000/"
+      ]
+    }
+  },
+  "daily_stats": {
+    "2025-08-17": {
+      "/api/partitions": {
+        "count": 1,
+        "total_time": 0.008090972900390625,
+        "status_codes": {
+          "200": 1
+        },
+        "ips": [
+          "10.250.101.238"
+        ],
+        "agents": [
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+        ],
+        "referers": [
+          "http://10.250.101.238:5000/"
+        ]
+      },
+      "/api/phonology": {
+        "count": 1,
+        "total_time": 1.0857315063476562,
+        "status_codes": {
+          "200": 1
+        },
+        "ips": [
+          "10.250.101.238"
+        ],
+        "agents": [
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+        ],
+        "referers": [
+          "http://10.250.101.238:5000/"
+        ]
+      },
+      "/api/get_coordinates": {
+        "count": 1,
+        "total_time": 0.010816097259521484,
+        "status_codes": {
+          "200": 1
+        },
+        "ips": [
+          "10.250.101.238"
+        ],
+        "agents": [
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+        ],
+        "referers": [
+          "http://10.250.101.238:5000/"
+        ]
+      },
+      "/api/get_custom": {
+        "count": 1,
+        "total_time": 0.002597808837890625,
+        "status_codes": {
+          "200": 1
+        },
+        "ips": [
+          "10.250.101.238"
+        ],
+        "agents": [
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+        ],
+        "referers": [
+          "http://10.250.101.238:5000/"
+        ]
+      }
+    }
+  }
+}

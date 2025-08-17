@@ -225,7 +225,7 @@ def search_characters(chars, locations=None, regions=None):
                  (sublist if isinstance(sublist, (list, np.ndarray)) else [sublist])]
 
     # 调用 s2t_pro 函数进行字符转换
-    clean_str, _ = s2t_pro(chars, level=2)  # 调用 s2t_pro 进行转换
+    clean_str, _ = s2t_pro(chars, level=2)
 
     # 输出列表
     result = []
@@ -236,102 +236,113 @@ def search_characters(chars, locations=None, regions=None):
     characters_conn = sqlite3.connect(CHARACTERS_DB_PATH)
     characters_conn.row_factory = sqlite3.Row  # 使查询结果返回字典
 
-    for char in clean_str:
-        for location in all_locations:  # 对每个字和每个地点进行查询
-            # 查询方言数据库（dialects表），确保获取到地点简称
-            dialect_cursor = dialect_conn.cursor()
-            dialect_query = """
-                SELECT 音節, 多音字, 註釋, 簡稱
-                FROM dialects
-                WHERE 漢字 = ? AND 簡稱 = ?
-            """
-            dialect_cursor.execute(dialect_query, [char, location])
-            dialect_results = dialect_cursor.fetchall()
-
-            syllables = []  # 用于存储音节列表
-            notes = []  # 用于存储註釋列表
-            for row in dialect_results:
-                syllables.append(row['音節'])  # 记录音节
-                if row['註釋']:  # 如果註釋列不为空
-                    notes.append(row['註釋'])  # 将註釋添加到 notes 列表中
-            syllables = list(set(syllables))  # 去重音节列表，防止重复
-            notes = list(set(notes))  # 去重註釋列表
-
-            # 如果是多音字，则遍历整个表查找该字的其他音节
-            if len(syllables) == 1 and row['多音字'] == 1:
-                # 字是多音字，遍历整个表查找音节
-                syllables = []
-                all_syllables_cursor = dialect_conn.cursor()
-                all_syllables_query = """
-                    SELECT 音節, 註釋
+    try:
+        for char in clean_str:
+            for location in all_locations:  # 对每个字和每个地点进行查询
+                # 查询方言数据库（dialects表），确保获取到地点简称
+                dialect_cursor = dialect_conn.cursor()
+                dialect_query = """
+                    SELECT 音節, 多音字, 註釋, 簡稱
                     FROM dialects
+                    WHERE 漢字 = ? AND 簡稱 = ?
+                """
+                dialect_cursor.execute(dialect_query, [char, location])
+                dialect_results = dialect_cursor.fetchall()
+
+                # ======== 最小化改動：確保音節與註釋一一對應（開始） ========
+                # 用 音節 -> 註釋集合 聚合，並以旗標判斷是否多音
+                syllable2notes = {}   # { '音節': set([...]) }
+                is_polyphonic = False
+
+                for r in dialect_results:
+                    syl = r['音節']
+                    note = (r['註釋'] or '').strip()
+                    if r['多音字'] == 1:
+                        is_polyphonic = True
+                    if syl not in syllable2notes:
+                        syllable2notes[syl] = set()
+                    if note:
+                        syllable2notes[syl].add(note)
+
+                # 若判定為多音字且目前只抓到一個音節，補抓該字在所有記錄中的音節/註釋
+                if is_polyphonic and len(syllable2notes) <= 1:
+                    all_syllables_cursor = dialect_conn.cursor()
+                    all_syllables_query = """
+                        SELECT 音節, 註釋
+                        FROM dialects
+                        WHERE 漢字 = ?
+                    """
+                    all_syllables_cursor.execute(all_syllables_query, [char])
+                    all_syllables_results = all_syllables_cursor.fetchall()
+                    for rr in all_syllables_results:
+                        syl = rr['音節']
+                        note = (rr['註釋'] or '').strip()
+                        if syl not in syllable2notes:
+                            syllable2notes[syl] = set()
+                        if note:
+                            syllable2notes[syl].add(note)
+
+                # 產出與原結構相容的 list，索引一一對應
+                # （為了最小改動，不引入新欄位；如需固定排序可改為 sorted(syllable2notes)）
+                syllables = list(syllable2notes.keys())
+                notes = ['; '.join(sorted(syllable2notes[syl])) if syllable2notes[syl] else '_'
+                         for syl in syllables]
+
+                # ======== 最小化改動：確保音節與註釋一一對應（結束） ========
+
+                # 为每个字和地点配对
+                result.append({
+                    'char': char,
+                    '音节': syllables,      # 與 notes 一一對應
+                    'location': location,
+                    'positions': [],        # 初始化，后面会填充
+                    'notes': notes          # 現在是 list，與音節對齊
+                })
+
+                # 查询字符数据库（characters表）
+                characters_cursor = characters_conn.cursor()
+                characters_query = """
+                    SELECT 攝, 呼, 等, 韻, 調, 組, 聲, 多地位標記
+                    FROM characters
                     WHERE 漢字 = ?
                 """
-                all_syllables_cursor.execute(all_syllables_query, [char])
-                all_syllables_results = all_syllables_cursor.fetchall()
-                for syllable_row in all_syllables_results:
-                    syllables.append(syllable_row['音節'])
-                    if syllable_row['註釋']:  # 如果該音節有註釋
-                        notes.append(syllable_row['註釋'])
-                syllables = list(set(syllables))  # 去重音节列表
-                notes = list(set(notes))  # 去重註釋列表
+                characters_cursor.execute(characters_query, [char])
+                characters_results = characters_cursor.fetchall()
 
-            # 对于多音字，合并音节的註釋
-            if len(syllables) > 1:
-                notes = "; ".join(notes)  # 如果有多个音节且都有註釋，用分号连接
+                positions = []  # 用于存储所有的地位信息
+                for row in characters_results:
+                    # 拼接 parts 和 meta
+                    parts = f"{row['攝']}{row['呼']}{row['等']}{row['韻']}{row['調']}"
+                    meta = f"{row['組']}「組」{row['聲']}「母」"
 
-            # 为每个字和地点配对
-            result.append({
-                'char': char,
-                '音节': syllables,
-                'location': location,
-                'positions': [],  # 初始化，后面会填充
-                'notes': notes  # 添加註釋
-            })
+                    # 拼接后的地位
+                    if row['多地位標記'] == 1:  # 如果有多地位标记
+                        # 查找与当前字相同且有多地位标记的所有字
+                        position_cursor = characters_conn.cursor()
+                        position_query = """
+                            SELECT 漢字, 攝, 呼, 等, 韻, 調, 組, 聲
+                            FROM characters
+                            WHERE 多地位標記 = 1 AND 漢字 = ?
+                        """
+                        position_cursor.execute(position_query, [char])
+                        position_results = position_cursor.fetchall()
 
-            # 查询字符数据库（characters表）
-            characters_cursor = characters_conn.cursor()
-            characters_query = """
-                SELECT 攝, 呼, 等, 韻, 調, 組, 聲, 多地位標記
-                FROM characters
-                WHERE 漢字 = ?
-            """
-            characters_cursor.execute(characters_query, [char])
-            characters_results = characters_cursor.fetchall()
+                        # 将所有找到的地位信息添加到 positions 中
+                        for position_row in position_results:
+                            position_parts = f"{position_row['攝']}{position_row['呼']}{position_row['等']}{position_row['韻']}{position_row['調']}"
+                            position_meta = f"{position_row['組']}「組」{position_row['聲']}「母」"
+                            positions.append(f"{position_parts},{position_meta}")
+                    else:
+                        # 非多地位字，直接添加其地位信息
+                        positions.append(f"{parts},{meta}")
 
-            positions = []  # 用于存储所有的地位信息
-            for row in characters_results:
-                # 拼接 parts 和 meta
-                parts = f"{row['攝']}{row['呼']}{row['等']}{row['韻']}{row['調']}"
-                meta = f"{row['組']}「組」{row['聲']}「母」"
+                # 保存所有的地位
+                result[-1]['positions'] = positions
 
-                # 拼接后的地位
-                if row['多地位標記'] == 1:  # 如果有多地位标记
-                    # 查找与当前字相同且有多地位标记的所有字
-                    position_cursor = characters_conn.cursor()
-                    position_query = """
-                        SELECT 漢字, 攝, 呼, 等, 韻, 調, 組, 聲
-                        FROM characters
-                        WHERE 多地位標記 = 1 AND 漢字 = ?
-                    """
-                    position_cursor.execute(position_query, [char])
-                    position_results = position_cursor.fetchall()
-
-                    # 将所有找到的地位信息添加到 positions 中
-                    for position_row in position_results:
-                        position_parts = f"{position_row['攝']}{position_row['呼']}{position_row['等']}{position_row['韻']}{position_row['調']}"
-                        position_meta = f"{position_row['組']}「組」{position_row['聲']}「母」"
-                        positions.append(f"{position_parts},{position_meta}")
-                else:
-                    # 非多地位字，直接添加其地位信息
-                    positions.append(f"{parts},{meta}")
-
-            # 保存所有的地位
-            result[-1]['positions'] = positions
-
-    # 关闭数据库连接
-    dialect_conn.close()
-    characters_conn.close()
+    finally:
+        # 关闭数据库连接
+        dialect_conn.close()
+        characters_conn.close()
 
     return result
 

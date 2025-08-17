@@ -129,6 +129,16 @@
 #detailTable2 td.col2 {
     border: 1px solid #eee;
 }
+#resultTable.four-col th.col2,
+#detailTable.four-col th.col2,
+#detailTable2.four-col th.col2 {
+    color: darkblue;
+    white-space: nowrap;     /* 不换行 */
+    overflow: visible;       /* 内容超出不隐藏 */
+    text-overflow: unset;    /* 禁用省略号 */
+    max-width: none;         /* 取消宽度限制（如果有） */
+}
+
 
 /* ------------------------------- */
 /* 🧩 四欄模式 (.four-col 表格用)  */
@@ -197,19 +207,32 @@
 
 .feature-value {
     cursor: pointer;
+    display: inline-block;
+    color: #1d1d1f;
     text-decoration: underline dotted transparent;
-    transition: all 0.2s ease;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 1.5px;
+    font-weight: 500;
+    /*font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;*/
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.3s ease,
+    text-decoration-color 0.3s ease;
+    will-change: transform;
 }
 
 .feature-value:hover {
-    text-decoration-color: #888;
+    color: #007aff; /* iOS系统蓝 */
+    transform: scale(1.2);
+    text-decoration-color: rgba(0, 122, 255, 0.6);
 }
+
+
 
 /* ------------------------- */
 /* 多音字樣式 / 滑鼠提示效果 */
 /* ------------------------- */
-.char.multi {
-    font-style: italic;
+.multi {
+    /*font-style: italic;*/
     margin: 0 2px;
     font-size: 100%;
     text-decoration: none;
@@ -219,12 +242,12 @@
     padding: 2px 2px;
     cursor: pointer;
 }
-.char.multi:hover {
+.multi:hover {
     color: #d33;
 }
 
 
-.char.multi::after {
+.multi::after {
     content: attr(data-title);
     position: absolute;
     bottom: 100%;
@@ -239,12 +262,12 @@
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease, visibility 0.3s ease;
-    z-index: 999;
+    z-index: 9999;
     pointer-events: none;
     font-style: normal;
 }
 
-.char.multi:hover::after {
+.multi:hover::after {
     opacity: 1;
     visibility: visible;
 }

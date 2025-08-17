@@ -923,7 +923,7 @@ async function triggerDrawingFunction() {
                                 }
                                 // 地图点击时更新全局变量
                                 window.detaillocation = locationName;
-                                window.detailfeature = feature;
+                                window.detailfeature = feature.replace(/·/g, '');
                             });
 
                         }

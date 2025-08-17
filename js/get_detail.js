@@ -96,4 +96,5 @@ miniBtn2.addEventListener("click", async () => {
     panel2.style.display = "flex";
     panel2.querySelector(".panel-content").innerHTML = "";
     await get_detail(window.detaillocation2,window.detailfeature2,true);
+    popup3.classList.remove("active");
 });

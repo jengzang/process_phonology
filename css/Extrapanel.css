@@ -343,7 +343,7 @@ button[type="submit"]:active {
     width: 50%;
     max-width: 700px;
     min-width: 300px;
-    z-index: 9999;
+    z-index: 999;
 }
 
 /* 可展开的面板样式（多层玻璃升级版） */
@@ -740,7 +740,7 @@ button[type="submit"]:active {
     top: 50%;
     left: 0.5%;
     transform: translateY(-50%);
-    width: 20%;
+    width: 21%;
     height: 60vh;
 
     /* 🍸 Apple 风格液态玻璃背景 */
@@ -773,7 +773,7 @@ button[type="submit"]:active {
     top: 50%;
     left: 35%;
     transform: translateY(-50%);
-    width: 20%;
+    width: 21%;
     height: 60vh;
 
     /* 🍸 Apple 风格液态玻璃背景 */

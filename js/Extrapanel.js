@@ -707,7 +707,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 const resultData = data.result; // 提取 `result` 数组
 
                 // 在前端控制台输出返回的数据
-                console.log('从后端返回的数据:', resultData);
+                // console.log('从后端返回的数据:', resultData);
 
                 if (Array.isArray(resultData)) {
                     resultData.forEach((item) => {
@@ -755,7 +755,17 @@ document.addEventListener("DOMContentLoaded", function () {
                         // 创建并添加 syllablesDiv
                         const syllablesDiv = document.createElement('div');
                         syllablesDiv.classList.add('syllables');
+
+                        // 判断 notes 是否存在且包含非空字符串
+                        if (Array.isArray(item.notes) && item.notes.some(note => note !== "_")) {
+                            syllablesDiv.classList.add('multi');
+                            syllablesDiv.style.fontFamily = "Times New Roman";
+                            // syllablesDiv.style.fontWeight = 'bold';
+                            syllablesDiv.setAttribute('data-title', item.notes.join(' / '));
+                        }
+
                         syllablesDiv.innerHTML = item.音节.join(' <span>·</span> ');
+
                         infoContainer.appendChild(syllablesDiv);
 
                         // 将整个容器添加到 DOM 中
@@ -961,7 +971,7 @@ document.addEventListener("DOMContentLoaded", function () {
     clearBtn.addEventListener('click', function () {
         // 清空除了按钮以外的内容
         contentSearch.querySelectorAll(':not(.clear-btn)').forEach(el => el.remove());
-        console.log("内容已清空，按钮未受影响");
+        // console.log("内容已清空，按钮未受影响");
     });
 });
 

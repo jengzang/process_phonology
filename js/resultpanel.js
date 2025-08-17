@@ -293,7 +293,7 @@ function renderResults(data,table =  document.querySelector('#resultTable')) {
         // 分隔線邏輯
         if (lastTr) {
             if (useFiveCols) {
-                const [lastLocKey, lastFeatKey] = lastFeatureKey?.split('|') || [];
+                // const [lastLocKey, lastFeatKey] = lastFeatureKey?.split('|') || [];
                 const curKey = `${loc}|${featKey}`;
                 if (loc !== lastLoc) lastTr.classList.add('group-break-strong');
                 else if (curKey !== lastFeatureKey) lastTr.classList.add('group-break');
@@ -337,9 +337,12 @@ function renderResults(data,table =  document.querySelector('#resultTable')) {
             span.className = 'feature-value';
             span.addEventListener('click', (e) => {
                 // console.log('🔍 點擊了特徵值:', featVal);
-
                 const popup = document.querySelector('#popup3');
                 if (!popup) return;
+                const locationNameEl = document.getElementById("location-name3");
+                const featureEl = document.getElementById("feature3");
+                locationNameEl.textContent = ` ${loc}`;
+                featureEl.textContent = ` ${featVal}`;
                 const nativeEvent = e.originalEvent || e;
                 const originEvent = nativeEvent.originEvent || nativeEvent;
                 const mouseY = originEvent.clientY;
@@ -363,10 +366,7 @@ function renderResults(data,table =  document.querySelector('#resultTable')) {
                 // 弹窗显示并滑动效果
                 popup.classList.add("active");
 
-                if (featVal.includes('·')) {
-                    featVal = featVal.split('·')[0];
-                }
-
+                featVal = featVal.replace(/·|母/g, (match) => match === '母' ? '聲' : '');
                 window.detailfeature2 = featVal;
                 window.detaillocation2 = loc;
                 // console.log(after,loc);
@@ -408,6 +408,10 @@ function renderResults(data,table =  document.querySelector('#resultTable')) {
 
                 const popup = document.querySelector('#popup3');
                 if (!popup) return;
+                const locationNameEl = document.getElementById("location-name3");
+                const featureEl = document.getElementById("feature3");
+                locationNameEl.textContent = ` ${loc}`;
+                featureEl.textContent = ` ${after}`;
                 const nativeEvent = e.originalEvent || e;
                 const originEvent = nativeEvent.originEvent || nativeEvent;
                 const mouseY = originEvent.clientY;
@@ -431,9 +435,12 @@ function renderResults(data,table =  document.querySelector('#resultTable')) {
                 // 弹窗显示并滑动效果
                 popup.classList.add("active");
 
-                if (after.includes('·')) {
-                    after = after.split('·')[0];
-                }
+                // if (after.includes('·')) {
+                //     after = after.split('·')[0];
+                // }
+                after = after.replace(/·|母/g, (match) => match === '母' ? '聲' : '');
+
+
 
                 window.detailfeature2 = after;
                 window.detaillocation2 = loc;
@@ -487,7 +494,9 @@ function renderResults(data,table =  document.querySelector('#resultTable')) {
 
         Object.entries(multiMap).forEach(([ch, detail]) => {
             const span = document.createElement('span');
-            span.className = 'char multi';
+            span.className = 'multi';
+            span.style.fontWeight = 'bold';
+            span.style.fontStyle = "italic";
             span.textContent = ch;
             span.setAttribute('data-title', detail.split('|').join(' ｜ '));
             tdChar.appendChild(span);
