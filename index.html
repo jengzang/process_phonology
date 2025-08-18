@@ -7,12 +7,12 @@
     <title>方言比較-地理語言學</title>
 
     <!-- CSS 引入 -->
-    <link rel="stylesheet" href="css/global.css" />
-    <link rel="stylesheet" href="css/inputpanel.css" />
-    <link rel="stylesheet" href="css/resultpanel.css" />
-    <link rel="stylesheet" href="css/mappanel.css" />
-    <link rel="stylesheet" href="css/Extrapanel.css" />
-    <link rel="stylesheet" href="css/vue.css">
+    <link rel="stylesheet" href="app/css/global.css" />
+    <link rel="stylesheet" href="app/css/inputpanel.css" />
+    <link rel="stylesheet" href="app/css/resultpanel.css" />
+    <link rel="stylesheet" href="app/css/mappanel.css" />
+    <link rel="stylesheet" href="app/css/Extrapanel.css" />
+    <link rel="stylesheet" href="app/css/vue.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
     <!-- 加載 Vue 3 的 CDN -->
@@ -22,16 +22,53 @@
 </head>
 
 <body>
-<!-- 全局彈出層 -->
+
+<div id="welcomeOverlay" class="welcome-overlay hidden">
+    <div id="welcomeModal" class="welcome-modal">
+        <div class="modal-content">
+            <h2>👏 歡迎</h2>
+            <h3>🗣️ 方言比較 - 地理語言學🌏</h3>
+            <p>開發者：不羈</p>
+            <button id="contactBtn">聯繫方式</button>
+            <span id="currentDateTime"></span>
+            <span class="close-hint">點擊空白處關閉</span>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- 全局彈出層 用於音典分區的彈出 -->
 <div id="popupLayer"></div>
 <!-- 地點匹配建議提示框 -->
 <div id="inlineSuggestion" class="inline-suggestion"></div>
 
+<!--小窗查詢、浮窗顯示-->
+<div id="query-detail-panel" class="query-detail-panel">
+    <button id="close-panel" class="close-btn">×</button>
+    <div id='display-detail' class="panel-content">
+    </div>
+</div>
+<div id="query-detail-panel2" class="query-detail-panel2">
+    <button id="close-panel2" class="close-btn">×</button>
+    <div id='display-detail2' class="panel-content">
+    </div>
+</div>
+<div id="popup3" class="popup">
+    <div class="popup-content">
+        <p id="location-name3"></p>
+        <p id="feature3"></p>
+        <button id="mini-btn2" class="mini-button">🔍詳情</button>
+    </div>
+</div>
 
-<!-- 輸入面板：從 #panel 改為 #inputpanel -->
+<!-- 輸入面板 -->
 <div id="inputpanel" class="panel panel-medium">
     <div class="panel-header" id="dragHandle">
         <span class="panel-title">🔍 設置參數</span>
+        <button id="openUsageModalBtn" title="操作说明">
+            操作说明⚙️
+        </button>
         <button id="minimizeBtn" class="mode-btn">_</button>
         <button id="maximizeBtn" class="mode-btn">⛶</button>
     </div>
@@ -71,7 +108,7 @@
             <div class="location-row">
                 <div class="location-input">
                     <label for="locations">地點</label>
-                    <textarea id="locations" placeholder="請輸入地點(可匹配)">阳春</textarea>
+                    <textarea id="locations" placeholder="請輸入地點(可匹配)"></textarea>
                 </div>
 
                 <div class="region-input">
@@ -86,7 +123,7 @@
             <div  id="status_input_button"  class="group-row2">
                 <div id="status_inputs_group">
                     <h4 class="panel-subtitle" >中古音地位</h4>
-                    <textarea id="status_inputs" placeholder="請輸入待查中古音地位 支持-全匹配">通</textarea>
+                    <textarea id="status_inputs" placeholder="請輸入待查中古音地位 支持-全匹配"></textarea>
                 </div>
                 <div class="button-container-map">
                     <button id="allmap-first" class="allmap-first">
@@ -148,7 +185,6 @@
 </div>
 
 
-
 <!-- 結果面板 -->
 <div id="resultPanel" class="panel panel-medium">
     <div class="panel-header" id="resultDragHandle">
@@ -170,7 +206,7 @@
 </div>
 
 
-<!-- 新增地图面板 -->
+<!-- 地图面板 -->
 <div id="mapPanel" class="panel panel-medium">
     <div class="panel-header" id="mapDragHandle">
         <span class="panel-title">🗺️ 地图</span>
@@ -277,23 +313,6 @@
         </div>
     </div>
 
-    <div id="query-detail-panel" class="query-detail-panel">
-        <button id="close-panel" class="close-btn">×</button>
-        <div id='display-detail' class="panel-content">
-        </div>
-    </div>
-    <div id="query-detail-panel2" class="query-detail-panel2">
-        <button id="close-panel2" class="close-btn">×</button>
-        <div id='display-detail2' class="panel-content">
-        </div>
-    </div>
-    <div id="popup3" class="popup">
-        <div class="popup-content">
-            <p id="location-name3"></p>
-            <p id="feature3"></p>
-            <button id="mini-btn2" class="mini-button">🔍詳情</button>
-        </div>
-    </div>
     <!-- 右侧面板容器 -->
     <div id="rightPanel" class="right-panel">
         <div class="panel-content1">
@@ -333,13 +352,13 @@
     </div>
 </div>
 
-<!-- 面板復原按鈕 -->
+<!-- 三個主面板的復原按鈕 -->
 <button id="panelRestoreBtn" class="toggle-btn">🗗</button>
 <button id="resultRestoreBtn" class="toggle-btn">🗗</button>
 <button id="mapPanelRestoreBtn" class="toggle-btn">🗗</button>
 
 
-
+<!--查音、查調小窗口-->
 <div class="container-search">
     <!-- 可拖动的展开部分 -->
     <div class="expansion-panel-search">
@@ -365,12 +384,15 @@
 
 
 <!-- JS 檔案引入 -->
-<script src="js/main.js"></script>
-<script src="js/inputpanel.js"></script>
-<script src="js/resultpanel.js"></script>
-<script src="js/mappanel.js"></script>
-<script src="js/Extrapanel.js"></script>
-<script src="js/vue.js"></script>
-<script src="js/get_detail.js"></script>
+<script>
+    window.API_BASE = location.origin + "/api";
+</script>
+<script src="app/js/main.js"></script>
+<script src="app/js/inputpanel.js"></script>
+<script src="app/js/resultpanel.js"></script>
+<script src="app/js/mappanel.js"></script>
+<script src="app/js/Extrapanel.js"></script>
+<script src="app/js/vue.js"></script>
+<script src="app/js/get_detail.js"></script>
 </body>
 </html>

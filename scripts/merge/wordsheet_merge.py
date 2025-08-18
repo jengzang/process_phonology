@@ -171,7 +171,7 @@ def create_new_workbook(reference_chars, merged_data, comments_data, file_names)
 
 
 # 主函数
-def main():
+def merge_main():
     # 参考表路径
     reference_path = "参考表.xlsx"
     # reference_path = r"C:\Users\joengzaang\myfiles\杂文件\湛茂\茂名市信宜市金垌镇田心村_processed.xlsx"
@@ -202,4 +202,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    merge_main()

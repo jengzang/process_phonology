@@ -3,29 +3,9 @@ import re
 
 import pandas as pd
 
+from common.constants import replace_data
+
 # === 替换规则表 ===
-replace_data = [
-    # 韻腹
-    ['aa', 'a', 'wf'], ['a', 'ɐ', 'wf'], ['e', 'ɛ', 'wf'], ['ea', 'ə', 'wf'],['uu', 'ʊ', 'wf'],
-    ['oe', 'œ', 'wf'], ['eo', 'ɵ', 'wf'], ['y', 'y', 'wf'], ['o', 'ɔ', 'wf'],
-    ['uu', 'ʊ', 'wf'], ['ii', 'ɪ', 'wf'],
-    ['or', 'ɤ', 'wf'], ['ar', 'ɑ', 'wf'], ['dd', 'ɗ', 'wf'],
-    # ['uu', 'u', 'wf'], ['u', 'ʊ', 'wf'],
-    # 聲母
-    ['ng', 'ŋ', 'sm'], ['nj', 'ȵ', 'sm'], ['sl', 'ɬ', 'sm'],
-    ['th', 'θ', 'sm'], ['bb', 'ɓ', 'sm'], ['dd', 'ɗ', 'sm'],
-    ['zh', 'ʧ', 'sm'], ['ch', 'ʧʰ', 'sm'], ['sh', 'ʃ', 'sm'],
-    ['zj', 'ʨ', 'sm'], ['cj', 'ʨʰ', 'sm'], ['sj', 'ɕ', 'sm'], ['q', 'ʔ', 'sm'],
-    ['c', 'ʦʰ', 'sm'], ['z', 'ʦ', 'sm'],  ['d', 't', 'sm'], ['t', 'tʰ', 'sm'],
-    ['g', 'k', 'sm'], ['k', 'kʰ', 'sm'], ['b', 'p', 'sm'], ['p', 'pʰ', 'sm'],
-    # ['s', 's', 'sm'],
-    # 聲調
-    ['1', '454', 'jd'], ['2', '33', 'jd'], ['3', '42', 'jd'],
-    ['4', '232', 'jd'], ['5', '23', 'jd'], ['6', '21', 'jd'],
-    ['7', '5', 'jd'], ['8', '4', 'jd'], ['9', '2', 'jd'], ['10', '22', 'jd'],
-    # 韻尾
-    ['ng', 'ŋ', 'wm'], ['h', 'ʔ', 'wm'], ['n', 'n', 'wm'], ['m', 'm', 'wm']
-]
 replace_df = pd.DataFrame(replace_data, columns=['to_replace', 'replacement', 'condition']).astype(str)
 
 # === 文件读取路径 ===
@@ -172,11 +152,17 @@ def process_yutping(text):
     return pd.Series(row_result)
 
 
-# 应用处理
-columns = ['声母', '韵母', '音调', '韵腹', '韵尾',
-           '声母IPA', '韵腹IPA', '韵尾IPA', '音调IPA', 'IPA', '注释']
-df[columns] = df['粤拼'].apply(process_yutping)
+def jyut2ipa():
+    # 应用处理
+    columns = ['声母', '韵母', '音调', '韵腹', '韵尾',
+               '声母IPA', '韵腹IPA', '韵尾IPA', '音调IPA', 'IPA', '注释']
+    df[columns] = df['粤拼'].apply(process_yutping)
 
-# 保存结果
-df.to_excel(input_path, index=False, na_rep="")
-print(f"\n✅ 已处理完毕并保存至原文件: {input_path}")
+    # 保存结果
+    df.to_excel(input_path, index=False, na_rep="")
+    print(f"\n✅ 已处理完毕并保存至原文件: {input_path}")
+
+
+if __name__ == "__main__":
+    jyut2ipa()
+

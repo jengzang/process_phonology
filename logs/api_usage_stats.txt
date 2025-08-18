@@ -1,14 +1,15 @@
 === Total Counts ===
-/	28
-/api/batch_match	143
-/api/get_coordinates	276
-/api/get_custom	233
-/api/get_regions	1830
-/api/partitions	158
-/api/phonology	808
-/api/search_chars/	36
-/api/search_tones/	3
-/api/submit_form	1
+/	89
+/api/batch_match	231
+/api/get_coordinates	321
+/api/get_custom	277
+/api/get_custom_feature	13
+/api/get_regions	2562
+/api/partitions	271
+/api/phonology	926
+/api/search_chars/	38
+/api/search_tones/	4
+/api/submit_form	2
 
 === Daily Counts ===
 2025-08-16
@@ -23,12 +24,24 @@
 /api/search_tones/	1
 /api/submit_form	1
 2025-08-17
-/	20
+/	35
 /api/batch_match	137
 /api/get_coordinates	258
 /api/get_custom	218
 /api/get_regions	154
-/api/partitions	86
-/api/phonology	780
+/api/partitions	98
+/api/phonology	782
 /api/search_chars/	35
 /api/search_tones/	2
+2025-08-18
+/	46
+/api/batch_match	88
+/api/get_coordinates	45
+/api/get_custom	44
+/api/get_custom_feature	13
+/api/get_regions	732
+/api/partitions	101
+/api/phonology	116
+/api/search_chars/	2
+/api/search_tones/	1
+/api/submit_form	1

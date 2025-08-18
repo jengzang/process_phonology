@@ -91,11 +91,12 @@ from tkinter import filedialog
 
 import pandas as pd
 
-from source.format_convert import process_縣志_word, process_跳跳老鼠, process_縣志_excel, process_音典
+from common.constants import col_map
+from make.source.format_convert import process_縣志_word, process_跳跳老鼠, process_縣志_excel
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))  # 添加项目根目录到 sys.path
 from maybe_error_chars import check_get_chars
-from source.get_new import extract_all_from_files
+from make.source.get_new import extract_all_from_files
 
 RU_FINALS = set("ptkʔˀᵖᵏᵗbdg")
 SUPER_TO_NORMAL = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹", "0123456789")
@@ -435,15 +436,8 @@ def check_all(xlsx_paths, five=False):
             print(f"❌ 無法讀取 Excel 檔案: {path}")
             continue
 
-        # 模糊欄位對應
-        column_map = {
-            '漢字': ['漢字_程序改名', '單字', '单字', '漢字', 'phrase', '#漢字'],
-            '音標': ['IPA_程序改名', 'IPA', 'ipa', '音標', 'syllable'],
-            '解釋': ['注釋_程序改名', '注释', '注釋', '解釋', 'notes']
-        }
-
         actual_cols = {}
-        for key, candidates in column_map.items():
+        for key, candidates in col_map.items():
             for name in candidates:
                 if name in df_xlsx.columns:
                     actual_cols[key] = name
@@ -738,7 +732,7 @@ def tsv_to_xlsx(tsv_path, output_path=None):
     print(f"[✅] 轉換完成：{output_path}")
 
 
-def main(mode='onl'):
+def check_pro(mode='only'):
     root = tk.Tk()
     root.withdraw()
     pd.set_option('display.max_rows', None)
@@ -764,11 +758,7 @@ def main(mode='onl'):
                 ("所有文件", "*.*")
             ]
         )
-        column_map = {
-            '漢字': ['漢字_程序改名', '單字', '单字', '漢字', 'phrase', '#漢字'],
-            '音標': ['IPA_程序改名', 'IPA', 'ipa', '音標', 'syllable'],
-            '解釋': ['注釋_程序改名', '注释', '注釋', '解釋', 'notes']
-        }
+
         print(file_paths)
         for path in file_paths:
             ext = os.path.splitext(path)[1].lower()
@@ -792,7 +782,7 @@ def main(mode='onl'):
                 df_cols = df.columns.tolist()
 
                 mapped_cols = {}
-                for std_col, variants in column_map.items():
+                for std_col, variants in col_map.items():
                     for v in variants:
                         if v in df_cols:
                             mapped_cols[std_col] = v
@@ -834,4 +824,5 @@ def main(mode='onl'):
 
 
 if __name__ == "__main__":
-    main()
+    mode = 'only'
+    check_pro(mode)

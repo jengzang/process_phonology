@@ -4,20 +4,7 @@ import tkinter as tk
 import pandas as pd
 import opencc
 
-custom_variant_dict = {
-    "淸": "清",
-    "鄕": "鄉",
-    "鐵": "鉄",
-    "髙": "高",
-    "郞": "郎",
-    "屛": "屏",
-    "靑": "青",
-    "尙": "尚",
-    "郉": "邢",
-    "楡": "榆",
-    "峯": "峰"
-    # 如需可再擴充
-}
+from common.constants import custom_variant_dict
 
 
 def choose_tsv_files(partition_name: str):

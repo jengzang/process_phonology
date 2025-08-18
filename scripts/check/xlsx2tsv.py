@@ -2,8 +2,8 @@ import os
 import tkinter as tk
 from tkinter import filedialog
 
-from source.format_convert import process_音典
-from source.get_new import extract_all_from_files
+from make.source.format_convert import process_音典
+from make.source.get_new import extract_all_from_files
 
 # 直接開始執行
 root = tk.Tk()

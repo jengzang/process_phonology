@@ -2,8 +2,7 @@ import math
 import pandas as pd
 import re
 
-# 定义元音的正则表达式（支持多个元音）
-vowel_pattern = r"[iyɨʉɯuɪʏɿʅʅɭıɪſɩɷʮɥʯʊeɘɵəɤoɛεɝɚᴇœɜɞʌɔæaɶɑɒᴀɐãẽĩỹõúαᵘᶷᶤᶶᵚʸᶦᵊⁱ◌∅ø]"
+from common.constants import vowel_pattern
 
 
 def get_vowels_from_tsv(tsv_file_path: str, char_list: list) -> pd.DataFrame:

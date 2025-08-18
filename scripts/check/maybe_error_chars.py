@@ -4,9 +4,9 @@ import sys
 import tkinter as tk
 from tkinter import filedialog
 
-from source.config import CHARACTERS_DB_PATH
-from source.get_new import extract_all_from_files  # 绝对导入
-from source.status_arrange_pho import run_status
+from common.config import CHARACTERS_DB_PATH
+from make.source.get_new import extract_all_from_files  # 绝对导入
+from app.service.status_arrange_pho import run_status
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))  # 添加项目根目录到 sys.path
 
