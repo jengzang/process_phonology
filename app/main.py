@@ -26,7 +26,7 @@ def _periodic_printer():
         "###################################"
     )
     while True:
-        time.sleep(60)
+        time.sleep(200)
         with print_lock:
             if active_requests == 0:
                 print(msg)

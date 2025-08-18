@@ -5,7 +5,7 @@ import re
 import pandas as pd
 
 from common.search_tones import search_tones
-from common.constants import col_map, vowel_pattern
+from common.constants import col_map, vowel_pattern, TONE_MAP
 from make.source.match_fromdb import get_tsvs
 
 
@@ -35,17 +35,7 @@ def extract_all_from_files(file_path: str, get_tone: bool = True, preserve_empty
         result = search_tones(locations=shortname, regions=None, get_raw=True)
         tone_map_yindian = build_tone_map_yindian(result)
     else:
-        tone_map_yindian = {
-            "1": "陰平", "1a": "陰平甲", "1b": "陰平乙", "1A": "陰平甲", "1B": "陰平乙",
-            "2": "陽平", "2a": "陽平甲", "2b": "陽平乙", "2A": "陽平甲", "2B": "陽平乙",
-            "3": "陰上", "3a": "陰上甲", "3b": "陰上乙", "3A": "陰上甲", "3B": "陰上乙",
-            "4": "陽上", "4a": "陽上甲", "4b": "陽上乙", "4A": "陽上甲", "4B": "陽上乙",
-            "5": "陰去", "5a": "陰去甲", "5b": "陰去乙", "5A": "陰去甲", "5B": "陰去乙",
-            "6": "陽去", "6a": "陽去甲", "6b": "陽去乙", "6A": "陽去甲", "6B": "陽去乙",
-            "7": "陰入", "7a": "上陰入", "7b": "下陰入", "7c": "陰入丙", "7A": "上陰入", "7B": "下陰入",
-            "8": "陽入", "8a": "上陽入", "8b": "下陽入", "8A": "上陽入", "8B": "下陽入",
-            "9": "變調", "9a": "變調1", "9b": "變調2", "0": "變調", "10": "輕聲", "輕聲": "輕聲"
-        }
+        tone_map_yindian = TONE_MAP
 
     # tone_map_jyutping = {
     #     "1": "陰平", "2": "陰上", "3": "陰去", "4": "陽平", "5": "陽上", "6": "陽去",

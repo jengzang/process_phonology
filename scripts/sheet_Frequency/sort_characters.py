@@ -1,15 +1,11 @@
+from common.constants import vowel_pattern
+
+
 def processing_examples_vowels(tsv_df, vowel_file_path):
     import pandas as pd
     import re
     from collections import Counter
 
-    # 定义元音列表
-    vowels = ['i', 'y', 'ɨ', 'ʉ', 'ɯ', 'u', 'ɪ', 'ʏ', 'ɿ', 'ʅ', 'ʊ',
-              'e', 'ø', 'ɘ', 'ə', 'ɵ', 'ɤ', 'o', 'ɛ', 'œ', 'ɜ', 'ɞ',
-              'ʌ', 'ɔ', 'æ', 'a', 'ɶ', 'ɑ', 'ɒ', 'ɐ', 'ε', 'ᴀ']
-
-    # 元音正则表达式
-    vowel_pattern = r"[iyɨʉɯuɪʏɿʅʅɭıɪſɩɷʮɥʯʊeɘɵəɤoɛεɝɚᴇœɜɞʌɔæaɶɑɒᴀɐãẽĩỹõʒúαᵊⁱ◌∅ø]"
     all_results = []
 
     # 检查 '#漢字' 列是否存在

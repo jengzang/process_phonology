@@ -35,6 +35,7 @@
     background: #f9f9f9;  /* 背景渐变 */
     transform: scale(1.1);  /* 增加放大效果 */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);  /* 加强阴影效果 */
+
 }
 
 .mode-label {
@@ -54,6 +55,7 @@
     background-image: linear-gradient(45deg, #007aff, #4cd964); /* 文字背景渐变 */
     background-clip: text;  /* 背景渐变只应用于文字 */
     -webkit-background-clip: text;  /* Webkit 支持 */
+    cursor:pointer;
 }
 
 
@@ -104,6 +106,7 @@
 .checkbox-group label:hover {
     color: #007aff;  /* 悬停时文字颜色变化 */
     transform: scale(1.2); /* 向右滑动效果 */
+    cursor:pointer;
 }
 
 /* Checkbox 按钮悬停效果 */
@@ -111,6 +114,7 @@
     background-color: #0051a8;
     transform: scale(1.1);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* 强化阴影 */
+    cursor:pointer;
 }
 
 /*!* 🔹 輸入組塊樣式 *!*/
@@ -702,6 +706,7 @@ label:hover {
     display: flex;
     justify-content: center;
     align-items: center;
+    white-space: nowrap; /* 禁止文本换行 */   
 }
 
 #openUsageModalBtn:hover {

@@ -285,40 +285,6 @@ async function create_map1(){
 
                     // 将文本标记添加到地图上
                     text.setMap(map);
-                    // textall.push(text);
-                    // // 绑定点击事件
-                    // text.on('click', (e) => {
-                    //     // 在这里处理点击事件
-                    //     console.log('点击了点:', e.target);
-                    // });
-
-                    // // 绑定 mouseover 事件，用于提升层级
-                    // text.on('mouseover', (e) => {
-                    //     const extData = e.target._opts.extData;  // 获取附加的数据（index）
-                    //     // 确保 textall[extData.index] 存在且已初始化
-                    //     if (textall[extData.index]) {
-                    //         // 提高层级（zIndex）
-                    //         textall[extData.index].setOptions({
-                    //             zIndex: 20  // 提高层级，确保在最上面
-                    //         });
-                    //     } else {
-                    //         console.error("textall[extData.index] 未定义:", extData.index);
-                    //     }
-                    // });
-                    //
-                    // // 绑定 mouseout 事件，用于恢复层级
-                    // text.on('mouseout', (e) => {
-                    //     const extData = e.target._opts.extData;  // 获取附加的数据（index）
-                    //     // 确保 textall[extData.index] 存在且已初始化
-                    //     if (textall[extData.index]) {
-                    //         // 恢复层级
-                    //         textall[extData.index].setOptions({
-                    //             zIndex: extData.index  // 恢复原来的层级
-                    //         });
-                    //     } else {
-                    //         console.error("textall[extData.index] 未定义:", extData.index);
-                    //     }
-                    // });
 
                 }
             });
@@ -1023,7 +989,7 @@ async function triggerDrawingFunction() {
                     }
                 }catch (e) {
                     console.log("error:", e);
-                };
+                }
             }
         }
         window.plotted = true;

@@ -4,9 +4,9 @@ import os
 # 計算專案根目錄路徑
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
-HTML_PATH = os.path.join(BASE_DIR, "index.html")
-JS_PATH = os.path.join(BASE_DIR, "app", "js")
-CSS_PATH = os.path.join(BASE_DIR, "app", "css")
+# HTML_PATH = os.path.join(BASE_DIR, "index.html")
+# JS_PATH = os.path.join(BASE_DIR, "app", "js")
+# CSS_PATH = os.path.join(BASE_DIR, "app", "css")
 
 # database路徑依賴
 QUERY_DB_PATH = os.path.join(BASE_DIR, "data", "dialects_query.db")
@@ -56,5 +56,5 @@ VERSION = "1.0.1"
 DATE_STR = "2025-08-18"
 
 # 運行方式
-_RUN_TYPE = 'PACK'
+_RUN_TYPE = 'MINE'
 

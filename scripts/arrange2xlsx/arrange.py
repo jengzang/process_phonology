@@ -13,9 +13,9 @@ from openpyxl import Workbook
 from openpyxl.comments import Comment
 from collections import defaultdict
 
+from common.constants import custom_order
 from gets import get_consonants_from_tsv, get_vowels_from_tsv, get_tones_from_tsv
 from matching_from_xlsx import choose_tsv_files
-
 
 # 聲韻模糊映射：鍵為原聲韻，值為歸類用的主聲韻
 MERGE_MAP = {}
@@ -172,23 +172,6 @@ def process(tsv_paths, excel_path, category_column):
                 tsv_consonant_map[name] = cmap
 
             # Step 2: 按主類聲韻排序（字典序）
-            # 自定义排序列表
-            custom_order = [
-                'p', 'pʰ', 't', 'tʰ', 'k', 'kʰ', 'f', 'ʋ', 'ɸ', 'h',
-                'x', 'l', 'n', 'm', 'ŋ', 'ɲ', 'ȵ', 'j', 'z', 's', 'ʃ',
-                'ʂ', 'ɕ', 'θ', 'ɬ', 'b', 'd', 'g', 'ʒ', 'ʑ', 'ʐ'
-                                                             'ʦ', 'ʧ', 'ʨ', 'tʂ', 'tɹ', 'tr', 'tθ', 'dz', 'dʑ', 'dʐ',
-                'dʒ'
-                'ʦʰ', 'ʧʰ', 'ʨʰ', 'tʂʰ', 'tɹʰ', 'trʰ', 'tθʰ', 'dzʰ', 'dʑʰ', 'dʐʰ', 'dʒʰ'
-                                                                                   'ʔ', 'a', 'ia', 'ua', 'ᴀ', 'ɑ', 'æ',
-                'ɐ', 'iɐ', 'uɐ',
-                'ə', 'iə', 'uə', 'ᴇ', 'ɛ', 'œ', 'iɛ', 'uɛ', 'ɜ', 'ɞ', 'ʌ',
-                'ɔ', 'iɔ', 'uɔ', 'o', 'io', 'uo', 'ɤ', 'ɵ', 'ɘ',
-                'ø', 'iø', 'e', 'ie', 'ʊ', 'u', 'ɯ', 'y', 'i', 'ɿ', 'ʮ',
-                '陰平', '陰平甲', '陰平乙', '陽平', '陽平甲', '陽平乙', '陰上', '陰上甲', '陰上乙',
-                '陽上', '陽上甲', '陽上乙', '陰去', '陰去甲', '陰去乙', '陽去', '陽去甲', '陽去乙',
-                '陰入', '上陰入', '下陰入', '陽入', '上陽入', '下陽入', '變調', '變調1', '變調2', '輕聲',
-            ]
 
             # 按照 custom_order 排序 all_consonants
             sorted_consonants = sorted(all_consonants,

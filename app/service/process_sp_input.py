@@ -7,6 +7,10 @@ from common.s2t import s2t_pro
 
 
 def auto_convert_single(user_input: str) -> Union[Tuple[str, int], Tuple[bool, int]]:
+    # ▶ 簡體沒匹配，嘗試繁體
+    user_input = ''.join(S2T_T2S_MAPPING.get(ch, ch) for ch in user_input)
+    # print(user_input)
+
     def process(input_text: str, priority_key: Optional[str] = None) -> Union[Tuple[str, int], Tuple[bool, int]]:
         result = []
         match_count = 0
@@ -41,10 +45,10 @@ def auto_convert_single(user_input: str) -> Union[Tuple[str, int], Tuple[bool, i
             for key in key_order:
                 ordered.append((key, [key]))
 
-            # 再加入未出現過的 default 群組（只要群組內的欄位不在 priority_key 中）
             for label, cols in default_priority:
-                if not any(c in key_order for c in cols):
-                    ordered.append((label, cols))
+                new_cols = [c for c in cols if c not in key_order]
+                if new_cols:
+                    ordered.append((label, new_cols))
 
             return ordered
 
@@ -186,22 +190,22 @@ def auto_convert_single(user_input: str) -> Union[Tuple[str, int], Tuple[bool, i
                     matched = True
                     break
 
-            if not matched:
-                # 嘗試進行簡體轉繁體再匹配
-                converted = ""
-                i = 0
-                while i < len(temp):
-                    ch = temp[i]
-                    converted += s2t_column.get(ch, ch)
-                    i += 1
-
-                # 再次嘗試用轉換後的字串匹配
-                for field in HIERARCHY_COLUMNS:
-                    if converted.startswith(field):
-                        fields.append(field)
-                        temp = temp[len(field):]  # 注意這裡仍用原本的 temp 切除
-                        matched = True
-                        break
+            # if not matched:
+            #     # 嘗試進行簡體轉繁體再匹配
+            #     converted = ""
+            #     i = 0
+            #     while i < len(temp):
+            #         ch = temp[i]
+            #         converted += s2t_column.get(ch, ch)
+            #         i += 1
+            #
+            #     # 再次嘗試用轉換後的字串匹配
+            #     for field in HIERARCHY_COLUMNS:
+            #         if converted.startswith(field):
+            #             fields.append(field)
+            #             temp = temp[len(field):]  # 注意這裡仍用原本的 temp 切除
+            #             matched = True
+            #             break
 
             if not matched:
                 print(f"❌ 無效欄位名：「{suffix}」中斷於「{temp}」")
@@ -226,9 +230,11 @@ def auto_convert_single(user_input: str) -> Union[Tuple[str, int], Tuple[bool, i
             full_input = prefix + ''.join(combo)
             # print("prio")
             # print(priority_key)
+            # print(full_input)
             # 使用 generate_priority 動態產生的優先順序
-            # res = process(full_input, priority_key=priority_key)
-            res = process(full_input)
+            res = process(full_input, priority_key=priority_key)
+            # print(res)
+            # res = process(full_input)
             if res[0] is False:
                 print(f"⚠️ 略過非法組合：{full_input}")
                 continue
@@ -294,3 +300,4 @@ def split_pho_input(input_value: Union[str, List[str]]) -> List[str]:
     return result
 
 
+# result = auto_convert_batch('影组-声')

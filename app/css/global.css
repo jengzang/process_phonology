@@ -36,7 +36,9 @@ html, body {
     font-size: 16px;
     flex: 1;
     color: #333;
+    white-space: nowrap; /* 禁止文本换行 */
 }
+
 
 .panel-content {
     flex: 1;
