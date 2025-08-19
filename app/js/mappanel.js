@@ -513,10 +513,7 @@ async function triggerDrawingFunction() {
                                 clearPopup();
                                 const popup = document.getElementById("popup");
                                 if (!popup) return;
-                                const {locationName, feature, detailContent} = text._opts.extData;
-                                // console.log("地点名称:", locationName);
-                                // console.log("特征：", feature);
-                                // console.log("详细内容:", detailContent);
+
                                 // 确保获取到正确的元素
                                 const locationNameEl = document.getElementById("location-name");
                                 const featureEl = document.getElementById("feature");
@@ -604,7 +601,6 @@ async function triggerDrawingFunction() {
                                 clearPopup();
                                 const popup = document.getElementById("popup"); // 確保 ID 正確
                                 if (!popup) return;
-                                const {locationName, feature, detailContent} = text._opts.extData;
                                 // 确保获取到正确的元素
                                 const locationNameEl = document.getElementById("location-name");
                                 const featureEl = document.getElementById("feature");
@@ -716,13 +712,8 @@ async function create_dot_all() {
         const uniqueLevels = new Set();  // 用来存储唯一的 level 值
         for (const [locationName, coordinates] of all_locations_dot.coordinates_locations) {
             // 获取每个地点的 regions_data
-            let regionsData = await fetch(`${window.API_BASE}/get_regions?input_data=${locationName}`)
-                .then(response => response.json())
-                .then(data => data.音典分區)
-                .catch(error => {
-                    console.error(`❌ 获取地区数据失败: ${locationName}`, error);
-                    return null;
-                });
+            let regionsData = all_locations_dot.region_mappings?.[locationName] || null;
+
 
             if (regionsData) {
                 let originalRegionsData = regionsData;
@@ -731,10 +722,6 @@ async function create_dot_all() {
                 let level2 = regions[1] || level1;
                 let level3 = regions[2] || level2;
 
-                // // 将所有 level 的唯一值加入 Set 中
-                // uniqueLevels.add(level1);
-                // uniqueLevels.add(level2);
-                // uniqueLevels.add(level3);
                 uniqueLevels.add({ level1, level2, level3 }[levelToUse]);
 
                 result.push({

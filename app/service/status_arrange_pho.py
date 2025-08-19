@@ -176,7 +176,7 @@ def query_by_status(char_list, locations, features, user_input, db_path=DIALECTS
     for loc in locations:
         print(f"\n🔍 處理地點：{loc}")
         loc_df = df[df["簡稱"] == loc]
-        print(f"   - 該地資料筆數：{len(loc_df)}")
+        # print(f"   - 該地資料筆數：{len(loc_df)}")
 
         loc_chars_df = loc_df[loc_df["漢字"].isin(char_list)]
         print(f"   - 匹配輸入漢字筆數：{len(loc_chars_df)} / {len(char_list)}")
@@ -199,7 +199,7 @@ def query_by_status(char_list, locations, features, user_input, db_path=DIALECTS
         print(f"   - 總共字數：{total_chars}")
 
         for feature in features:
-            print(f"   🔎 處理特徵：{feature}")
+            # print(f"   🔎 處理特徵：{feature}")
             feature_groups = loc_chars_df.groupby(feature)
 
             for fval, sub_df in feature_groups:

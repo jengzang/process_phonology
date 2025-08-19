@@ -183,7 +183,7 @@ def analyze_characters_from_db(
             summary = []
             for _, row in sub.iterrows():
                 parts = f"{row['攝']}{row['呼']}{row['等']}{row['韻']}{row['調']}"
-                meta = f"{row['系']}-{row['組']}-{row['母']}"
+                meta = f"{row['系']}·{row['組']}·{row['母']}"
                 summary.append(f"{parts},{meta}")
             poly_details.append(f"{hz}: {' | '.join(summary)}")
         # print(f"🧩 當前分析地點：{loc}")
