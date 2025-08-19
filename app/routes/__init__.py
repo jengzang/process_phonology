@@ -5,10 +5,10 @@
 
 from fastapi import FastAPI
 from .phonology import router as phonology_router
-from .get_region import router as region_router
-from .partitions import router as partitions_router
+from .get_regions import router as region_router
+from .get_partitions import router as partitions_router
 from .batch_match import router as batch_match_router
-from .coordinates import router as coordinates_router
+from .get_coordinates import router as coordinates_router
 from .form_submit import router as form_router
 from .custom_query import router as custom_query_router
 from .search import router as search_router

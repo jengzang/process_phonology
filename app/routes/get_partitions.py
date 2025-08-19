@@ -1,4 +1,4 @@
-# routes/partitions.py
+# routes/get_partitions.py
 """
 📦 路由模塊：處理 /api/partitions 調用分區階層。
 """
@@ -13,6 +13,10 @@ router = APIRouter()
 
 @router.get("/api/partitions")
 async def api_get_partitions(request: Request, parent: Optional[str] = Query(None)):
+    """
+    獲取下一級的音典分區。傳入parent-當前分區名（某一級，例如嶺南）；
+    返回下一級所有的音典分區（partitions子數組），以及層級（level）
+    """
     update_count(request.url.path)
     log_all_fields(request.url.path, {"parent": parent})
     start = time.time()

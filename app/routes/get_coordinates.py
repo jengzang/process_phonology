@@ -1,4 +1,4 @@
-# routes/coordinates.py
+# routes/get_coordinates.py
 """
 📦 路由模塊：處理 /api/get_coordinates 查詢地點座標資料。
 """
@@ -21,6 +21,30 @@ async def get_coordinates(
         iscustom: bool = None,
         flag: bool = True
 ):
+    """
+    獲取坐標
+    :param request:
+    :param regions: 音典分區，獲取該分區下所有地點的坐標信息
+    :param locations: 地點簡稱
+    :param iscustom: 是否讀取用戶自定義數據庫，若為真則讀取
+    :param flag: 查所有點or只查有字表的點，若為真，則只查有字表的
+    :return: {"coordinates_locations": List of (簡稱, (緯度, 經度)),
+             "region_mappings": Dict of {簡稱: 音典分區},
+             "center_coordinate": [中心緯度, 中心經度] or None,
+             "max_distances": {
+                  "lat_km": 最大緯度距離 (float),
+                  "lon_km": 最大經度距離 (float)
+             },
+             "zoom_level": 建議地圖縮放層級 (int) or None
+            }
+
+            返回欄位說明:
+            - coordinates_locations : [(str, (float, float))]，每個簡稱及其經緯度
+            - region_mappings       : {str: str}，每個簡稱對應的音典分區
+            - center_coordinate     : [float, float]，所有地點的中心座標點（若無資料則為 None）
+            - max_distances         : 緯度與經度方向的最大距離，單位為公里
+            - zoom_level            : 根據距離推算的地圖縮放層級，數字越大放大越多（2–20）
+    """
     update_count(request.url.path)
     log_all_fields(request.url.path, {
         "regions": regions,

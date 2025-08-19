@@ -3,8 +3,8 @@
 from .phonology import AnalysisPayload
 from .match import MatchRequest
 from .form import FormData
-from .query import QueryParams, FeatureQueryParams
-from .search import SearchRequest, SearchRequest2
+from .query_custom import QueryParams, FeatureQueryParams
+from .search_chars_tones import SearchRequest, SearchRequest2
 
 __all__ = [
     "AnalysisPayload",

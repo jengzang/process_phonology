@@ -1,4 +1,4 @@
-# schemas/query.py
+# schemas/query_custom.py
 
 from pydantic import BaseModel
 from typing import List

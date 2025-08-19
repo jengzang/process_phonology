@@ -1,4 +1,4 @@
-# schemas/search.py
+# schemas/search_chars_tones.py
 
 from pydantic import BaseModel
 from typing import List, Optional

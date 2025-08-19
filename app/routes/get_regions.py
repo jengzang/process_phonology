@@ -1,4 +1,4 @@
-# app/routes/get_region.py
+# app/routes/get_regions.py
 
 from fastapi import APIRouter, Request, Query
 from typing import List, Union
@@ -14,6 +14,10 @@ async def get_regions(
     request: Request,
     input_data: Union[str, List[str]] = Query(..., alias="input_data")
 ):
+    """
+    :param request:地點簡稱
+    :return: 對應的音典分區
+    """
     update_count(request.url.path)
     log_all_fields(request.url.path, {"input_data": input_data})
     start = time.time()

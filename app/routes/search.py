@@ -1,4 +1,4 @@
-# routes/search.py
+# routes/search_chars_tones.py
 """
 📦 路由模塊：處理 /api/search_chars 與 /api/search_tones 查詢音節與聲調。
 """
