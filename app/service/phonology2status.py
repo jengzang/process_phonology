@@ -5,7 +5,7 @@ import pandas as pd
 
 from common.config import DIALECTS_DB_PATH, CHARACTERS_DB_PATH
 from app.service.process_sp_input import split_pho_input
-from common.constants import AMBIG_VALUES
+from common.constants import AMBIG_VALUES, HIERARCHY_COLUMNS, s2t_column
 from common.getloc_by_name_region import query_dialect_abbreviations
 from app.service.match_input_tip import match_locations_batch
 
@@ -208,49 +208,27 @@ def pho2sta(locations, regions, features, status_inputs,
             pho_values=None,
             dialect_db_path=DIALECTS_DB_PATH,
             character_db_path=CHARACTERS_DB_PATH):
-
-    HIERARCHY_COLUMNS = ["攝", "呼", "等", "韻", "入", "調", "清濁", "系", "組", "母"]
-    simplified_to_traditional = {
-        "摄": "攝",  # 簡體 -> 繁體
-        "呼": "呼",  # 已經是繁體
-        "等": "等",  # 已經是繁體
-        "韵": "韻",  # 簡體 -> 繁體
-        "入": "入",  # 已經是繁體
-        "调": "調",  # 簡體 -> 繁體
-        "清浊": "清濁",  # 簡體 -> 繁體
-        "系": "系",  # 已經是繁體
-        "组": "組",  # 簡體 -> 繁體
-        "母": "母",  # 簡體 -> 繁體
-    }
-
     def convert_simplified_to_traditional(simplified_text):
-        return "".join([simplified_to_traditional.get(ch, ch) for ch in simplified_text])
+        return "".join([s2t_column.get(ch, ch) for ch in simplified_text])
 
     pho_values = split_pho_input(pho_values or [])
 
     grouping_columns_map = {}
     for idx, feature in enumerate(features):
         user_input = status_inputs[idx] if idx < len(status_inputs) else ""
+
+        # ✅ 最開始就做簡體轉繁體轉換
+        user_input = convert_simplified_to_traditional(user_input)
+
+        # 嘗試匹配欄位
         user_columns = [col for col in HIERARCHY_COLUMNS if col in user_input]
-        if not user_columns:
-            # print(f"⚠️ 無有效欄位於輸入「{user_input}」中 → 將使用簡體轉繁體後重新匹配")
 
-            # 進行簡體轉繁體操作
-            user_input_traditional = convert_simplified_to_traditional(user_input)
-            # print(f"🔄 簡體轉繁體：{user_input} → {user_input_traditional}")
-
-            # 嘗試用繁體字重新匹配
-            user_columns = [col for col in HIERARCHY_COLUMNS if col in user_input_traditional]
-
-            if user_columns:
-                # print(f"✅ 繁體匹配成功，特徵【{feature}】使用分組欄位：{user_columns}")
-                grouping_columns_map[feature] = user_columns
-            else:
-                print(f"❌ 繁體匹配仍然失敗，特徵【{feature}】將使用預設分組欄位")
-                grouping_columns_map[feature] = None
-        else:
+        if user_columns:
             print(f"✅ 特徵【{feature}】使用分組欄位：{user_columns}")
             grouping_columns_map[feature] = user_columns
+        else:
+            print(f"❌ 輸入「{user_input}」未匹配任何欄位，特徵【{feature}】將使用預設分組欄位")
+            grouping_columns_map[feature] = None
 
     locations_new = query_dialect_abbreviations(regions, locations)
     match_results = match_locations_batch(" ".join(locations_new))
@@ -321,8 +299,6 @@ def pho2sta(locations, regions, features, status_inputs,
                 results.extend(result if isinstance(result, list) else [result])
 
     return results
-
-
 
 # if __name__ == "__main__":
 #     pd.set_option('display.max_rows', None)
