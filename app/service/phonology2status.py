@@ -5,6 +5,7 @@ import pandas as pd
 
 from common.config import DIALECTS_DB_PATH, CHARACTERS_DB_PATH
 from app.service.process_sp_input import split_pho_input
+from common.constants import AMBIG_VALUES
 from common.getloc_by_name_region import query_dialect_abbreviations
 from app.service.match_input_tip import match_locations_batch
 
@@ -112,13 +113,13 @@ def analyze_characters_from_db(
     - 分組值（欄位對應值，例如 {'調': '平', '清濁': '全濁'}）
 
     若 group_fields 為空，根據特徵類型自動選擇預設欄位：
-        聲母 ➜ 聲
+        聲母 ➜ 母
         韻母 ➜ 韻
         聲調 ➜ 清濁 + 調
     """
 
     default_grouping = {
-        "聲母": ["聲"],
+        "聲母": ["母"],
         "韻母": ["攝"],
         "聲調": ["清濁", "調"]
     }
@@ -134,7 +135,7 @@ def analyze_characters_from_db(
     df = pd.read_sql_query(query, conn, params=char_list)
     conn.close()
 
-    for col in ["攝", "呼", "等", "韻", "調", "系", "組", "聲", "多地位標記"]:
+    for col in ["攝", "呼", "等", "韻", "調", "系", "組", "母", "多地位標記"]:
         if col not in df.columns:
             df[col] = None
 
@@ -147,15 +148,12 @@ def analyze_characters_from_db(
     for group_keys, group_df in grouped:
         # 特定欄位需要後綴
         suffix_map = {
-            "系": "·系",
-            "組": "·組",
-            "聲": "·母",
-            "攝": "·攝",
-            "韻": "·韻"
+            "系": "系",
+            "組": "組",
+            "母": "母",
+            "攝": "攝",
+            "韻": "韻"
         }
-
-        # 構建分組 key 和 value
-        group_key_label = "-".join(group_fields)
 
         # 使用 group_df 中第一筆資料取得欄位值（若需要用到 row，可取樣一筆）
         _, sample_row = next(group_df.iterrows())
@@ -163,11 +161,12 @@ def analyze_characters_from_db(
         # 建構 value（加後綴）
         value_parts = []
         for field, val in zip(group_fields, group_keys):
-            suffix = suffix_map.get(field)
-            if suffix:
-                val = f"{val}{suffix}"
+            if val in AMBIG_VALUES:
+                suffix = suffix_map.get(field)
+                if suffix:
+                    val = f"{val}{suffix}"
             value_parts.append(val)
-        group_value = "-".join(value_parts)
+        group_value = "·".join(value_parts)
 
         # 最終的分組值格式
         # group_values = {group_key_label: group_value}
@@ -184,7 +183,7 @@ def analyze_characters_from_db(
             summary = []
             for _, row in sub.iterrows():
                 parts = f"{row['攝']}{row['呼']}{row['等']}{row['韻']}{row['調']}"
-                meta = f"{row['系']}-{row['組']}-{row['聲']}"
+                meta = f"{row['系']}-{row['組']}-{row['母']}"
                 summary.append(f"{parts},{meta}")
             poly_details.append(f"{hz}: {' | '.join(summary)}")
         # print(f"🧩 當前分析地點：{loc}")
@@ -210,7 +209,7 @@ def pho2sta(locations, regions, features, status_inputs,
             dialect_db_path=DIALECTS_DB_PATH,
             character_db_path=CHARACTERS_DB_PATH):
 
-    HIERARCHY_COLUMNS = ["攝", "呼", "等", "韻", "入", "調", "清濁", "系", "組", "聲"]
+    HIERARCHY_COLUMNS = ["攝", "呼", "等", "韻", "入", "調", "清濁", "系", "組", "母"]
     simplified_to_traditional = {
         "摄": "攝",  # 簡體 -> 繁體
         "呼": "呼",  # 已經是繁體
@@ -221,7 +220,7 @@ def pho2sta(locations, regions, features, status_inputs,
         "清浊": "清濁",  # 簡體 -> 繁體
         "系": "系",  # 已經是繁體
         "组": "組",  # 簡體 -> 繁體
-        "声": "聲",  # 簡體 -> 繁體
+        "母": "母",  # 簡體 -> 繁體
     }
 
     def convert_simplified_to_traditional(simplified_text):

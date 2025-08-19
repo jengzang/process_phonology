@@ -27,8 +27,8 @@ def check_get_chars(df, feature, user_input=None):
         auto_features = []
 
         if feature == "声母":
-            unique_vals = sorted(df_char["聲"].dropna().unique())
-            auto_inputs.extend([f"{v}聲" for v in unique_vals])
+            unique_vals = sorted(df_char["母"].dropna().unique())
+            auto_inputs.extend([f"{v}母" for v in unique_vals])
             # auto_features.extend(["声母"] * len(unique_vals))
 
         elif feature == "韵母":

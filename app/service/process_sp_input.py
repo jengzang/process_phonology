@@ -19,7 +19,7 @@ def auto_convert_single(user_input: str) -> Union[Tuple[str, int], Tuple[bool, i
         pending_clear = []
 
         extended_column_values = COLUMN_VALUES.copy()
-        extended_column_values["聲"] = COLUMN_VALUES["聲"] + ["@清"]
+        extended_column_values["母"] = COLUMN_VALUES["母"] + ["@清"]
         extended_column_values["韻"] = COLUMN_VALUES["韻"] + ["#清"]
         extended_column_values["清濁"] = COLUMN_VALUES["清濁"] + ["*清"]
 
@@ -124,7 +124,7 @@ def auto_convert_single(user_input: str) -> Union[Tuple[str, int], Tuple[bool, i
 
         for frag, _, _ in pending_clear:
             options = value_to_columns.get(frag, set())
-            voice_used = "聲" in used_columns
+            voice_used = "母" in used_columns
             rhyme_used = "韻" in used_columns
 
             if frag == "*清":
@@ -135,9 +135,9 @@ def auto_convert_single(user_input: str) -> Union[Tuple[str, int], Tuple[bool, i
                 else:
                     return False, 0
             elif frag == "@清":
-                if "聲" in options and "聲" not in used_columns:
-                    result.append(f"[清]{{聲}}")
-                    used_columns.add("聲")
+                if "母" in options and "母" not in used_columns:
+                    result.append(f"[清]{{母}}")
+                    used_columns.add("母")
                     match_count += 1
                 else:
                     return False, 0
@@ -149,23 +149,23 @@ def auto_convert_single(user_input: str) -> Union[Tuple[str, int], Tuple[bool, i
                 else:
                     return False, 0
             elif frag == "清":
-                if "聲" in options and "韻" in options:
+                if "母" in options and "韻" in options:
                     if not voice_used and not rhyme_used:
-                        print("⚠️『清』有歧義（可屬於聲或韻），請使用 @清 或 #清 或 *清 來明確指定。")
+                        print("⚠️『清』有歧義（可屬於母或韻），請使用 @清 或 #清 或 *清 來明確指定。")
                         return False, 0
                     elif voice_used and not rhyme_used:
                         result.append(f"[清]{{韻}}")
                         used_columns.add("韻")
                         match_count += 1
                     elif rhyme_used and not voice_used:
-                        result.append(f"[清]{{聲}}")
-                        used_columns.add("聲")
+                        result.append(f"[清]{{母}}")
+                        used_columns.add("母")
                         match_count += 1
                     else:
                         return False, 0
-                elif "聲" in options and "聲" not in used_columns:
-                    result.append(f"[清]{{聲}}")
-                    used_columns.add("聲")
+                elif "母" in options and "母" not in used_columns:
+                    result.append(f"[清]{{母}}")
+                    used_columns.add("母")
                     match_count += 1
                 elif "韻" in options and "韻" not in used_columns:
                     result.append(f"[清]{{韻}}")

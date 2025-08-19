@@ -407,7 +407,7 @@ function renderResults(data,table =  document.querySelector('#resultTable')) {
                 const featureEl = document.getElementById("feature3");
                 locationNameEl.textContent = ` ${loc}`;
                 featureEl.textContent = ` ${featVal}`;
-                featVal = featVal.replace(/·|母/g, (match) => match === '母' ? '聲' : '');
+                // featVal = featVal.replace(/·|母/g, (match) => match === '母' ? '聲' : '');
                 window.detailfeature2 = featVal;
                 window.detaillocation2 = loc;
                 positionAndShowPopup({ popupEl: popup, event: e, offsetLeft: -30 });
@@ -449,7 +449,7 @@ function renderResults(data,table =  document.querySelector('#resultTable')) {
                 const featureEl = document.getElementById("feature3");
                 locationNameEl.textContent = ` ${loc}`;
                 featureEl.textContent = ` ${after}`;
-                after = after.replace(/·|母/g, (match) => match === '母' ? '聲' : '');
+                // after = after.replace(/·|母/g, (match) => match === '母' ? '聲' : '');
                 window.detailfeature2 = after;
                 window.detaillocation2 = loc;
                 // console.log(after,loc);

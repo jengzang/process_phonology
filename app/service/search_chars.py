@@ -98,7 +98,7 @@ def search_characters(chars, locations=None, regions=None):
                 # 查询字符数据库（characters表）
                 characters_cursor = characters_conn.cursor()
                 characters_query = """
-                    SELECT 攝, 呼, 等, 韻, 調, 組, 聲, 多地位標記
+                    SELECT 攝, 呼, 等, 韻, 調, 組, 母, 多地位標記
                     FROM characters
                     WHERE 漢字 = ?
                 """
@@ -109,14 +109,14 @@ def search_characters(chars, locations=None, regions=None):
                 for row in characters_results:
                     # 拼接 parts 和 meta
                     parts = f"{row['攝']}{row['呼']}{row['等']}{row['韻']}{row['調']}"
-                    meta = f"{row['組']}「組」{row['聲']}「母」"
+                    meta = f"{row['組']}「組」{row['母']}「母」"
 
                     # 拼接后的地位
                     if row['多地位標記'] == 1:  # 如果有多地位标记
                         # 查找与当前字相同且有多地位标记的所有字
                         position_cursor = characters_conn.cursor()
                         position_query = """
-                            SELECT 漢字, 攝, 呼, 等, 韻, 調, 組, 聲
+                            SELECT 漢字, 攝, 呼, 等, 韻, 調, 組, 母
                             FROM characters
                             WHERE 多地位標記 = 1 AND 漢字 = ?
                         """
@@ -126,7 +126,7 @@ def search_characters(chars, locations=None, regions=None):
                         # 将所有找到的地位信息添加到 positions 中
                         for position_row in position_results:
                             position_parts = f"{position_row['攝']}{position_row['呼']}{position_row['等']}{position_row['韻']}{position_row['調']}"
-                            position_meta = f"{position_row['組']}「組」{position_row['聲']}「母」"
+                            position_meta = f"{position_row['組']}「組」{position_row['母']}「母」"
                             positions.append(f"{position_parts},{position_meta}")
                     else:
                         # 非多地位字，直接添加其地位信息

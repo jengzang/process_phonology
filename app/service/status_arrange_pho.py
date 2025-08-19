@@ -4,7 +4,7 @@ import sqlite3
 import pandas as pd
 
 from common.config import CHARACTERS_DB_PATH, DIALECTS_DB_PATH
-from common.constants import HIERARCHY_COLUMNS
+from common.constants import HIERARCHY_COLUMNS, AMBIG_VALUES
 from app.service.process_sp_input import auto_convert_batch
 from common.getloc_by_name_region import query_dialect_abbreviations
 from app.service.match_input_tip import match_locations_batch
@@ -265,11 +265,6 @@ def run_status(
     """
     results_summary = []
 
-    AMBIG_VALUES = {
-        '咸', '山', '江', '臻', '微', '清',
-        '莊', '幫', '知', '端', '見', '非',
-        '影', '日', '曉', '泥', '章', '精'
-    }
 
     def convert_path_str(path_str: str) -> str:
         """
@@ -455,8 +450,8 @@ def sta2pho(
 
         for feat in features:
             if feat == "聲母":
-                unique_vals = sorted(df_char["聲"].dropna().unique())
-                auto_inputs.extend([f"{v}聲" for v in unique_vals])
+                unique_vals = sorted(df_char["母"].dropna().unique())
+                auto_inputs.extend([f"{v}母" for v in unique_vals])
                 auto_features.extend(["聲母"] * len(unique_vals))
 
             elif feat == "韻母":

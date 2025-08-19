@@ -21,9 +21,9 @@ def main():
 
     # 這些操作都包含在write_to_sql裡面。完整運行就註釋掉
     # 寫入檔案表
-    build_dialect_database()
+    # build_dialect_database()
     # 存儲標記
-    sync_dialects_flags()
+    # sync_dialects_flags()
     # 寫入中古地位表
     process_phonology_excel()
 
