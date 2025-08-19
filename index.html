@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="app/css/mappanel.css" />
     <link rel="stylesheet" href="app/css/Extrapanel.css" />
     <link rel="stylesheet" href="app/css/vue.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<!--    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">-->
 
     <!-- 加載 Vue 3 的 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.js"></script>
@@ -385,14 +385,16 @@
 
 <!-- JS 檔案引入 -->
 <script>
-    window.API_BASE = location.origin + "/api";
+    // window.API_BASE = location.origin + "/api";
+    window.API_BASE = "http://10.250.101.238:5000/api"
 </script>
 <script src="app/js/main.js"></script>
 <script src="app/js/inputpanel.js"></script>
-<script src="app/js/resultpanel.js"></script>
+<script src="app/js/html_table.js"></script>
 <script src="app/js/mappanel.js"></script>
 <script src="app/js/Extrapanel.js"></script>
-<script src="app/js/vue.js"></script>
-<script src="app/js/get_detail.js"></script>
+<script src="app/js/vue_table.js"></script>
+<script src="app/js/process_data.js"></script>
+<script src="app/js/popup.js"></script>
 </body>
 </html>

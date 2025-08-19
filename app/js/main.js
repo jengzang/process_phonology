@@ -9,6 +9,73 @@ window.isRun = false;
 let currentMode = 1;
 let resultMode = 1;
 
+/****************
+歡迎界面以及使用教程
+*****************/
+// 使用教程按鈕
+document.getElementById("openUsageModalBtn").addEventListener("click", function () {
+    window.open("https://zhuanlan.zhihu.com/p/1934345780199682731", "_blank");
+});
+
+function padZero(num) {
+    return num.toString().padStart(2, '0');
+}
+
+function formatCurrentDateTime() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = padZero(now.getMonth() + 1);
+    const day = padZero(now.getDate());
+    const hour = padZero(now.getHours());
+    const minute = padZero(now.getMinutes());
+    const second = padZero(now.getSeconds());
+    return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+}
+
+setInterval(() => {
+    dateTimeElement.textContent = formatCurrentDateTime();
+}, 1000);
+
+// 插入時間
+const dateTimeElement = document.getElementById("currentDateTime");
+dateTimeElement.textContent = formatCurrentDateTime();
+
+// 第一次進入界面時的歡迎彈窗
+window.addEventListener("DOMContentLoaded", () => {
+    const overlay = document.getElementById("welcomeOverlay");
+    const modal = document.getElementById("welcomeModal");
+    const contactBtn = document.getElementById("contactBtn");
+
+    // 顯示歡迎彈窗
+    overlay.classList.remove("hidden");
+    setTimeout(() => overlay.classList.add("show"), 10);
+
+    // 點擊按鈕跳轉
+    contactBtn.addEventListener("click", (e) => {
+        e.stopPropagation(); // 防止觸發背景關閉
+        window.open("https://www.zhihu.com/people/da-shu-18-11", "_blank");
+    });
+
+    // 點擊空白區關閉
+    document.addEventListener("click", () => {
+        overlay.classList.remove("show");
+        setTimeout(() => overlay.classList.add("hidden"), 400);
+    });
+
+    // 阻止點擊內容區也觸發關閉
+    // modal.addEventListener("click", (e) => e.stopPropagation());
+
+    // 可選：自動關閉（20 秒）
+    setTimeout(() => {
+        overlay.classList.remove("show");
+        setTimeout(() => overlay.classList.add("hidden"), 400);
+    }, 20000);
+});
+
+/**************
+面板通用控制邏輯
+***************/
+// 三個主面板的拖動邏輯
 function makeDraggable(el, handle, getMode) {
     let isDown = false, startX = 0, startY = 0;
     handle.addEventListener("mousedown", e => {
@@ -26,6 +93,7 @@ function makeDraggable(el, handle, getMode) {
     document.addEventListener("mouseup", () => isDown = false);
 }
 
+// 最小化最大化函數
 function bindPanel(minBtn, maxBtn, restoreBtn, el, getMode, setMode) {
     minBtn.addEventListener("click", () => {
         setMode(0);  // 设置为最小化模式
@@ -61,6 +129,7 @@ function bindPanel(minBtn, maxBtn, restoreBtn, el, getMode, setMode) {
     });
 }
 
+// 監聽最小化最大化按鈕
 document.addEventListener("DOMContentLoaded", () => {
     const inputpanel = document.getElementById("inputpanel");
     const resultPanel = document.getElementById("resultPanel");
@@ -105,8 +174,8 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-
 // 🌐 共用封裝 fetch，統一紀錄前後端交換資料
+// 調試時使用，現在已經不用這個函數了
 window.fetchWithLog = async function(url, options) {
     const debugLog = document.getElementById("debug-log");
     const log = (msg, data = null) => {
@@ -156,8 +225,10 @@ window.fetchWithLog = async function(url, options) {
 };
 
 
-
-
+/**************
+---主控制邏輯---
+***************/
+// 主邏輯 監聽runBtn
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("runBtn")?.addEventListener("click", async () => {
         // Clear the resultPanelContent div before proceeding with any other logic
@@ -195,32 +266,55 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+// 实际异步加载数据的函数
+async function loadData() {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            // 这里模拟等待数据准备好。实际情况不需要这一步，数据应该已经准备好
+            // console.log('Using existing window variables:');
+            // console.log(window.latestResults); // 打印出 window.latestResults
+            // console.log(window.locations_data); // 打印出 window.locations_data
 
+            // 直接使用已经在其他地方处理好的 window.latestResults 和 window.locations_data
+            resolve(); // 一旦数据准备好，调用 resolve()
+        }, 1000); // 假设我们模拟了一些延迟，实际上数据应该已经准备好
+    });
+}
 
+/**********************
+以下是被各個js調用的通用函數
+***********************/
 
-document.getElementById('button-masschange').addEventListener('click', async function() {
-    const buttonText = document.getElementById('button-text-masschange');
-    const buttonIcon = document.querySelector('.button-icon-masschange');
-    const button = document.getElementById('button-masschange');
-
-    // 根據全局變量控制按鈕的開關狀態
-    if (window.isButtonClosed) {
-        // 如果當前為關閉狀態，切換為開啟狀態
-        window.isButtonClosed = false;  // 更新全局狀態為開啟
-        buttonText.textContent = '海量數據';  // 顯示開啟狀態的文字
-        buttonIcon.innerHTML = '↻';  // 顯示旋轉圖標
-        button.classList.remove('closed');  // 移除關閉狀態的類
-        console.log("切換到開啟狀態");
-    } else {
-        // 如果當前為開啟狀態，切換為關閉狀態
-        window.isButtonClosed = true;  // 更新全局狀態為關閉
-        buttonText.textContent = '表格模式';  // 顯示關閉狀態的文字
-        buttonIcon.innerHTML = '↺';  // 顯示旋轉圖標
-        button.classList.add('closed');  // 移除關閉狀態的類
-        console.log("切換到關閉狀態");
-    }
-});
-
+// 判斷是否為空的通用函數
 function isEmptyInput(arr) {
     return !arr || arr.length === 0 || (arr.length === 1 && arr[0].trim() === "");
+}
+
+// 消抖函數
+function debounce(fn, delay = 300) {
+    let timer;
+    return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), delay);
+    };
+}
+
+// 查詢、光標處理
+function getQueryStart(inputEl) {
+    const cursorPos = inputEl.selectionStart;
+    const value = inputEl.value;
+    const separators = /[ ,;/，；、\n\t]/g;
+
+    let lastSepIndex = -1;
+    for (let i = cursorPos - 1; i >= 0; i--) {
+        if (separators.test(value[i])) {
+            lastSepIndex = i;
+            break;
+        }
+    }
+    return {
+        queryStart: lastSepIndex + 1,
+        cursorPos,
+        value
+    };
 }

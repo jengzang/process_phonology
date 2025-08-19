@@ -50,6 +50,7 @@ function buildReverseMap() {
     return { map, conflictSet };
 }
 
+// 獲取當前特徵所屬的中古類別（例如通屬於攝）
 function parseFeatureString(featureStr) {
     const matched_fields = {};
     const usedChars = new Set();
@@ -123,8 +124,97 @@ function parseFeatureString(featureStr) {
     };
 }
 
+window.visibleLocations = []; // 存储可见的地点序列
+// 更新浮動ber、虛擬滾動邏輯也在裡面
+function updateStickyContext(displayRow,rowCount,changeDiaplayRows) {
+    const bar = document.getElementById('stickyContextBar2');
+    const content = document.querySelector('#resultPanelContent');
 
+    if (!bar || !content) {
+        console.warn('⚠️ Sticky observer 初始化失敗：缺少必要的 DOM 元素');
+        return;
+    }
 
+    // 始终显示 sticky bar
+    bar.style.display = 'block';
+    let lastScrollTop = 0; // 初始化滚动位置
+
+    content.addEventListener('scroll', (event   ) => {
+        // console.log('call back scroll:',this)
+        const tableBody = event.target;
+        // console.log("scrollHeight",tableBody.scrollHeight);
+        // console.log("scrollTop",tableBody.scrollTop);
+        // console.log("clientHeight",tableBody.clientHeight);
+        const scrollDirection = tableBody.scrollTop > lastScrollTop ? 'down' : 'up';
+        lastScrollTop = tableBody.scrollTop;
+
+        if (tableBody.scrollTop + tableBody.clientHeight >= tableBody.scrollHeight - 10) {
+            // console.log('excute')
+            // console.log(displayRow,rowCount)
+            if (displayRow< rowCount) {
+                changeDiaplayRows() // 每次加载 20 行数据
+            }
+        }
+        const contentRect = content.getBoundingClientRect();
+
+        // 获取所有的 locations-vue 元素
+        const locations = [...document.querySelectorAll('.locations-vue')];
+        let lastVisibleLocation = null;
+        let lastVisibleLocationHeight = null; // 存储最近可见地点的滚动高度
+        let visibleLocations = window.visibleLocations;
+
+        // 查找最下面的可见 locations-vue 元素
+        for (let i = 0; i < locations.length; i++) {
+            const rect = locations[i].getBoundingClientRect();
+            // 如果这个元素的顶部已经进入了可视区域
+            if (rect.top >= contentRect.top && rect.top <= contentRect.bottom) {
+                lastVisibleLocation = locations[i]; // 每次找到符合条件的元素时更新
+                lastVisibleLocationHeight =content.scrollTop + rect.top; // 获取当前滚动条高度
+            }
+        }
+
+        // 如果找到了最下面的可见 location，更新 sticky bar 内容
+        if (lastVisibleLocation) {
+            const stickyText = document.getElementById('stickyContextText2');
+            if (stickyText) {
+                stickyText.textContent = `📍 ${lastVisibleLocation.textContent}`;
+            }
+            if (!visibleLocations.some(loc => loc.name === lastVisibleLocation.textContent.trim())) {
+                // console.log("loc.name",visibleLocations.name)
+                // console.log("text",lastVisibleLocation.textContent);
+                // 只记录独特的地点，增加滚动高度信息
+                window.visibleLocations.push({
+                    name: lastVisibleLocation.textContent.trim(), // 存储地点名称（文本）
+                    scrollHeight: content.scrollTop, // 记录当前的滚动高度
+                });
+                // console.log("visibleLocations", visibleLocations);
+            }
+        } else {
+            if (scrollDirection === 'up') {
+                // console.log("向上滾動啊")
+                // 向上滚动时判断当前区域属于哪个地点
+                for (let i = visibleLocations.length - 1; i >= 0; i--) {
+                    const location = visibleLocations[i];
+                    // console.log("Y",content.scrollTop)
+                    // console.log("")
+                    // 判断当前位置是否在该地标的滚动高度附近
+                    if (content.scrollTop + window.innerHeight / 2 > location.scrollHeight) {
+                        const stickyText = document.getElementById('stickyContextText2');
+                        if (stickyText) {
+                            stickyText.textContent = `📍 ${location.name}`;
+                        }
+                        break; // 找到后退出
+                    }
+                }
+            }
+        }
+    });
+
+    // 初始化时触发一次滚动事件，确保第一次可见的行能更新 sticky bar
+    content.dispatchEvent(new Event('scroll'));
+}
+
+// 基於vue的標籤渲染數據
 async function initVue(mountTarget = '#resultPanelContent',
                        data = window.latestResults, isCondensed = true) {
     const { createApp, ref, computed, h, onMounted, nextTick , onUnmounted, Teleport} = Vue;
@@ -300,7 +390,6 @@ async function initVue(mountTarget = '#resultPanelContent',
             };
 
 
-
             const getCorrespondingCharacters = (item) => {
                 const multiCharDetails = {};
 
@@ -333,22 +422,9 @@ async function initVue(mountTarget = '#resultPanelContent',
                         );
                     }
                 });
-
                 return characters;
             };
 
-            // const handleScroll = (event) => {
-            //     const tableBody = event.target;
-            //     console.log("scrollHeight",tableBody.scrollHeight);
-            //     console.log("scrollTop",tableBody.scrollTop);
-            //     console.log("clientHeight",tableBody.clientHeight);
-            //     if (tableBody.scrollTop + tableBody.clientHeight >= tableBody.scrollHeight - 10) {
-            //         if (visibleRows.value < sortedData.value.length) {
-            //             visibleRows.value += 20;  // 每次加载 20 行数据
-            //         }
-            //     }
-            // };
-            // const previousLocation = ref(null);
 
             const getCheckedFeatures = () => {
                 return Array.from(document.querySelectorAll('#features-group input:checked'))
@@ -451,13 +527,8 @@ async function initVue(mountTarget = '#resultPanelContent',
                 sortedData,
                 getFeatureValue,
                 renderData,
-                showPopup,
-                showPopup2,         // ✅ 新增
-                popupData,
-                popupData2,         // ✅ 新增
-                popupPosition,
-                popupRef,
-                popupRef2,          // ✅ 新增
+                showPopup, showPopup2, popupData, popupData2,
+                popupPosition, popupRef, popupRef2,
                 getCheckedFeatures,
                 getModeLabels,
                 parseFeatureString,
@@ -478,10 +549,18 @@ async function initVue(mountTarget = '#resultPanelContent',
                 }
             };
 
+            const shouldApplyFontSize = (label, parseResult) => {
+                return (
+                    (label === '字本位' && parseResult?.matched_fields === null) ||
+                    (label === '音本位' && parseResult?.matched_fields !== null)
+                );
+            };
+            const parseResult = ctx.parseFeatureString?.(ctx.popupData.feature);
+
             return h('div', { class: 'result-panel-vue' }, [
                 ctx.renderData(),
 
-                ctx.showPopup
+                ctx.showPopup  // 點擊值的浮窗
                     ? h(
                         Teleport,
                         { to: 'body' }, // 👈 将 popup 挂载到 body 外层
@@ -499,11 +578,28 @@ async function initVue(mountTarget = '#resultPanelContent',
                                 h('div', { class: 'popup-content' }, [
                                     h('p', {}, `📍 地點: ${ctx.popupData.location}`),
                                     h('p', {}, `🧩 特征: ${ctx.getCheckedFeatures()}`),
-                                    h('span', {}, ` ${currentLabel}: ${getModeText(currentLabel, ctx.popupData.value)}`),
-                                    h('span', {}, ` ${oppositeLabel}: ${getModeText(oppositeLabel, ctx.popupData.value)}`),
+                                    h('span', {}, ` ${currentLabel}: ${
+                                        shouldApplyFontSize(currentLabel, parseResult)
+                                            ? getModeText(currentLabel, ctx.popupData.value)
+                                            : (currentLabel === '音本位'
+                                                ? '查詢所有音節的 母/攝/調 分佈'
+                                                : currentLabel === '字本位'
+                                                    ? '按 聲母/韻攝/清濁 整理'
+                                                    : '出問題了')
+                                    }`),
+
+                                    h('span', {}, ` ${oppositeLabel}: ${
+                                        shouldApplyFontSize(oppositeLabel, parseResult)
+                                            ? getModeText(oppositeLabel, ctx.popupData.value)
+                                            : (oppositeLabel === '音本位'
+                                                ? '查詢所有音節的分佈'
+                                                : oppositeLabel === '字本位'
+                                                    ? '按 聲母/韻攝/清濁 整理'
+                                                    : '出問題了')
+                                    }`),
+
                                     // ✅ 调用解析函数判断
                                     (() => {
-                                        const parseResult = ctx.parseFeatureString?.(ctx.popupData.feature);
                                         const fontSizeStyle = { fontSize: '17px' };
                                         const shouldApplyFontSize = (label, parseResult) => {
                                             return (
@@ -552,7 +648,7 @@ async function initVue(mountTarget = '#resultPanelContent',
                         ]
                     )
                     : null,
-                ctx.showPopup2
+                ctx.showPopup2  // 點擊特徵的浮窗
                     ? h(
                         Teleport,
                         { to: 'body' },
@@ -929,109 +1025,7 @@ const handleResize = debounce(() => {
 
 window.addEventListener('resize', handleResize);
 
-function debounce(fn, wait) {
-    let t = null;
-    return (...args) => {
-        if (t) clearTimeout(t);
-        t = setTimeout(() => fn(...args), wait);
-    };
-}
 
-
-
-
-
-
-
- window.visibleLocations = []; // 存储可见的地点序列
-
-function updateStickyContext(displayRow,rowCount,changeDiaplayRows) {
-    const bar = document.getElementById('stickyContextBar2');
-    const content = document.querySelector('#resultPanelContent');
-
-    if (!bar || !content) {
-        console.warn('⚠️ Sticky observer 初始化失敗：缺少必要的 DOM 元素');
-        return;
-    }
-
-    // 始终显示 sticky bar
-    bar.style.display = 'block';
-    let lastScrollTop = 0; // 初始化滚动位置
-
-    content.addEventListener('scroll', (event   ) => {
-        // console.log('call back scroll:',this)
-        const tableBody = event.target;
-        // console.log("scrollHeight",tableBody.scrollHeight);
-        // console.log("scrollTop",tableBody.scrollTop);
-        // console.log("clientHeight",tableBody.clientHeight);
-        const scrollDirection = tableBody.scrollTop > lastScrollTop ? 'down' : 'up';
-        lastScrollTop = tableBody.scrollTop;
-
-        if (tableBody.scrollTop + tableBody.clientHeight >= tableBody.scrollHeight - 10) {
-            // console.log('excute')
-            // console.log(displayRow,rowCount)
-            if (displayRow< rowCount) {
-                changeDiaplayRows() // 每次加载 20 行数据
-            }
-        }
-        const contentRect = content.getBoundingClientRect();
-
-        // 获取所有的 locations-vue 元素
-        const locations = [...document.querySelectorAll('.locations-vue')];
-        let lastVisibleLocation = null;
-        let lastVisibleLocationHeight = null; // 存储最近可见地点的滚动高度
-        let visibleLocations = window.visibleLocations;
-
-        // 查找最下面的可见 locations-vue 元素
-        for (let i = 0; i < locations.length; i++) {
-            const rect = locations[i].getBoundingClientRect();
-            // 如果这个元素的顶部已经进入了可视区域
-            if (rect.top >= contentRect.top && rect.top <= contentRect.bottom) {
-                lastVisibleLocation = locations[i]; // 每次找到符合条件的元素时更新
-                lastVisibleLocationHeight =content.scrollTop + rect.top; // 获取当前滚动条高度
-            }
-        }
-
-        // 如果找到了最下面的可见 location，更新 sticky bar 内容
-        if (lastVisibleLocation) {
-            const stickyText = document.getElementById('stickyContextText2');
-            if (stickyText) {
-                stickyText.textContent = `📍 ${lastVisibleLocation.textContent}`;
-            }
-            if (!visibleLocations.some(loc => loc.name === lastVisibleLocation.textContent.trim())) {
-                // console.log("loc.name",visibleLocations.name)
-                // console.log("text",lastVisibleLocation.textContent);
-                // 只记录独特的地点，增加滚动高度信息
-                window.visibleLocations.push({
-                    name: lastVisibleLocation.textContent.trim(), // 存储地点名称（文本）
-                    scrollHeight: content.scrollTop, // 记录当前的滚动高度
-                });
-                // console.log("visibleLocations", visibleLocations);
-            }
-        } else {
-            if (scrollDirection === 'up') {
-                // console.log("向上滾動啊")
-                // 向上滚动时判断当前区域属于哪个地点
-                for (let i = visibleLocations.length - 1; i >= 0; i--) {
-                    const location = visibleLocations[i];
-                    // console.log("Y",content.scrollTop)
-                    // console.log("")
-                    // 判断当前位置是否在该地标的滚动高度附近
-                    if (content.scrollTop + window.innerHeight / 2 > location.scrollHeight) {
-                        const stickyText = document.getElementById('stickyContextText2');
-                        if (stickyText) {
-                            stickyText.textContent = `📍 ${location.name}`;
-                        }
-                        break; // 找到后退出
-                    }
-                }
-            }
-        }
-    });
-
-    // 初始化时触发一次滚动事件，确保第一次可见的行能更新 sticky bar
-    content.dispatchEvent(new Event('scroll'));
-}
 
 
 

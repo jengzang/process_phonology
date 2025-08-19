@@ -161,7 +161,10 @@ def build_dialect_database():
 
         # 寫入資料庫
         final_df.to_sql("dialects", conn, if_exists="replace", index=False)
+        # 加索引
         conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_dialects_code ON dialects(簡稱);")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_dialects_zone ON dialects(音典分區);")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_dialects_flag ON dialects(存儲標記);")
 
     print(f"✅ SQLite 資料庫 `dialects_query.db` 已建立，dialects 表已更新完成。")
 
@@ -564,6 +567,12 @@ def process_phonology_excel(
     try:
         conn = sqlite3.connect(db_file)
         df_unique.drop(columns=["num"]).to_sql("characters", conn, if_exists="replace", index=False)
+        # ➤ 建立索引（除了「漢字」以外的欄位）
+        index_columns = [col for col in write_columns if col != "漢字"]
+        for col in index_columns:
+            index_name = f"idx_characters_{col}"
+            conn.execute(f"CREATE INDEX IF NOT EXISTS {index_name} ON characters({col});")
+
         conn.close()
         print("✅ 成功寫入 SQLite，總筆數：", len(df_unique))
     except Exception as e:

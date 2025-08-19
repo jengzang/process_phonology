@@ -1,64 +1,29 @@
-document.getElementById("openUsageModalBtn").addEventListener("click", function () {
-    window.open("https://zhuanlan.zhihu.com/p/1934345780199682731", "_blank");
-});
+// 切換數據顯示模式（表格/海量數據）
+document.getElementById('button-masschange').addEventListener('click', async function() {
+    const buttonText = document.getElementById('button-text-masschange');
+    const buttonIcon = document.querySelector('.button-icon-masschange');
+    const button = document.getElementById('button-masschange');
 
-function padZero(num) {
-    return num.toString().padStart(2, '0');
-}
-
-function formatCurrentDateTime() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = padZero(now.getMonth() + 1);
-    const day = padZero(now.getDate());
-    const hour = padZero(now.getHours());
-    const minute = padZero(now.getMinutes());
-    const second = padZero(now.getSeconds());
-    return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
-}
-
-setInterval(() => {
-    dateTimeElement.textContent = formatCurrentDateTime();
-}, 1000);
-
-// 插入時間
-const dateTimeElement = document.getElementById("currentDateTime");
-dateTimeElement.textContent = formatCurrentDateTime();
-
-window.addEventListener("DOMContentLoaded", () => {
-    const overlay = document.getElementById("welcomeOverlay");
-    const modal = document.getElementById("welcomeModal");
-    const contactBtn = document.getElementById("contactBtn");
-
-    // 顯示歡迎彈窗
-    overlay.classList.remove("hidden");
-    setTimeout(() => overlay.classList.add("show"), 10);
-
-    // 點擊按鈕跳轉
-    contactBtn.addEventListener("click", (e) => {
-        e.stopPropagation(); // 防止觸發背景關閉
-        window.open("https://www.zhihu.com/people/da-shu-18-11", "_blank");
-    });
-
-    // 點擊空白區關閉
-    document.addEventListener("click", () => {
-        overlay.classList.remove("show");
-        setTimeout(() => overlay.classList.add("hidden"), 400);
-    });
-
-    // 阻止點擊內容區也觸發關閉
-    // modal.addEventListener("click", (e) => e.stopPropagation());
-
-    // 可選：自動關閉（20 秒）
-    setTimeout(() => {
-        overlay.classList.remove("show");
-        setTimeout(() => overlay.classList.add("hidden"), 400);
-    }, 20000);
+    // 根據全局變量控制按鈕的開關狀態
+    if (window.isButtonClosed) {
+        // 如果當前為關閉狀態，切換為開啟狀態
+        window.isButtonClosed = false;  // 更新全局狀態為開啟
+        buttonText.textContent = '海量數據';  // 顯示開啟狀態的文字
+        buttonIcon.innerHTML = '↻';  // 顯示旋轉圖標
+        button.classList.remove('closed');  // 移除關閉狀態的類
+        console.log("切換到開啟狀態");
+    } else {
+        // 如果當前為開啟狀態，切換為關閉狀態
+        window.isButtonClosed = true;  // 更新全局狀態為關閉
+        buttonText.textContent = '表格模式';  // 顯示關閉狀態的文字
+        buttonIcon.innerHTML = '↺';  // 顯示旋轉圖標
+        button.classList.add('closed');  // 移除關閉狀態的類
+        console.log("切換到關閉狀態");
+    }
 });
 
 
-
-
+// 選擇分析模式（音本位還是字本位）
 function updateVisibility() {
     const mode = document.querySelector('input[name="mode"]:checked')?.value;
     document.getElementById("status_input_button").style.display = mode === "s2p" ? "flex" : "none";
@@ -73,12 +38,11 @@ function updateVisibility() {
     });
 }
 
-
+// 監聽Mode
 document.querySelectorAll('input[name="mode"]').forEach(r => {
     r.addEventListener("change", updateVisibility);
 });
 updateVisibility();
-
 
 // 🧪 後端測試按鈕
 document.getElementById("testBackendBtn").addEventListener("click", async () => {
@@ -107,6 +71,7 @@ document.getElementById("testBackendBtn").addEventListener("click", async () => 
     }
 });
 
+// 獲取匹配到的分區列表
 function getSubregions(parentLabel) {
     return fetch(`${window.API_BASE}/partitions?parent=${encodeURIComponent(parentLabel)}`)
         .then(res => res.json())
@@ -118,6 +83,7 @@ function getSubregions(parentLabel) {
         // .then(data => data.partitions);
 }
 
+// 音典一級分區
 window.showPartitionSelector = function (textarea) {
     const topLevel = [
         '華北','西北','官話','中上江','下江','兩浙','浙南','湘贛','嶺東','廣中',
@@ -187,6 +153,7 @@ window.showPartitionSelector = function (textarea) {
 
 };
 
+// 渲染分區提示框，可點擊
 function renderList(items, container, parentLabel, textarea, onClose, lvl2 = null, lvl3 = null) {
     container.innerHTML = "";
     let hoverTimeout;
@@ -256,7 +223,7 @@ function renderList(items, container, parentLabel, textarea, onClose, lvl2 = nul
     });
 }
 
-
+// 總的渲染分區提示框函數
 async function popup_box(label, item, parentLabel, textarea, onClose, lvl2, lvl3) {
     const subs = await getSubregions(label);
     const rect = item.getBoundingClientRect();
@@ -293,6 +260,7 @@ async function popup_box(label, item, parentLabel, textarea, onClose, lvl2, lvl3
     }
 }
 
+// 點擊“音典分區”按鈕展開一級分區
 document.addEventListener("DOMContentLoaded", () => {
     const btn = document.getElementById("partitionBtn");
     const textarea = document.getElementById("regions");
@@ -300,33 +268,12 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-function debounce(fn, delay = 300) {
-    let timer;
-    return (...args) => {
-        clearTimeout(timer);
-        timer = setTimeout(() => fn.apply(this, args), delay);
-    };
-}
-
 const inputEl = document.getElementById("locations");
 const suggestion = document.getElementById("inlineSuggestion");
 
-// 包装 fetch suggestion 逻辑
+// 地點輸入框的獲取後端、顯示下拉框、點擊完成匹配
 const fetchSuggestion = () => {
-    const cursorPos = inputEl.selectionStart;
-    const value = inputEl.value;
-
-    // 找出光標前的最近分隔符位置
-    const separators = /[ ,;/，；、\n\t]/g;
-    let lastSepIndex = -1;
-    for (let i = cursorPos - 1; i >= 0; i--) {
-        if (separators.test(value[i])) {
-            lastSepIndex = i;
-            break;
-        }
-    }
-
-    const queryStart = lastSepIndex + 1;
+    const { queryStart, cursorPos, value } = getQueryStart(inputEl);
     const query = value.slice(queryStart, cursorPos).trim();
 
     if (!query) {
@@ -356,7 +303,6 @@ const fetchSuggestion = () => {
                 const allValues = value.split(/[ ,;/，；、\n\t]+/).filter(Boolean);
                 const currentQuery = value.slice(queryStart, cursorPos).trim();
                 const exclusionSet = new Set(allValues.filter(v => v !== currentQuery));
-
                 const filtered = Array.from(new Set(r.items)).filter(item => !exclusionSet.has(item));
                 if (!filtered.length) {
                     suggestion.style.display = "none";

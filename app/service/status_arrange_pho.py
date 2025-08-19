@@ -62,7 +62,14 @@ def query_characters_by_path(path_string, db_path=CHARACTERS_DB_PATH, table="cha
 
     # 讀取資料
     conn = sqlite3.connect(db_path)
-    df = pd.read_sql_query(f"SELECT * FROM {table}", conn)
+    # df = pd.read_sql_query(f"SELECT * FROM {table}", conn)
+    # 動態組裝 WHERE 子句（根據 matches）
+    where_clause = " AND ".join([f"{col} = ?" for _, col in matches])
+    values = [val for val, _ in matches]
+
+    query = f"SELECT * FROM {table} WHERE {where_clause}"
+    df = pd.read_sql_query(query, conn, params=values)
+
     conn.close()
 
     # 執行篩選
