@@ -15,8 +15,8 @@ async def get_regions(
     input_data: Union[str, List[str]] = Query(..., alias="input_data")
 ):
     """
-    :param request:地點簡稱
-    :return: 對應的音典分區
+    - :param request:地點簡稱
+    - :return: 對應的音典分區
     """
     update_count(request.url.path)
     log_all_fields(request.url.path, {"input_data": input_data})

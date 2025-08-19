@@ -38,7 +38,7 @@ async def get_coordinates(
              "zoom_level": 建議地圖縮放層級 (int) or None
             }
 
-            返回欄位說明:
+            說明:
             - coordinates_locations : [(str, (float, float))]，每個簡稱及其經緯度
             - region_mappings       : {str: str}，每個簡稱對應的音典分區
             - center_coordinate     : [float, float]，所有地點的中心座標點（若無資料則為 None）
