@@ -582,7 +582,7 @@ async function initVue(mountTarget = '#resultPanelContent',
                                         shouldApplyFontSize(currentLabel, parseResult)
                                             ? getModeText(currentLabel, ctx.popupData.value)
                                             : (currentLabel === '音本位'
-                                                ? '查詢所有音節的 母/攝/調 分佈'
+                                                ? '查詢所有音節分佈'
                                                 : currentLabel === '字本位'
                                                     ? '按 聲母/韻攝/清濁 整理'
                                                     : '出問題了')
@@ -692,7 +692,7 @@ async function initVue(mountTarget = '#resultPanelContent',
                                                         get_detail(
                                                             ctx.popupData2.location,
                                                             ctx.popupData2.feature,
-                                                            true,
+                                                            false,
                                                             true,
                                                             mountTarget_new,
                                                             [field]

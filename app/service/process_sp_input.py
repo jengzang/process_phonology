@@ -268,7 +268,7 @@ def auto_convert_batch(input_string: str) -> List[Union[Tuple[str, int], Tuple[b
                 results.extend(res)
             else:
                 results.append(res)
-            print(f"   ⮡ 結果: {res}")
+            # print(f"   ⮡ 結果: {res}")
     return results
 
 
