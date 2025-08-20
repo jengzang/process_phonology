@@ -76,7 +76,6 @@ def print_banner_once(style="minimal"):
 # 启动服务并自动打开浏览器
 if __name__ == "__main__":
     print_banner_once(style="block")  # 可选: "block" / "boxed" / "minimal"
-
     if _RUN_TYPE == 'MINE':
         # 跑在局域網ip地址上
         def open_browser(port=5000):
@@ -92,18 +91,20 @@ if __name__ == "__main__":
                 except Exception:
                     return '127.0.0.1'
 
-            ip = get_local_ip()
+            LOCAL_IP = get_local_ip()
+            APP_URL = f"http://{LOCAL_IP}:{port}"
             time.sleep(1)
-            webbrowser.open(f"http://{ip}:{port}")
+            webbrowser.open(APP_URL)
 
 
         threading.Thread(target=open_browser).start()
         uvicorn.run("run:app", host="0.0.0.0", port=5000, reload=True)
 
-    elif _RUN_TYPE == 'PACK':
+    elif _RUN_TYPE == 'EXE':
         def open_browser_pack():
             time.sleep(1)
-            webbrowser.open("http://127.0.0.1:5000")
+            APP_URL = "http://127.0.0.1:5000"
+            webbrowser.open(APP_URL)
 
 
         threading.Thread(target=open_browser_pack).start()

@@ -320,7 +320,7 @@ def match_locations_batch(input_string: str, filter_valid_abbrs_only=True):
             # print(f"\n🔹 處理第 {idx + 1} 個地名：{part}")
             try:
                 res = match_locations(part, filter_valid_abbrs_only)
-                print(f"   ⮡ 結果: {res}")
+                # print(f"   ⮡ 結果: {res}")
                 results.append(res)
             except Exception as e:
                 print(f"   ❌ 發生錯誤：{e}")

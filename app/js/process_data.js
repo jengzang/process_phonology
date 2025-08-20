@@ -348,21 +348,23 @@ async function func_mergeData() {
     const regions = document.getElementById('regions').value.trim().split(/\s+/);
     const uniqueFeatures = [...new Set(latestResults.map(result => result.特徵值))];
 
-    // 创建请求体
+    // 创建请求参数
     const queryParams = {
         locations: locations,
         regions: regions,
         need_features: uniqueFeatures
     };
+
     let shouldContinue = true;
     let result = null;
     try {
-        const response = await fetch(`${window.API_BASE}/get_custom`, {
-            method: 'POST',
+        // 用 URLSearchParams 拼接到 GET URL
+        const queryString = new URLSearchParams(queryParams).toString();
+        const response = await fetch(`${window.API_BASE}/get_custom?${queryString}`, {
+            method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(queryParams)
+            }
         });
 
         if (!response.ok) {
@@ -416,13 +418,18 @@ async function get_custom_feature(){
     };
 
     try {
-        const response = await fetch(`${window.API_BASE}/get_custom_feature`, {
-            method: 'POST',
+        const queryString = new URLSearchParams();
+        queryParams.locations.forEach(loc => queryString.append("locations", loc));
+        queryParams.regions.forEach(reg => queryString.append("regions", reg));
+        queryString.append("word", queryParams.word);
+
+        const response = await fetch(`${window.API_BASE}/get_custom_feature?${queryString.toString()}`, {
+            method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(queryParams)
+            }
         });
+
 
         if (!response.ok) {
             console.error("後端返回錯誤", response.status);
@@ -492,13 +499,18 @@ async function process_custom() {
     let shouldContinue = true;
 
     try {
-        const response = await fetch(`${window.API_BASE}/get_custom`, {
-            method: 'POST',
+        const queryString = new URLSearchParams();
+        queryParams.locations.forEach(loc => queryString.append("locations", loc));
+        queryParams.regions.forEach(reg => queryString.append("regions", reg));
+        queryParams.need_features.forEach(f => queryString.append("need_features", f));
+
+        const response = await fetch(`${window.API_BASE}/get_custom?${queryString.toString()}`, {
+            method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(queryParams)
+            }
         });
+
         if (!response.ok) {
             shouldContinue = false;
             // console.log("沒回應")

@@ -281,11 +281,11 @@ const fetchSuggestion = () => {
         return;
     }
 
-    fetch(`${window.API_BASE}/batch_match`, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ input_string: query })
+    fetch(`${window.API_BASE}/batch_match?input_string=${encodeURIComponent(query)}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" }
     })
+
         .then(res => res.json())
         .then(results => {
             if (!results.length) {

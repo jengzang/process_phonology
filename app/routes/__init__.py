@@ -13,6 +13,7 @@ from .form_submit import router as form_router
 from .custom_query import router as custom_query_router
 from .search import router as search_router
 from .index import router as index_router
+from .auth import router as auth_router
 
 def setup_routes(app: FastAPI):
     app.include_router(phonology_router)
@@ -24,3 +25,4 @@ def setup_routes(app: FastAPI):
     app.include_router(custom_query_router)
     app.include_router(search_router)
     app.include_router(index_router)
+    app.include_router(auth_router, prefix="/auth", tags=["Authentication"])

@@ -1,4 +1,5 @@
 import os
+import socket
 
 # ============ 路徑 =================
 # 計算專案根目錄路徑
@@ -19,12 +20,12 @@ SUPPLE_DB_PATH = os.path.join(BASE_DIR, "data", "supplements.db")
 
 # 字表寫入SQL路徑依賴
 APPEND_PATH = os.path.join(BASE_DIR, "make", "data", "dependency", "jengzang補充.xlsx")
-HAN_PATH = os.path.join(BASE_DIR,  "make", "data", "dependency", "漢字音典字表檔案（長期更新）.xlsx")
-HAN_CSV_PATH = os.path.join(BASE_DIR,  "make", "data", "dependency", "漢字音典字表檔案（長期更新）-檔案.csv")  # 暫未使用
-PHO_TABLE_PATH = os.path.join(BASE_DIR,  "make", "data", "dependency", "聲韻.xlsx")
-RAW_DATA_DIR = os.path.join(BASE_DIR,  "make", "data", "raw")
-PROCESSED_DATA_DIR = os.path.join(BASE_DIR,  "make", "data", "processed")
-YINDIAN_DATA_DIR = os.path.join(BASE_DIR,  "make", "data", "yindian")
+HAN_PATH = os.path.join(BASE_DIR, "make", "data", "dependency", "漢字音典字表檔案（長期更新）.xlsx")
+HAN_CSV_PATH = os.path.join(BASE_DIR, "make", "data", "dependency", "漢字音典字表檔案（長期更新）-檔案.csv")  # 暫未使用
+PHO_TABLE_PATH = os.path.join(BASE_DIR, "make", "data", "dependency", "聲韻.xlsx")
+RAW_DATA_DIR = os.path.join(BASE_DIR, "make", "data", "raw")
+PROCESSED_DATA_DIR = os.path.join(BASE_DIR, "make", "data", "processed")
+YINDIAN_DATA_DIR = os.path.join(BASE_DIR, "make", "data", "yindian")
 # APPEND_PATH = "C:/Users/joengzaang/PycharmProjects/process_phonology/data/dependency/Append_files.xlsx"
 # HAN_PATH = "C:/Users/joengzaang/PycharmProjects/process_phonology/data/dependency/漢字音典字表檔案（長期更新）.xlsx"
 # PHO_TABLE_PATH = "C:/Users/joengzaang/PycharmProjects/process_phonology/data/dependency/聲韻.xlsx"
@@ -48,6 +49,18 @@ API_DETAILED_JSON = os.path.join(log_dir, "api_detailed_stats.json")
 MISSING_DATA_LOG = os.path.join(BASE_DIR, "logs", "缺資料.txt")
 WRITE_INFO_LOG = os.path.join(BASE_DIR, "logs", "write.txt")
 WRITE_ERROR_LOG = os.path.join(BASE_DIR, "logs", "write_error.txt")
+
+# ========== 登錄系統 =============
+db_path = os.path.join(BASE_DIR, "data", "auth.db")
+DATABASE_URL = f"sqlite:///{db_path}"
+
+SECRET_KEY = "super-secret-key"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+# 是否要求郵件驗證
+REQUIRE_EMAIL_VERIFICATION = False  # 改成 False 就不需要驗證
+
 # =============== 配置 =======================
 # banner配置
 APP_NAME = "Dialect Compare Tool — FastAPI Backend"
@@ -55,6 +68,23 @@ AUTHOR = "不羈 (JengZang)"
 VERSION = "1.0.1"
 DATE_STR = "2025-08-18"
 
-# 運行方式
-_RUN_TYPE = 'MINE'
+# --------運行方式------------
+_RUN_TYPE = 'MINE'  # MINE/EXE/WEB
+# --------------------------
+
+def get_local_ip():
+    """獲取當前主機的內網 IP（非 127.0.0.1）"""
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))  # 不需要真的發包
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return "127.0.0.1"
+
+PORT = 5000
+LOCAL_IP = get_local_ip() if _RUN_TYPE == "MINE" else "127.0.0.1"
+APP_URL = f"http://{LOCAL_IP}:{PORT}"
+
 

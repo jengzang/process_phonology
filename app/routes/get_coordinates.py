@@ -3,7 +3,8 @@
 📦 路由模塊：處理 /api/get_coordinates 查詢地點座標資料。
 """
 
-from fastapi import APIRouter, Request, Query, HTTPException
+from fastapi import APIRouter, Request, Query, HTTPException, Depends
+from app.schemas import CoordinatesQuery
 from app.service.locs_regions import get_coordinates_from_db
 from common.getloc_by_name_region import query_dialect_abbreviations
 from app.service.match_input_tip import match_locations_batch
@@ -16,18 +17,10 @@ router = APIRouter()
 @router.get("/api/get_coordinates")
 async def get_coordinates(
         request: Request,
-        regions: str = Query(...),
-        locations: str = Query(...),
-        iscustom: bool = None,
-        flag: bool = True
+        query: CoordinatesQuery = Depends()
 ):
     """
     獲取坐標
-    :param request:
-    :param regions: 音典分區，獲取該分區下所有地點的坐標信息
-    :param locations: 地點簡稱
-    :param iscustom: 是否讀取用戶自定義數據庫，若為真則讀取
-    :param flag: 查所有點or只查有字表的點，若為真，則只查有字表的
     :return: {"coordinates_locations": List of (簡稱, (緯度, 經度)),
              "region_mappings": Dict of {簡稱: 音典分區},
              "center_coordinate": [中心緯度, 中心經度] or None,
@@ -46,29 +39,24 @@ async def get_coordinates(
             - zoom_level            : 根據距離推算的地圖縮放層級，數字越大放大越多（2–20）
     """
     update_count(request.url.path)
-    log_all_fields(request.url.path, {
-        "regions": regions,
-        "locations": locations,
-        "iscustom": iscustom,
-        "flag": flag
-    })
+    log_all_fields(request.url.path, query.dict())
     start = time.time()
     try:
-        if not regions.strip() and not locations.strip():
+        if not query.regions.strip() and not query.locations.strip():
             raise HTTPException(status_code=400, detail="請輸入地點或簡稱！")
 
-        locations_list = locations.split(',')
-        regions_list = regions.split(',')
+        locations_list = query.locations.split(',')
+        regions_list = query.regions.split(',')
         locations_processed = []
         for location in locations_list:
             matched = match_locations_batch(location)
             extracted = [res[0][0] for res in matched if res[0]]
             locations_processed.extend(extracted)
 
-        if iscustom:
+        if query.iscustom:
             abbr1 = query_dialect_abbreviations(regions_list, locations_list, db_path=SUPPLE_DB_PATH,
                                                 tables="informations")
-            abbr2 = query_dialect_abbreviations(regions_list, locations_processed, need_storage_flag=flag)
+            abbr2 = query_dialect_abbreviations(regions_list, locations_processed, need_storage_flag=query.flag)
             result = get_coordinates_from_db(abbr2, abbr1, use_supplementary_db=True)
         else:
             abbrs = query_dialect_abbreviations(regions_list, locations_processed)

@@ -437,7 +437,7 @@ def sta2pho(
         return []
 
     unique_abbrs = list({abbr for res in match_results for abbr in res[0]})
-    print(f"\n📍 完全匹配地點簡稱：{unique_abbrs}")
+    # print(f"\n📍 完全匹配地點簡稱：{unique_abbrs}")
 
     if not test_inputs:
         print("ℹ️ inputs 為空，自動推導條件字串...")

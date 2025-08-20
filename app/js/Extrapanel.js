@@ -54,14 +54,10 @@ async function locations2regions(){
         return;
     }
 
-    // 请求匹配的地名数据
-    fetch(`${window.API_BASE}/batch_match`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            input_string: query,  // 假设这是你传递的输入数据
-            filter_valid_abbrs_only: false  // 传递布尔值 false
-        })
+// 请求匹配的地名数据
+    fetch(`${window.API_BASE}/batch_match?input_string=${encodeURIComponent(query)}&filter_valid_abbrs_only=false`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" }
     })
         .then(res => res.json())
         .then(results => {
@@ -395,22 +391,18 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        // 构造请求数据
-        const requestData = {
-            chars: chars,
-            locations: locations,
-            regions: regions
-        };
+        // 構造查詢字符串
+        const params = new URLSearchParams();
+        chars.forEach(c => params.append("chars", c));
+        locations.forEach(loc => params.append("locations", loc));
+        regions.forEach(reg => params.append("regions", reg));
 
         try {
-            // 发送 POST 请求到后端
-            const response = await fetch(`${window.API_BASE}/search_chars/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestData),
+            // 發送 GET 請求到後端
+            const response = await fetch(`${window.API_BASE}/search_chars/?${params.toString()}`, {
+                method: 'GET',
             });
+
 
             // 处理返回的 JSON 数据
             if (response.ok) {
@@ -511,21 +503,17 @@ document.addEventListener("DOMContentLoaded",  function () {
         const regions = regionsInput.value.trim().split(/\s+/); // 获取并拆分 regions
         await create_map1();
 
-        // 构造请求数据
-        const requestData = {
-            locations: locations,
-            regions: regions
-        };
+        // 構造查詢字符串
+        const params = new URLSearchParams();
+        locations.forEach(loc => params.append("locations", loc));
+        regions.forEach(reg => params.append("regions", reg));
 
         try {
-            // 发送 POST 请求到后端
-            const response = await fetch(`${window.API_BASE}/search_tones/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestData),
+            // 發送 GET 請求到後端
+            const response = await fetch(`${window.API_BASE}/search_tones/?${params.toString()}`, {
+                method: 'GET',
             });
+
 
             // 处理返回的 JSON 数据
             if (response.ok) {
@@ -591,8 +579,7 @@ document.addEventListener("DOMContentLoaded",  function () {
                     // 给“簡稱”添加点击事件
                     locationCell.addEventListener('click', function(event) {
                         // 弹窗内容设置为該行的總數據
-                        const totalData = item["總數據"].join('<br>');
-                        popup.innerHTML = totalData;
+                        popup.innerHTML = item["總數據"].join('<br>');
                         // 显示弹窗
                         popup.style.display = 'block';
 
