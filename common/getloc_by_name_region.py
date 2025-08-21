@@ -9,7 +9,7 @@ def query_dialect_abbreviations(
         location_sequence=None,
         db_path=QUERY_DB_PATH,
         tables="dialects",
-        need_storage_flag=True,  # 新增參數
+        need_storage_flag=True,  # 是否需要存儲標記
         debug=False
 ):
     """

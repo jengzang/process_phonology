@@ -194,8 +194,8 @@ async function create_map1(){
     }
 
     // 显示加载提示
-    const debugLog = document.getElementById("debug-log");
-    debugLog.textContent = "📡 發送請求中...";
+    // const debugLog = document.getElementById("debug-log");
+    // debugLog.textContent = "📡 發送請求中...";
 
     try {
         // 发送 GET 请求
@@ -207,7 +207,7 @@ async function create_map1(){
         if (!res.ok) {
             console.error("❌ 请求失败:", res.status);
             alert("後端錯誤！請稍後重試。");
-            debugLog.textContent = "❌ 请求失败";
+            // debugLog.textContent = "❌ 请求失败";
             return;
         }
 
@@ -333,84 +333,63 @@ function setupEventListeners(dropdownArrow, dropdown, placeholder) {
 }
 
 // 用於點擊runBtn後的數據整理、生成特徵下拉框或按鈕
-document.addEventListener("DOMContentLoaded", function() {
-    // 获取按钮和容器
-    const runBtn = document.getElementById('runBtn');
+function mapFeatureSelection() {
     const featureContainer = document.getElementById('featureContainer');
 
-    // 绑定 runBtn 按钮点击事件
-    runBtn.addEventListener('click', function() {
-        // console.log("Run button clicked!"); // 确认按钮点击事件触发
+    // 清空容器
+    featureContainer.innerHTML = '';
 
-        // 清空容器，以防重复添加内容
-        featureContainer.innerHTML = '';  // 清空容器
+    // 開始等待資料填充
+    checkDataAvailability();
 
-        // 开始加载数据并等待数据填充
-        checkDataAvailability();
-    });
-
-    // 检查 latestResults 是否有数据，如果为空则等待 3 秒后再次检查
     function checkDataAvailability() {
         const checkInterval = setInterval(() => {
-            if (window.latestResults.length > 0) {
-                clearInterval(checkInterval); // 停止检查
-                // 一旦数据可用，填充下拉框或按钮
-                populateFeatureData(window.latestResults);
+            if (Array.isArray(window.latestResults) && window.latestResults.length > 0) {
+                clearInterval(checkInterval); // 停止輪詢
+                populateFeatureData();
             } else {
                 console.log('等待数据加载...');
             }
-        }, 3000); // 每 3 秒检查一次，直到 latestResults 中有数据
+        }, 3000);
     }
 
-    // 填充数据到下拉框或按钮
     function populateFeatureData() {
         const uniqueFeatures = [...new Set(window.latestResults.map(result => result.特徵值))];
 
-        if (document.querySelector('.dropdown')) {
-            return;  // 如果下拉框已经存在，就不再创建
-        }
-        if(document.querySelector('.single-button')){
-            return;
+        if (document.querySelector('.dropdown') || document.querySelector('.single-button')) {
+            return; // 防止重複生成
         }
 
-        // 根据 uniqueFeatures 的数量决定是显示下拉框还是按钮
         if (uniqueFeatures.length === 1) {
-            // 如果只有一个特徵值，创建按钮
             const button = document.createElement("button");
             button.classList.add("single-button");
-            button.textContent = uniqueFeatures[0];  // 显示唯一的特徵值
+            button.textContent = uniqueFeatures[0];
             featureContainer.appendChild(button);
-            // 为按钮添加点击事件，触发绘图函数并传递按钮内容
-            button.addEventListener("click", async function () {
-                // console.log("点击前的mergeddata:",mergedData)
+
+            button.addEventListener("click", async () => {
                 window.selectedItem = button.textContent;
-                // 等待 mergedData 填充完成
                 if (!window.mergedData) {
-                    // console.log("fuck", window.mergedData);
-                    await func_mergeData()
+                    await func_mergeData();
                 }
-                await triggerDrawingFunction();  // 传递按钮的文本作为参数
+                await triggerDrawingFunction();
             });
+
         } else if (uniqueFeatures.length > 1) {
-            // 如果有多个特徵值，创建下拉框
-            console.log("生成下拉框，特徵值:", uniqueFeatures); // 输出下拉框生成的特徵值
-            // 创建下拉框和箭头按钮
+            console.log("生成下拉框，特徵值:", uniqueFeatures);
+
             const dropdown = document.createElement("div");
             dropdown.classList.add("dropdown");
 
-            // 创建占位符
             const placeholder = document.createElement("div");
             placeholder.classList.add("placeholder");
             placeholder.textContent = "請選擇繪圖特徵";
-            featureContainer.appendChild(placeholder);  // 直接添加占位符
+            featureContainer.appendChild(placeholder);
 
-            // 创建箭头按钮
             const dropdownArrow = document.createElement("button");
             dropdownArrow.classList.add("dropdown-arrow");
-            dropdownArrow.textContent = "⏷";  // 设置箭头图标
-            featureContainer.appendChild(dropdownArrow);  // 直接添加箭头按钮
+            dropdownArrow.textContent = "⏷";
+            featureContainer.appendChild(dropdownArrow);
 
-            // 为每个特徵值添加项
             uniqueFeatures.forEach(feature => {
                 const item = document.createElement("div");
                 item.classList.add("dropdown-item");
@@ -418,19 +397,16 @@ document.addEventListener("DOMContentLoaded", function() {
                 dropdown.appendChild(item);
             });
 
-            featureContainer.appendChild(dropdown);  // 将下拉框添加到容器
-            // 绑定事件
+            featureContainer.appendChild(dropdown);
             setupEventListeners(dropdownArrow, dropdown, placeholder);
         }
 
-        // 使下拉框显示
         const selectBox = document.querySelector(".select-box");
         if (selectBox) {
             selectBox.classList.add("expanded");
         }
     }
-
-  });
+}
 
 
 // 再次触发绘图函数，繪製具體的特徵圖
@@ -541,6 +517,7 @@ async function triggerDrawingFunction() {
                                 detailContentEl.appendChild(ul); // 将生成的 <ul> 添加到弹窗中
                                 // 顯示按鈕
                                 document.getElementById("mini-btn").style.display = "inline-block";
+                                document.getElementById("mini-btn0").style.display = "none";
                                 // 定位與顯示
                                 positionAndShowPopup({
                                     popupEl: popup,
@@ -611,6 +588,7 @@ async function triggerDrawingFunction() {
                                 notesEl.textContent = `說明: ${notes}`;  // 直接显示 notes 文本内容
 
                                 document.getElementById("mini-btn").style.display = "none";
+                                document.getElementById("mini-btn0").style.display = "inline-block";
                                 // 定位與顯示
                                 positionAndShowPopup({
                                     popupEl: popup,
@@ -618,6 +596,9 @@ async function triggerDrawingFunction() {
                                     offsetTop: 30,
                                     offsetLeft: 15
                                 });
+                                window.detaillocation = locationName;
+                                window.detailfeature = feature;
+                                window.detailvalue = value;
                             });
                         }
                     }
@@ -685,15 +666,15 @@ async function create_dot_all() {
     url.searchParams.append('iscustom', 'true');
     url.searchParams.append('flag', 'False');
 
-    const debugLog = document.getElementById("debug-log");
-    debugLog.textContent = "📡 發送請求中...";
+    // const debugLog = document.getElementById("debug-log");
+    // debugLog.textContent = "📡 發送請求中...";
 
     try {
         const res = await fetch(url, { method: "GET" });
         if (!res.ok) {
             console.error("❌ 请求失败:", res.status);
             alert("後端錯誤！請稍後重試。");
-            debugLog.textContent = "❌ 请求失败";
+            // debugLog.textContent = "❌ 请求失败";
             return;
         }
 

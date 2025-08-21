@@ -10,7 +10,7 @@ from app.service.match_input_tip import match_locations_batch
 
 router = APIRouter()
 
-@router.get("/api/batch_match")
+@router.get("/batch_match")
 async def batch_match(
         request: Request,
         input_string: str = Query(..., description="用戶輸入的字符串，用於後端匹配正確的地點"),

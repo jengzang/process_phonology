@@ -228,6 +228,47 @@ window.fetchWithLog = async function(url, options) {
 /**************
 ---主控制邏輯---
 ***************/
+const allow_chars_status = new Set([
+    "攝","摄","呼","等","韻","韵","入","調","调","清","濁","浊","系","組","组","母",
+    "假","咸","宕","山","效","曾","果","梗","止","江","流","深","臻","蟹","通","遇",
+    "合","開","开","一","三","二","四","之","仙","佳","侯","侵","元","先","冬","凡","刪","删",
+    "咍","唐","嚴","严","夬","宵","寒","尤","幽","庚","廢","废","微","支","文","東","东","桓","模",
+    "欣","歌","泰","添","灰","痕","登","皆","真","祭","耕","肴","脂","蒸","蕭","萧","虞","覃",
+    "談","谈","豪","銜","衔","鐘","钟","陽","阳","青","魂","魚","鱼","鹽","盐","麻","齊","齐",
+    "舒","上","去","平","全","次","幫","帮","知","端","見","见","影","日","曉","晓","泥","章",
+    "精","莊","庄","非","並","并","云","雲","以","來","来","初","匣","奉","娘","定","崇","常",
+    "從","从","徹","彻","心","敷","昌","明","書","书","溪","滂","澄","生","疑","禪","禅","群","船","透","邪",
+    "@", "-", "#", "*"," ", "\n", ";"," ,", "\t"
+]);
+
+const allow_chars_groups = new Set([
+    "攝","摄","呼","等","韻","韵","入","調","调","清","濁","浊","系","組","组","母"," ", "\n", ";"," ,", "\t"
+]);
+
+// 檢查函數
+function validateInputs() {
+    const status_inputs = parseMultilineListInput("status_inputs");
+    const group_inputs  = parseMultilineListInput("group_inputs");
+
+    // 檢查 status_inputs
+    for (const ch of status_inputs) {
+        if (!allow_chars_status.has(ch)) {
+            alert(`❌ 中古地位輸入有不合法字符：${ch}`);
+            return false;
+        }
+    }
+
+    // 檢查 group_inputs
+    for (const ch of group_inputs) {
+        if (!allow_chars_groups.has(ch)) {
+            alert(`❌ 中古分類有不合法字符：${ch}`);
+            return false;
+        }
+    }
+
+    return true; // ✅ 都合法
+}
+
 // 主邏輯 監聽runBtn
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("runBtn")?.addEventListener("click", async () => {
@@ -242,13 +283,54 @@ document.addEventListener("DOMContentLoaded", () => {
         window.plotted = false;
         const locations = document.getElementById('locations').value.trim().split(/\s+/);
         const regions = document.getElementById('regions').value.trim().split(/\s+/);
+
         if (isEmptyInput(locations) && isEmptyInput(regions)) {
             alert("請輸入地點或分區！");
             return;
         }
+        if (!validateInputs()) {
+            // 直接 return，不繼續執行後續邏輯
+            return;
+        }
+        const token = sessionStorage.getItem("ACCESS_TOKEN");
+        if (!token) {
+            try {
+                const query = new URLSearchParams();
+                locations.forEach(loc => query.append("locations", loc));
+                regions.forEach(reg => query.append("regions", reg));
+
+                const res = await fetch(`${window.API_BASE}/get_locs/?${query.toString()}`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+
+                const data = await res.json();
+                // console.log(data)
+                // 🚫 判斷返回的地點數是否超過 限制
+                const limit =200
+                if (data.locations_result && data.locations_result.length > limit) {
+                    alert(`🚫 由於服務器限制，未登錄用戶單次只能查詢 ${limit} 個地點。\n⚠️ 本次查詢了 ${data.locations_result.length} 個地點。`);
+                    showAuthPopup();
+                    return;
+                }
+
+
+                // ✅ 否則正常處理
+                // console.log("✅ 返回結果:", data.locations_result);
+
+            } catch (err) {
+                console.error("❌ 請求錯誤:", err);
+            }
+        }
+
         window.isRun = true;
         // await runAnalysis();          // 先送出分析並記錄 log
         await analysis_from_db();
+        if (!Array.isArray(window.latestResults) || window.latestResults.length === 0) {
+            return;
+        }
         if (window.isButtonClosed) {
             const bar = document.getElementById('stickyContextBar2');
             bar.style.display = 'none';
@@ -256,10 +338,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }else{
             await initVue();
         }
+        mapFeatureSelection();
         await create_map1();
         window.mergedData = []
-        // console.log("重置数据")
-        // 假设点击按钮后，数据加载
         await loadData();
         // 数据加载完成后执行 mergeData 函数
         await func_mergeData();
@@ -318,3 +399,13 @@ function getQueryStart(inputEl) {
         value
     };
 }
+
+// 用來去除空行
+function parseMultilineListInput(id) {
+    const raw = document.getElementById(id)?.value || '';
+    return raw
+        .split(/\r?\n/)              // 按換行符分隔
+        .map(line => line.trim())    // 去除每行的首尾空白
+        .filter(line => line.length > 0); // 去除空行
+}
+

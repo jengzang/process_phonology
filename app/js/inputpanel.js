@@ -45,31 +45,31 @@ document.querySelectorAll('input[name="mode"]').forEach(r => {
 updateVisibility();
 
 // 🧪 後端測試按鈕
-document.getElementById("testBackendBtn").addEventListener("click", async () => {
-    const log = document.getElementById("debug-log");
-    log.textContent = "⌛ 後端連線測試中...";
-    try {
-        const res = await fetch(`${window.API_BASE}/phonology`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                mode: "s2p",
-                locations: [],
-                regions: [],
-                features: [],
-                status_inputs: "",
-                group_inputs: "",
-                pho_values: ""
-            })
-        });
-
-        log.style.color = res.ok ? "green" : "orange";
-        log.textContent = res.ok ? "✅ OK" : `❌ ${res.status}`;
-    } catch (e) {
-        log.style.color = "red";
-        log.textContent = `❌ 錯誤：${e.message}`;
-    }
-});
+// document.getElementById("testBackendBtn").addEventListener("click", async () => {
+//     const log = document.getElementById("debug-log");
+//     log.textContent = "⌛ 後端連線測試中...";
+//     try {
+//         const res = await fetch(`${window.API_BASE}/phonology`, {
+//             method: "POST",
+//             headers: { "Content-Type": "application/json" },
+//             body: JSON.stringify({
+//                 mode: "s2p",
+//                 locations: [],
+//                 regions: [],
+//                 features: [],
+//                 status_inputs: "",
+//                 group_inputs: "",
+//                 pho_values: ""
+//             })
+//         });
+//
+//         log.style.color = res.ok ? "green" : "orange";
+//         log.textContent = res.ok ? "✅ OK" : `❌ ${res.status}`;
+//     } catch (e) {
+//         log.style.color = "red";
+//         log.textContent = `❌ 錯誤：${e.message}`;
+//     }
+// });
 
 // 獲取匹配到的分區列表
 function getSubregions(parentLabel) {

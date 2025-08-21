@@ -27,6 +27,7 @@ def get_resource_path(relative_path: str) -> str:
 
 PERSISTENT_DBS = [
     "supplements.db",
+    "auth.db",
     # 如果需要更多用户可写数据库，只需加在这里
 ]
 

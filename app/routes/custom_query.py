@@ -6,7 +6,7 @@
 from fastapi import APIRouter, Request, HTTPException, Query
 from typing import List
 from app.schemas import QueryParams, FeatureQueryParams
-from app.service.write_read_submit import get_from_submission
+from app.custom.read_custom import get_from_submission
 from app.service.match_input_tip import match_custom_feature
 import time
 from app.service.api_logger import *
@@ -14,7 +14,7 @@ from app.service.api_logger import *
 router = APIRouter()
 
 
-@router.get("/api/get_custom")
+@router.get("/get_custom")
 async def query_location_data(
     request: Request,
     locations: List[str] = Query(..., description="要查的地點，可多個"),
@@ -45,7 +45,7 @@ async def query_location_data(
                          request.headers.get("referer", ""))
 
 
-@router.get("/api/get_custom_feature")
+@router.get("/get_custom_feature")
 async def get_custom_feature(
     request: Request,
     locations: List[str] = Query(..., description="要查的地點，可多個"),

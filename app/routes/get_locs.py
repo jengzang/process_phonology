@@ -1,0 +1,42 @@
+"""
+📦 路由模塊：處理 /api/get_locs 查詢地點。
+"""
+
+from fastapi import APIRouter, Request, Query
+from typing import List, Optional
+from app.service.match_input_tip import match_locations_batch
+from common.getloc_by_name_region import query_dialect_abbreviations
+import time
+from app.service.api_logger import *
+
+router = APIRouter()
+
+
+@router.get("/get_locs/")
+async def get_all_locs(
+        request: Request,
+        locations: Optional[List[str]] = Query(None, description="要查的地點，可多個"),
+        regions: Optional[List[str]] = Query(None, description="要查的音典分區，可多個（輸入某一級的音典分區）")
+):
+    """
+    - 用于 /api/get_locs 查匹配的地點（音典分區+地點），返回地點序列。
+    - locations-要查的地點，可多個
+    - regions-要查的音典分區，可多個（輸入某一級的音典分區）
+    """
+    update_count(request.url.path)
+    log_all_fields(request.url.path, {"locations": locations, "regions": regions})
+    start = time.time()
+    try:
+        locations_processed = []
+        for location in locations or []:
+            matched = match_locations_batch(location)
+            extracted = [res[0][0] for res in matched if res[0]]
+            locations_processed.extend(extracted)
+        result = query_dialect_abbreviations(region_input=regions, location_sequence=locations_processed, )
+        return {"locations_result": result}
+    finally:
+        duration = time.time() - start
+        log_detailed_api(request.url.path, duration, 200,
+                         request.client.host,
+                         request.headers.get("user-agent", ""),
+                         request.headers.get("referer", ""))

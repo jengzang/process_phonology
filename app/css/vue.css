@@ -307,3 +307,37 @@
     z-index: 9998;
     transition: box-shadow .12s ease, border-color .12s ease, opacity .12s ease;
 }
+
+.vue-popup-mask {
+    position: fixed;
+    z-index: 9999;
+    background: rgba(0,0,0,0.4);
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.vue-popup-card {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 320px;
+    position: relative;
+    box-shadow: 0 0 12px rgba(0,0,0,0.2);
+}
+
+.popup-close {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    font-size: 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.err {
+    color: red;
+    margin-top: 10px;
+}

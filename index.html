@@ -17,6 +17,8 @@
 
     <!-- 加載 Vue 3 的 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.js"></script>
+    <script src="./app/js/login.js"></script>
+<!--    高德地图-->
     <script src="https://webapi.amap.com/loader.js"></script>
 
 </head>
@@ -36,7 +38,7 @@
     </div>
 </div>
 
-
+<div id="authBox"></div>
 
 <!-- 全局彈出層 用於音典分區的彈出 -->
 <div id="popupLayer"></div>
@@ -176,10 +178,10 @@
 
             </div>
 
-            <div class="debug-row">
-                <button id="testBackendBtn" class="vertical-btn">測試後端連線</button>
-                <pre id="debug-log"></pre>
-            </div>
+<!--            <div class="debug-row">-->
+<!--                <button id="testBackendBtn" class="vertical-btn">測試後端連線</button>-->
+<!--                <pre id="debug-log"></pre>-->
+<!--            </div>-->
         </div>
     </div>
 </div>
@@ -238,6 +240,7 @@
                 <p id="detail-content"></p>
                 <p id="notes1"></p>
                 <button id="mini-btn" class="mini-button">🔍詳情</button>
+                <button id="mini-btn0" class="mini-button">🗑️刪除</button>
             </div>
         </div>
         <div id="popup2" class="popup">
@@ -317,9 +320,13 @@
     <div id="rightPanel" class="right-panel">
         <div class="panel-content1">
             <h3>手動添加數據</h3>
+            <div class="login-line">
+                <button id="login" onclick="showAuthPopup()">登录</button>
+                <p>此功能需登錄使用</p>
+            </div>
             <form id="infoForm">
                 <div class="form-row">
-                    <label for="location-input">地點(簡稱):</label>
+                    <label for="location-input" class="location-input-label">地點(簡稱):</label>
                     <input type="text" id="location-input" name="location" placeholder="請輸入地點，支持模糊匹配">
                 </div>
                 <div class="form-row">
@@ -385,8 +392,10 @@
 
 <!-- JS 檔案引入 -->
 <script>
-    window.API_BASE = location.origin + "/api";
-    // window.API_BASE = "http://10.250.101.238:5000/api"
+    // window.WEB_BASE = location.origin
+    window.WEB_BASE = "http://10.250.101.238:5000"
+    window.API_BASE = window.WEB_BASE + "/api";
+    window.LOG_BASE = window.WEB_BASE + "/auth"
 </script>
 <script src="app/js/main.js"></script>
 <script src="app/js/inputpanel.js"></script>

@@ -1,0 +1,61 @@
+import json
+
+from sqlalchemy.orm import Session, class_mapper
+
+from app.auth.models import User
+from app.custom.models import Information
+
+
+def handle_form_deletion(form_data: dict, user: User, db: Session):
+    # 取得表單資料
+    location = form_data.get('location')
+    # region = form_data.get('region', None)
+    # coordinates = form_data.get('coordinates', None)
+    feature = form_data.get('feature')
+    value = form_data.get('value')
+    # description = form_data.get('description', None)  # 保留，但不使用
+
+    if not location or not feature or not value:
+        return {"success": False, "message": "⚠️ 程序出錯，地點/特徵/值存在空值"}
+
+    # 查詢符合條件的紀錄
+    records_to_delete = db.query(Information).filter(
+        Information.user_id == user.id,
+        Information.簡稱 == location,
+        Information.特徵 == feature,
+        Information.值 == value
+    ).all()
+
+    if not records_to_delete:
+        return {"success": False, "message": "❌ 找不到符合條件的資料以刪除"}
+
+    def model_to_dict_non_empty(obj):
+        return {
+            column.key: getattr(obj, column.key)
+            for column in class_mapper(obj.__class__).columns
+            if getattr(obj, column.key) not in (None, '', [])
+        }
+
+    # 刪除找到的紀錄
+    deleted_records = []
+
+    for record in records_to_delete:
+        deleted_records.append(model_to_dict_non_empty(record))
+        db.delete(record)
+
+    db.commit()
+    # 刪除找到的紀錄
+    deleted_records_str = "\n".join([
+        # 預先定義需要顯示的欄位，過濾掉不需要的欄位（例如 id, 存儲標記, user_id）
+        f"{'地點':<15} {'音典分區':<20} {'經緯度':<20} {'特徵':<20} {'值':<20} {'說明':<20}"
+    ] + [
+        # 逐筆生成內容，不顯示不需要的欄位
+        f"{record['簡稱']:<15} {record['音典分區']:<20} {record['經緯度']:<20} {record['特徵']:<20} {record['值']:<20} {record['說明']:<20}"
+        for record in deleted_records
+    ])
+
+    return {
+        "success": True,
+        "message": f"🗑️ 詳細信息：\n{deleted_records_str}"
+    }
+

@@ -15,8 +15,8 @@ class FormData(BaseModel):
     - 無返回值
     """
     location: str
-    region: str
-    coordinates: str
+    region: str = None  # submit必填；delete不填
+    coordinates: str = None  # submit必填；delete不填
     feature: str
     value: str
-    description: Optional[str] = None
+    description: Optional[str] = None  # 選填

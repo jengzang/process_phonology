@@ -2,22 +2,29 @@
 📦 路由模塊：處理 /api/search_chars 與 /api/search_tones 查詢音節與聲調。
 """
 
-from fastapi import APIRouter, Request, Query
+from fastapi import APIRouter, Request, Query, Depends
 from typing import List, Optional
+
+from app.auth.database import get_db
+from app.auth.dependencies import check_api_usage_limit, get_current_user
+from app.auth.models import User
 from app.service.match_input_tip import match_locations_batch
 from app.service.search_chars import search_characters
+from common.config import CLEAR_2HOUR
 from common.search_tones import search_tones
 import time
 from app.service.api_logger import *
 
 router = APIRouter()
 
-@router.get("/api/search_chars/")
+@router.get("/search_chars/")
 async def search_chars(
         request: Request,
         chars: List[str] = Query(..., description="要查的漢字序列"),
         locations: Optional[List[str]] = Query(None, description="要查的地點，可多個"),
-        regions: Optional[List[str]] = Query(None, description="要查的音典分區，可多個（輸入某一級的音典分區）")
+        regions: Optional[List[str]] = Query(None, description="要查的音典分區，可多個（輸入某一級的音典分區）"),
+        db: Session = Depends(get_db),
+        user: Optional[User] = Depends(get_current_user) # ✅ user 可為 None
 ):
     """
     - 用于 /api/search_chars 查字，返回中古地位、對應地點的讀音及注釋。
@@ -25,6 +32,7 @@ async def search_chars(
     - locations-要查的地點，可多個
     - region-要查的音典分區，可多個（輸入某一級的音典分區）
     """
+    check_api_usage_limit(db, user)  # 限制訪問
     update_count(request.url.path)
     log_all_fields(request.url.path, {"chars": chars, "locations": locations, "regions": regions})
     start = time.time()
@@ -42,9 +50,14 @@ async def search_chars(
                          request.client.host,
                          request.headers.get("user-agent", ""),
                          request.headers.get("referer", ""))
+        path = request.url.path
+        ip = request.client.host
+        agent = request.headers.get("user-agent", "")
+        referer = request.headers.get("referer", "")
+        user_id = user.id if user else None
+        log_detailed_api_to_db(db, path, duration, 200, ip, agent, referer, user_id, CLEAR_2HOUR)
 
-
-@router.get("/api/search_tones/")
+@router.get("/search_tones/")
 async def search_tones_o(
         request: Request,
         locations: Optional[List[str]] = Query(None, description="要查的地點，可多個"),

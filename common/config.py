@@ -14,6 +14,7 @@ QUERY_DB_PATH = os.path.join(BASE_DIR, "data", "dialects_query.db")
 DIALECTS_DB_PATH = os.path.join(BASE_DIR, "data", "dialects_all.db")
 CHARACTERS_DB_PATH = os.path.join(BASE_DIR, "data", "characters.db")
 SUPPLE_DB_PATH = os.path.join(BASE_DIR, "data", "supplements.db")
+SUPPLE_DB_URL = f"sqlite:///{SUPPLE_DB_PATH}"
 # QUERY_DB_PATH = "C:/Users/joengzaang/PycharmProjects/process_phonology/data/dialects_query.db"
 # DIALECTS_DB_PATH = "C:/Users/joengzaang/PycharmProjects/process_phonology/data/dialects_all.db"
 # CHARACTERS_DB_PATH = "C:/Users/joengzaang/PycharmProjects/process_phonology/data/characters.db"
@@ -50,16 +51,24 @@ MISSING_DATA_LOG = os.path.join(BASE_DIR, "logs", "缺資料.txt")
 WRITE_INFO_LOG = os.path.join(BASE_DIR, "logs", "write.txt")
 WRITE_ERROR_LOG = os.path.join(BASE_DIR, "logs", "write_error.txt")
 
+# 是否刪除兩個小時前的api記錄
+CLEAR_2HOUR = False
+
 # ========== 登錄系統 =============
 db_path = os.path.join(BASE_DIR, "data", "auth.db")
-DATABASE_URL = f"sqlite:///{db_path}"
+USER_DATABASE_URL = f"sqlite:///{db_path}"
 
 SECRET_KEY = "super-secret-key"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 10000
+ISSUER = "dialects_api"  # 可自定義
+AUDIENCE = "dialects_web"  # 可自定義
 
 # 是否要求郵件驗證
 REQUIRE_EMAIL_VERIFICATION = False  # 改成 False 就不需要驗證
+
+# 一小時內用戶使用api時長最多為30分鐘
+MAX_USAGE_SECONDS_PER_HOUR = 1800  # 30 分鐘
 
 # =============== 配置 =======================
 # banner配置
@@ -83,8 +92,7 @@ def get_local_ip():
     except Exception:
         return "127.0.0.1"
 
+
 PORT = 5000
 LOCAL_IP = get_local_ip() if _RUN_TYPE == "MINE" else "127.0.0.1"
 APP_URL = f"http://{LOCAL_IP}:{PORT}"
-
-

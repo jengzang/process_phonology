@@ -1,5 +1,8 @@
 // 監聽點擊，關閉彈窗
 document.addEventListener('click', (e) => {
+    const popup = document.getElementById('popup');
+    const popup2 = document.getElementById('popup2');
+    const popup3 = document.getElementById('popup3');
     // const popup = document.getElementById('popup');  // 确保弹窗的 id 或类名正确/
     // map裡的---监听点击事件，点击外部关闭弹窗
     // 如果点击的不是弹窗和按钮，就关闭弹窗

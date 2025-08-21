@@ -6,22 +6,35 @@
 
 import asyncio
 import time
+from typing import Optional
 
 import pandas as pd
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Depends
+from sqlalchemy.orm import Session
 
+from app.auth.database import get_db
+from app.auth.dependencies import get_current_user, check_api_usage_limit
+from app.auth.models import User
 from app.schemas import AnalysisPayload
 from app.service.phonology2status import pho2sta
 from app.service.status_arrange_pho import sta2pho
-from app.service.api_logger import update_count, log_all_fields, log_detailed_api
-
+from app.service.api_logger import update_count, log_all_fields, log_detailed_api, log_detailed_api_to_db
+from common.config import CLEAR_2HOUR
 
 router = APIRouter()
 
-@router.post("/api/phonology")
-async def api_run_phonology_analysis(request: Request, payload: AnalysisPayload):
+
+@router.post("/phonology")
+async def api_run_phonology_analysis(
+        request: Request,
+        payload: AnalysisPayload,
+        db: Session = Depends(get_db),
+        user: Optional[User] = Depends(get_current_user),  # ✅ user 可為 None
+):
+    check_api_usage_limit(db, user)  # 限制訪問
     update_count(request.url.path)
     log_all_fields(request.url.path, payload.dict())
+
     start = time.time()
     try:
         result = await asyncio.to_thread(run_phonology_analysis, **payload.dict())
@@ -37,8 +50,17 @@ async def api_run_phonology_analysis(request: Request, payload: AnalysisPayload)
         return {"success": False, "error": str(e)}
     finally:
         duration = time.time() - start
-        log_detailed_api(request.url.path, duration, status, request.client.host, request.headers.get("user-agent", ""),
-                         request.headers.get("referer", ""))
+        path = request.url.path
+        ip = request.client.host
+        agent = request.headers.get("user-agent", "")
+        referer = request.headers.get("referer", "")
+        user_id = user.id if user else None
+
+        # 原有寫入 JSON 日誌
+        log_detailed_api(path, duration, status, ip, agent, referer)
+
+        # 新增寫入資料庫
+        log_detailed_api_to_db(db, path, duration, status, ip, agent, referer, user_id, CLEAR_2HOUR)
 
 
 def run_phonology_analysis(

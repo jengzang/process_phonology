@@ -1,10 +1,10 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.auth.models import Base
-from common.config import USER_DATABASE_URL
+from common.config import SUPPLE_DB_URL
 
 engine = create_engine(
-    USER_DATABASE_URL,
+    SUPPLE_DB_URL,
     connect_args={"check_same_thread": False}
 )
 

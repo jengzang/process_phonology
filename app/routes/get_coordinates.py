@@ -14,7 +14,7 @@ from app.service.api_logger import *
 
 router = APIRouter()
 
-@router.get("/api/get_coordinates")
+@router.get("/get_coordinates")
 async def get_coordinates(
         request: Request,
         query: CoordinatesQuery = Depends()

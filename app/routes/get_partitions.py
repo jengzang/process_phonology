@@ -11,7 +11,7 @@ from app.service.api_logger import *
 
 router = APIRouter()
 
-@router.get("/api/partitions")
+@router.get("/partitions")
 async def api_get_partitions(request: Request, parent: Optional[str] = Query(None)):
     """
     - 獲取下一級的音典分區。

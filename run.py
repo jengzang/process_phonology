@@ -7,7 +7,7 @@ import threading
 import webbrowser
 import uvicorn
 from app.main import app
-from common.config import _RUN_TYPE, APP_NAME, AUTHOR, VERSION, DATE_STR
+from common.config import _RUN_TYPE, APP_NAME, AUTHOR, VERSION, DATE_STR, APP_URL
 import sys
 import os
 import shutil
@@ -75,37 +75,15 @@ def print_banner_once(style="minimal"):
 
 # 启动服务并自动打开浏览器
 if __name__ == "__main__":
+    def _open_browser(url: str):
+        time.sleep(1)
+        webbrowser.open(url)
     print_banner_once(style="block")  # 可选: "block" / "boxed" / "minimal"
     if _RUN_TYPE == 'MINE':
         # 跑在局域網ip地址上
-        def open_browser(port=5000):
-            def get_local_ip():
-                """獲取當前主機的內網 IP（非 127.0.0.1）"""
-                try:
-                    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                    # 不需要實際連線，只是用來確定 IP
-                    s.connect(('8.8.8.8', 80))
-                    ip = s.getsockname()[0]
-                    s.close()
-                    return ip
-                except Exception:
-                    return '127.0.0.1'
-
-            LOCAL_IP = get_local_ip()
-            APP_URL = f"http://{LOCAL_IP}:{port}"
-            time.sleep(1)
-            webbrowser.open(APP_URL)
-
-
-        threading.Thread(target=open_browser).start()
+        # threading.Thread(target=_open_browser, args=(APP_URL,), daemon=True).start()
         uvicorn.run("run:app", host="0.0.0.0", port=5000, reload=True)
 
     elif _RUN_TYPE == 'EXE':
-        def open_browser_pack():
-            time.sleep(1)
-            APP_URL = "http://127.0.0.1:5000"
-            webbrowser.open(APP_URL)
-
-
-        threading.Thread(target=open_browser_pack).start()
+        threading.Thread(target=_open_browser, args=(APP_URL,), daemon=True).start()
         uvicorn.run(app, host="127.0.0.1", port=5000, reload=False, workers=1)

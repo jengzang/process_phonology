@@ -1,8 +1,8 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, func
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, func, ForeignKey, Float, Text
+from sqlalchemy.orm import relationship
+
 from sqlalchemy.orm import declarative_base
-
 Base = declarative_base()
-
 class User(Base):
     __tablename__ = "users"
 
@@ -12,8 +12,8 @@ class User(Base):
     username = Column(String(50), unique=True, nullable=False, index=True)
     email = Column(String(100), unique=True, nullable=False, index=True)
     hashed_password = Column(String(255), nullable=False)
-    full_name = Column(String(100), nullable=True)
-    phone = Column(String(20), nullable=True)
+    # full_name = Column(String(100), nullable=True)  # 可為空
+    # phone = Column(String(20), nullable=True)  # 可為空
 
     # 角色/狀態
     role = Column(String(20), default="user")           # user/admin
@@ -39,3 +39,22 @@ class User(Base):
     last_seen = Column(DateTime, nullable=True)                   # 最近一次有有效 token 的請求時間
 
     profile_picture = Column(String(255), nullable=True)
+
+    # informations = relationship("Information", back_populates="user")
+
+class ApiUsageLog(Base):
+    __tablename__ = "api_usage_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # optional: 若有 user 模型
+    path = Column(String(255), nullable=False)
+    duration = Column(Float, nullable=False)
+    status_code = Column(Integer, nullable=False)
+    ip = Column(String(45), nullable=True)
+    user_agent = Column(String(255), nullable=True)
+    referer = Column(String(255), nullable=True)
+    called_at = Column(DateTime, server_default=func.now())
+
+    user = relationship("User", backref="api_logs")
+
+

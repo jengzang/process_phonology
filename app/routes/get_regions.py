@@ -9,7 +9,7 @@ import time
 
 router = APIRouter()
 
-@router.get("/api/get_regions")
+@router.get("/get_regions")
 async def get_regions(
     request: Request,
     input_data: Union[str, List[str]] = Query(..., alias="input_data")

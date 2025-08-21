@@ -5,13 +5,6 @@ async function analysis_from_db() {
     const regions = document.getElementById('regions').value.trim().split(/\s+/);
     const features = Array.from(document.querySelectorAll('#features-group input:checked')).map(cb => cb.value);
 
-    function parseMultilineListInput(id) {
-        const raw = document.getElementById(id)?.value || '';
-        return raw
-            .split(/\r?\n/)              // 按換行符分隔
-            .map(line => line.trim())    // 去除每行的首尾空白
-            .filter(line => line.length > 0); // 去除空行
-    }
     const status_inputs = parseMultilineListInput("status_inputs");
     const group_inputs = parseMultilineListInput("group_inputs");
     const pho_values = parseMultilineListInput("pho_values");
@@ -31,39 +24,46 @@ async function analysis_from_db() {
         pho_values
     };
 
-    const debugLog = document.getElementById("debug-log");
-    const log = (msg, json = null) => {
-        const now = new Date().toISOString().split("T")[1].slice(0, 8);
-        debugLog.textContent += `[${now}] ${msg}\n`;
-        if (json) debugLog.textContent += JSON.stringify(json, null, 2) + "\n";
-        debugLog.scrollTop = debugLog.scrollHeight;
-    };
-    debugLog.textContent = ""; // 清空舊 log
+    // const debugLog = document.getElementById("debug-log");
+    // const log = (msg, json = null) => {
+    //     const now = new Date().toISOString().split("T")[1].slice(0, 8);
+    //     debugLog.textContent += `[${now}] ${msg}\n`;
+    //     if (json) debugLog.textContent += JSON.stringify(json, null, 2) + "\n";
+    //     debugLog.scrollTop = debugLog.scrollHeight;
+    // };
+    // debugLog.textContent = ""; // 清空舊 log
 
     try {
-        log("📦 發送 Payload", payload);
+        // log("📦 發送 Payload", payload);
         const fetchStart = performance.now();
         setLoadingMessage("📡 數據讀取中…");
+        const token = sessionStorage.getItem("ACCESS_TOKEN");  // 或從你儲存 token 的地方取出
         const res = await window.fetch(`${window.API_BASE}/phonology`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {})  // ✅ 若存在則加入 Authorization
+            },
             body: JSON.stringify(payload)
         });
 
-        const fetchEnd = performance.now();
-        console.log(`📥 數據下載耗時（含等待連線）：${(fetchEnd - fetchStart).toFixed(2)} ms`);
-
-        const jsonStart = performance.now();
+        // const fetchEnd = performance.now();
+        // console.log(`📥 數據下載耗時（含等待連線）：${(fetchEnd - fetchStart).toFixed(2)} ms`);
+        //
+        // const jsonStart = performance.now();
         const result = await res.json();
-        const jsonEnd = performance.now();
-        console.log(`🧩 JSON 解析耗時：${(jsonEnd - jsonStart).toFixed(2)} ms`);
+        // const jsonEnd = performance.now();
+        // console.log(`🧩 JSON 解析耗時：${(jsonEnd - jsonStart).toFixed(2)} ms`);
 
-        log("✅ 回傳結果", result);
+        // log("✅ 回傳結果", result);
 
         if (!res.ok || !result.success || !Array.isArray(result.results)) {
             console.error("❌ 回傳錯誤", result);
-            alert("查詢參數輸入不正確！");
+            alert(result.detail);
             clearLoadingMessage();
+            if(result.detail ==="💡 請先登入"){
+                showAuthPopup();
+            }
             return;
         }
         const data = result.results;
@@ -72,9 +72,12 @@ async function analysis_from_db() {
         // console.log('🔍 data 第一筆:', data[0]);
         // console.log('🔍 整個data:', data);
         // console.log('🔍 data 第一筆特徵值的型別:', typeof data[0].特徵值, data[0].特徵值);
+        if (res.ok && token) {
+            await update_userdatas_bytoken(token)
+        }
     } catch (error) {
         console.error("分析失敗", error);
-        log("❌ 錯誤", { message: error.message });
+        // log("❌ 錯誤", { message: error.message });
         alert("❌ 請求後端錯誤：" + error.message);
         clearLoadingMessage();
     }
@@ -131,11 +134,18 @@ async function get_detail(location,feature_value,bool=false,vue = false,
     };
     // console.log(payload);
     try {
+        const token = sessionStorage.getItem("ACCESS_TOKEN");  // 或從你儲存 token 的地方取出
         const res = await window.fetch(`${window.API_BASE}/phonology`, {
             method: "POST",
-            headers: {"Content-Type": "application/json"},
+            headers: {
+                "Content-Type": "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {})  // ✅ 若存在則加入 Authorization
+            },
             body: JSON.stringify(payload)
         });
+        if (res.ok && token) {
+            await update_userdatas_bytoken(token)
+        }
 
         const result = await res.json();
 
@@ -179,6 +189,56 @@ miniBtn.addEventListener("click", async () => {
     //地图的也改成用vue
     const mountTarget_new = createNewVuePanel();
     await get_detail(window.detaillocation,window.detailfeature,false,true,mountTarget_new);
+});
+
+//  刪除用戶自定義數據
+const miniBtn0 = document.getElementById("mini-btn0");
+miniBtn0.addEventListener("click", async () => {
+
+    const feature = window.detailfeature;
+    const value = window.detailvalue;
+    const location = window.detaillocation;
+
+    // 表單驗證
+    if (!location || !feature || !value) {
+        alert("⚠️ 刪除失敗，地點/特徵/值存在空值");
+        return;  // 如果有空的字段，則不提交
+    }
+
+    // 構建表單數據對象
+    const formData = {
+        location: location,
+        // region: null,
+        // coordinates: null,
+        feature: feature,
+        value: value,
+        // description: null // 如果說明為空，設置為 null
+    };
+    const token = sessionStorage.getItem("ACCESS_TOKEN")
+    fetch(`${window.API_BASE}/delete_form`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify(formData)
+    })
+        .then(response => response.json())
+        .then(data => {
+            // 根據後端返回的結果處理
+            if (data.success) {
+                alert("🧹 刪除成功！\n請點擊自定按鈕刷新！\n" + data.message);
+                // 可以選擇清空表單或其他操作
+                // document.getElementById("infoForm").reset();  // 清空表單
+            } else {
+                alert("刪除失敗：" + data.message);
+            }
+        })
+        .catch(error => {
+            console.error("刪除失敗:", error);
+            alert("刪除時發生錯誤！");
+        });
+
 });
 
 //表格中的详情查询

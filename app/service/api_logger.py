@@ -3,10 +3,13 @@ import os
 import threading
 import queue
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from collections import defaultdict
 import ast
 
+from sqlalchemy.orm import Session
+
+from app.auth.models import ApiUsageLog
 from common.config import KEYWORD_LOG_FILE, SUMMARY_FILE, API_USAGE_FILE, API_DETAILED_JSON, API_DETAILED_FILE
 
 # === 队列 ===
@@ -36,9 +39,6 @@ def keyword_writer():
             line = f"{timestamp} | {path} | {field}: {repr(value)}\n"
             f.write(line)
             f.flush()
-
-
-threading.Thread(target=keyword_writer, daemon=True).start()
 
 
 # === 聚合关键词日志 ===
@@ -82,9 +82,6 @@ def aggregate_keyword_log():
                 for k, v in sorted(keywords.items(), key=lambda x: -x[1]):
                     f.write(f"\n  {k}: {v}")
                 f.write("\n")
-
-
-threading.Thread(target=aggregate_keyword_log, daemon=True).start()
 
 
 # === API调用统计 ===
@@ -142,6 +139,34 @@ def update_count(path: str):
 def log_detailed_api(path, duration, status_code, ip, user_agent, referer):
     today = datetime.now().strftime("%Y-%m-%d")
     detailed_queue.put((path, duration, status_code, ip, user_agent, referer, today))
+
+def log_detailed_api_to_db(
+    db: Session,
+    path: str,
+    duration: float,
+    status_code: int,
+    ip: str,
+    user_agent: str,
+    referer: str,
+    user_id: int = None,  # optional
+    clear_old: bool = False  # ✅ 新增參數：是否清理舊資料
+):
+    if clear_old:
+        two_hours_ago = datetime.utcnow() - timedelta(hours=2)
+        db.query(ApiUsageLog).filter(ApiUsageLog.called_at < two_hours_ago).delete()
+        db.commit()
+    log = ApiUsageLog(
+        path=path,
+        duration=duration,
+        status_code=status_code,
+        ip=ip,
+        user_agent=user_agent,
+        referer=referer,
+        user_id=user_id,
+    )
+    db.add(log)
+    db.commit()
+
 
 
 # === 后台线程写入详细响应 ===
@@ -257,4 +282,29 @@ def detailed_writer():
                 f.write("\n")
 
 
-threading.Thread(target=detailed_writer, daemon=True).start()
+# app/service/api_logger.py
+_workers_started = False
+_start_lock = threading.Lock()
+
+
+def start_api_logger_workers():
+    global _workers_started
+    with _start_lock:
+        if _workers_started:
+            return
+        threading.Thread(target=keyword_writer, daemon=True).start()
+        threading.Thread(target=detailed_writer, daemon=True).start()
+        threading.Thread(target=aggregate_keyword_log, daemon=True).start()
+        _workers_started = True
+
+
+def stop_api_logger_workers():
+    # 发哨兵，尽量优雅退出
+    try:
+        keyword_queue.put_nowait(None)
+    except:
+        pass
+    try:
+        detailed_queue.put_nowait(None)
+    except:
+        pass

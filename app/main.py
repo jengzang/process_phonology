@@ -5,10 +5,14 @@ import time
 from fastapi import FastAPI, Request
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
+
 from app.routes import setup_routes
+from app.service.api_logger import start_api_logger_workers, stop_api_logger_workers
 from app.static_utils import get_resource_path, ensure_user_data  # 如果你要用它挂载静态资源
 from common.config import _RUN_TYPE
 from starlette.staticfiles import StaticFiles
+
+
 
 # === 周期打印 ===
 print_lock = threading.Lock()
@@ -41,7 +45,14 @@ async def lifespan(app: FastAPI):
         _printer_started = True
         t = threading.Thread(target=_periodic_printer, daemon=True)
         t.start()
-    yield  # 應用運行中
+
+    # ✅ 新增：在应用真正启动时再开日志相关线程
+    start_api_logger_workers()
+    try:
+        yield  # 應用運行中
+    finally:
+        # ✅ 新增：优雅停止（发哨兵），避免 reload 时残留线程
+        stop_api_logger_workers()
 
 
 app = FastAPI(lifespan=lifespan)
@@ -65,10 +76,11 @@ async def pause_print_while_request(request: Request, call_next):
 # === 掛載子路由與靜態資源 ===
 setup_routes(app)
 
-
 app.mount("/app/css", StaticFiles(directory=get_resource_path("app/css")), name="css")
 app.mount("/app/js", StaticFiles(directory=get_resource_path("app/js")), name="js")
 # app.mount("/app/service", StaticFiles(directory=get_resource_path("app/service")), name="make")
 # app.mount("/data", StaticFiles(directory=get_resource_path("data")), name="data")
-if _RUN_TYPE == 'PACK':
+if _RUN_TYPE == 'EXE':
     app.mount("/data", StaticFiles(directory=ensure_user_data()), name="data")
+
+

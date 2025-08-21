@@ -86,7 +86,7 @@
             -8px 0 30px rgba(0,0,0,0.3),
             0 0 12px rgba(255,255,255,0.2);
 
-    padding: 20px 20px 10px 20px;
+    padding: 10px 20px 10px 20px;
     transition: right 0.5s ease;
     flex-direction: column;
     justify-content: flex-start;
@@ -100,7 +100,7 @@
     color: #333;
     display: flex;
     flex-direction: column;
-    gap: 15px;  /* 自動控制表單行間距 */
+    gap: 4px;  /* 自動控制表單行間距 */
     flex-grow: 1;  /* 使表單填滿可用空間 */
     overflow-y: auto;  /* 如果內容過多，可以滾動 */
     overflow-x: hidden; /* 禁止水平滚动 */
@@ -110,7 +110,8 @@
 .panel-content1 h3 {
     font-size: 18px;
     text-align: center;
-    margin: 5px;  /* 增加 h2 和表单之间的空隙 */
+    margin: 0px;  /* 增加 h2 和表单之间的空隙 */
+    padding:0px;
 }
 
 
@@ -138,6 +139,11 @@
     font-size: 14px;  /* 增加字體大小 */
     font-weight: bold;  /* 设置加粗 */
 }
+.form-row label.location-input-label {
+    /*font-size: 13px;*/
+    white-space: nowrap;
+}
+
 
 
 .form-row input, .form-row textarea {
@@ -156,6 +162,10 @@
     width: 100%;  /* 讓每個輸入框占滿整行 */
 }
 
+#description-input{
+    height : 35px
+}
+
 /*!* 特徵和值在同一行 *!*/
 /*.feature-row {*/
 /*    flex-direction: row;*/
@@ -170,7 +180,7 @@
 
 button[type="submit"] {
     width: 100%;
-    padding: 6px;
+    padding: 3px;
     background-color: #007aff;
     color: white;
     border: none;
@@ -874,4 +884,49 @@ button[type="submit"]:active {
     transform: scale(0.9);
     box-shadow: 0 0 18px rgba(255, 0, 0, 0.6);
 }
+
+/* 登录和提示同排显示 */
+.login-line {
+    display: flex;
+    align-self: center;
+    align-items: center;
+    gap: 10px; /* 控制按钮与文字之间距离 */
+    margin-top: 0px;
+    margin-bottom: 10px;
+}
+.panel-content1 #login,
+.panel-content1 p {
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0;
+}
+
+.panel-content1 #login {
+    background: linear-gradient(145deg, #f0f0f0, #cacaca);
+    border: 1px solid #bbb;
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #333;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    margin-right: 10px;
+}
+
+.panel-content1 #login:hover {
+    background: linear-gradient(145deg, #e0e0e0, #d4d4d4);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transform: translateY(-1px);
+}
+
+/* 可选：调整 p 的字体大小略微柔和 */
+.panel-content1 p {
+    font-size: 13px;
+    margin-top: 0;
+    color: #555;
+}
+
+
 

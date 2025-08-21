@@ -140,92 +140,108 @@ inputadd.addEventListener("blur", () => {
 });
 
 // 用戶提交自定義數據
-document.getElementById("infoForm").addEventListener("submit", function(event) {
+document.getElementById("infoForm").addEventListener("submit", async function (event) {
     event.preventDefault();  // 防止表單的默認提交行為
+    // 🔒 登錄攔截
+    const auth = await ensureAuthenticated(event);
+    if (!auth){
+        // console.log("攔截")
+        alert("提交個人數據需登錄！")
+    }  // 🚫 未登入 → 已經 preventDefault 並提示，直接退出
+    else
+    {
+        // 獲取表單元素
+        const location = document.getElementById("location-input").value.trim();
+        const region = document.getElementById("region-input").value.trim();
+        const coordinates = document.getElementById("coordinates-input").value.trim();
+        const feature = document.getElementById("feature-input").value.trim();
+        const value = document.getElementById("value-input").value.trim();
+        const description = document.getElementById("description-input").value.trim();
 
-    // 獲取表單元素
-    const location = document.getElementById("location-input").value.trim();
-    const region = document.getElementById("region-input").value.trim();
-    const coordinates = document.getElementById("coordinates-input").value.trim();
-    const feature = document.getElementById("feature-input").value.trim();
-    const value = document.getElementById("value-input").value.trim();
-    const description = document.getElementById("description-input").value.trim();
+        // 表單驗證
+        if (!location || !region || !coordinates || !feature || !value) {
+            alert("所有字段（除說明）必須填寫！");
+            return;  // 如果有空的字段，則不提交
+        }
 
-    // 表單驗證
-    if (!location || !region || !coordinates || !feature || !value) {
-        alert("所有字段（除說明）必須填寫！");
-        return;  // 如果有空的字段，則不提交
-    }
-
-    // 構建表單數據對象
-    const formData = {
-        location: location,
-        region: region,
-        coordinates: coordinates,
-        feature: feature,
-        value: value,
-        description: description || null // 如果說明為空，設置為 null
-    };
-
-    // 發送數據到後端（使用 fetch API）
-    fetch(`${window.API_BASE}/submit_form`, {  // 使用端口 5000 和正確的 URL
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(formData)  // 將表單數據轉換為 JSON
-    })
-        .then(response => response.json())
-        .then(data => {
-            // 根據後端返回的結果處理
-            if (data.success) {
-                alert("數據提交成功！");
-                // 可以選擇清空表單或其他操作
-                // document.getElementById("infoForm").reset();  // 清空表單
-            } else {
-                alert("提交失敗：" + data.message);
-            }
+        // 構建表單數據對象
+        const formData = {
+            location: location,
+            region: region,
+            coordinates: coordinates,
+            feature: feature,
+            value: value,
+            description: description || null // 如果說明為空，設置為 null
+        };
+        const token = sessionStorage.getItem("ACCESS_TOKEN")
+        // console.log("準備發給後端")
+        // 發送數據到後端（使用 fetch API）
+        fetch(`${window.API_BASE}/submit_form`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {})
+            },
+            body: JSON.stringify(formData)
         })
-        .catch(error => {
-            console.error("提交失敗:", error);
-            alert("提交時發生錯誤！");
-        });
+            .then(response => response.json())
+            .then(data => {
+                // 根據後端返回的結果處理
+                if (data.success) {
+                    alert(data.message);
+                    // 可以選擇清空表單或其他操作
+                    // document.getElementById("infoForm").reset();  // 清空表單
+                } else {
+                    alert("提交失敗：" + data.message);
+                }
+            })
+            .catch(error => {
+                console.error("提交失敗:", error);
+                alert("提交時發生錯誤！");
+            });
+    }
 });
 
 
 // 获取切换按钮和文本元素
 const customToggle = document.getElementById('custom-toggle');
-const customLabel = document.getElementById('switch-text');
+const customLabel  = document.getElementById('switch-text');
 
-// 假设 `window.isCustomOn` 是全局变量，初始化为 false
+// 全局旗標
 window.isCustomOn = window.isCustomOn || false;
 
-// 未運行runBtn時，打開自定按鈕，出現的輸入框控制邏輯。可輸入特徵，匹配並查詢用戶自定義輸入
-customToggle.addEventListener('click', async function() {
+// ✅ 只保留一個 click 監聽，最前面做登入攔截
+customToggle.addEventListener('click', async function (e) {
+
+    const auth = await ensureAuthenticated(e);
+    if (!auth) {
+        alert("自定義數據庫需要登錄")
+        return;
+    } // 🚫 未登入直接退出
+
+    // ✅ 已登入 → 正常執行原本邏輯
     window.isCustomOn = !window.isCustomOn;
 
     // 切换 open 类
     customToggle.classList.toggle('open', window.isCustomOn);
 
-    // 根据开关状态显示或隐藏自定义信息
+    // 根據開關狀態顯示或隱藏自定義信息
     if (window.isCustomOn) {
-        customLabel.innerText = "顯示自定";
-        // 在此处执行显示自定义信息的操作
+        customLabel.innerText = '顯示自定';
+        // 顯示自定義資訊...
     } else {
-        customLabel.innerText = "隱藏";
-        // 在此处执行隐藏自定义信息的操作
+        customLabel.innerText = '隱藏';
+        // 隱藏自定義資訊...
     }
-    if(window.isRun){
-        if(window.plotted === false){
-            // 創建地點名稱圖
+
+    if (window.isRun) {
+        if (window.plotted === false) {
             await create_map1();
-        }
-        else{
+        } else {
             await func_mergeData();
             await triggerDrawingFunction();
         }
-    }
-    else{
+    }  else{
         // console.log("進來了！");
         const featureContainer = document.getElementById("featureContainer");
         // 1) 用 children 判空，避免空白/註釋干扰
@@ -259,9 +275,8 @@ customToggle.addEventListener('click', async function() {
             input.focus();
         }
     }
-
-
 });
+
 
 
 // 頂部小面板（查字、查調）的拖動等控製邏輯
@@ -398,11 +413,17 @@ document.addEventListener("DOMContentLoaded", function () {
         regions.forEach(reg => params.append("regions", reg));
 
         try {
+            const token = sessionStorage.getItem("ACCESS_TOKEN")
             // 發送 GET 請求到後端
             const response = await fetch(`${window.API_BASE}/search_chars/?${params.toString()}`, {
                 method: 'GET',
+                headers: {
+                    Authorization: `Bearer ${token}`  // ✅ 傳 JWT token
+                }
             });
-
+            if (response.ok && token) {
+                await update_userdatas_bytoken(token)
+            }
 
             // 处理返回的 JSON 数据
             if (response.ok) {
@@ -497,10 +518,11 @@ document.addEventListener("DOMContentLoaded",  function () {
     const contentSearch = document.querySelector('.content-search');
 
 
-    tonesBtn.addEventListener('click', async () => {
+    tonesBtn.addEventListener('click', async (e) => {
         // 获取输入框中的汉字
         const locations = locationsInput.value.trim().split(/\s+/); // 获取并拆分 locations
         const regions = regionsInput.value.trim().split(/\s+/); // 获取并拆分 regions
+        await ensureAuthenticated(e,false)
         await create_map1();
 
         // 構造查詢字符串
