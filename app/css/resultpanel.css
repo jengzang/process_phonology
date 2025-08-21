@@ -303,30 +303,7 @@
     background-color: #fafafa;
 }
 
-/* 🔘 隱藏欄位控制按鈕 */
-#toggleColumnsBtn {
-    background: linear-gradient(to bottom, #ffffff, #e5e5e5);
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 13px;
-    padding: 4px 10px;
-    margin-left: 10px;
-    cursor: pointer;
-    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
-    box-shadow: 0 1px 1px rgba(0,0,0,0.1);
-    transition: all 0.2s ease;
-    z-index: 1100;
-}
 
-#toggleColumnsBtn:hover {
-    background: linear-gradient(to bottom, #f0f0f0, #dcdcdc);
-    border-color: #999;
-}
-
-#toggleColumnsBtn:active {
-    transform: translateY(1px);
-    background: #ddd;
-}
 
 /* ------------------------------- */
 /* 🧩 四欄模式 (.four-col 表格用)  */

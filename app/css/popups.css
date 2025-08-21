@@ -1,0 +1,408 @@
+/***********************************
+ -------VUE組件-無限彈窗查詢----------
+ -------登錄註冊界面所用彈窗----------
+ -------表格模式彈窗-------------
+ --------蘋果液態玻璃效果樣式合併----
+ ************************************/
+/* 🔳 弹窗基础样式（苹果玻璃风） */
+/* 🍸 Apple 风格液态玻璃背景 和基础样式 */
+.query-detail-panel {
+    position: fixed;
+    resize: both;
+    overflow: auto;
+    top: 50%;
+    left: 0.5%;
+    transform: translateY(-50%);
+    width: 21%;
+    height: 60vh;
+
+    /* 🍸 Apple 风格液态玻璃背景 */
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+    backdrop-filter: blur(5px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+
+    /* 💫 多层阴影增强立体感 */
+    box-shadow:
+            inset 0 0 0.5px rgba(255, 255, 255, 0.3),
+            0 8px 32px rgba(0, 0, 0, 0.25),
+            0 0 0 0.5px rgba(255, 255, 255, 0.1);
+
+    display: none;
+    flex-direction: column;
+    padding: 12px 0;
+    z-index: 10000;
+    font-family: -apple-system, BlinkMacSystemFont, "San Francisco", "Helvetica Neue", sans-serif;
+    transition: all 0.4s ease;
+    opacity: 1;
+}
+
+.query-detail-panel2 {
+    position: fixed;
+    resize: both;
+    overflow: auto;
+    top: 50%;
+    left: 1%;
+    /* left: 35%; */
+    transform: translateY(-50%);
+    width: 21%;
+    height: 60vh;
+
+    /* 🍸 Apple 风格液态玻璃背景 */
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+    backdrop-filter: blur(5px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+
+    /* 💫 多层阴影增强立体感 */
+    box-shadow:
+            inset 0 0 0.5px rgba(255, 255, 255, 0.3),
+            0 8px 32px rgba(0, 0, 0, 0.25),
+            0 0 0 0.5px rgba(255, 255, 255, 0.1);
+
+    display: none;
+    flex-direction: column;
+    padding: 12px 0;
+    z-index: 1000;
+    font-family: -apple-system, BlinkMacSystemFont, "San Francisco", "Helvetica Neue", sans-serif;
+    transition: all 0.4s ease;
+    opacity: 1;
+}
+
+/* 🌀 鼠标悬停时：提升亮度 + 发光 + 不透明 */
+.query-detail-panel:hover, .query-detail-panel2:hover {
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 8px 25px rgba(0, 123, 255, 0.3), 0 0 20px rgba(0, 123, 255, 0.4);
+    border-color: rgba(0, 123, 255, 0.6);
+    opacity: 1;
+    transform: translateY(-50%) scale(1.01);
+    transition: all 0.3s ease;
+}
+
+@media (max-aspect-ratio: 1/1) {
+    .query-detail-panel {
+        transform: translateY(-10%);
+        top: 10%;
+        left: 10%;
+        width: 80%;
+        height: 20vh;
+    }
+    .query-detail-panel:hover {
+        transform: translateY(-10%) scale(1.01);
+    }
+    .query-detail-panel2 {
+        transform: translateY(-40%);
+        top: 40%;
+        left: 10%;
+        width: 80%;
+        height: 20vh;
+    }
+    .query-detail-panel2:hover {
+        transform: translateY(-40%) scale(1.01);
+    }
+}
+
+/* Popup 风格 */
+.popup-vue {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.05));
+    backdrop-filter: blur(5px) saturate(180%);
+    -webkit-backdrop-filter: blur(5px) saturate(180%);
+    padding: 6px 10px;
+    max-width: 300px;
+    border-radius: 12px;
+    box-shadow:
+            inset 0 0 1px rgba(255, 255, 255, 0.3),
+            0 4px 14px rgba(0, 0, 0, 0.2),
+            0 0 8px rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    z-index: 99999;
+    text-align: center;
+    color: #222;
+    font-weight: 500;
+    opacity: 1;
+    visibility: visible;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.popup-vue p {
+    font-size: 14px; /* 字体调小 */
+    font-weight: bold; /* 加粗 */
+    margin-top: 1px; /* 上间距 1px */
+    margin-bottom: 2px; /* 下间距 1px */
+    line-height: 1.2; /* 可选：控制行高更紧凑 */
+    display: block;
+}
+
+.popup-vue span {
+    font-size: 13px; /* 字体调小 */
+    font-weight: normal;
+    margin-top: 1px; /* 上间距 1px */
+    margin-bottom: 1px; /* 下间距 1px */
+    line-height: 1.1; /* 可选：控制行高更紧凑 */
+    display: block;
+}
+
+/* 🎞️ 弹窗入场动画 */
+.popup-animated {
+    animation: popup-bounce-in 0.4s ease-out forwards;
+}
+
+@keyframes popup-bounce-in {
+    0% {
+        transform: translateX(-50%) translateY(0px) scale(0.8);
+        opacity: 0;
+    }
+    60% {
+        transform: translateX(-50%) translateY(10px) scale(1.05);
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(-50%) translateY(20px) scale(1);
+    }
+}
+
+
+/*
+--------------------------------------------------------------------------
+ */
+
+/* 🎯 可点击特征值：hover 炫酷动效 */
+.feature-value-clickable {
+    cursor: pointer;
+    text-decoration: none;
+    color: #007bff;
+    display: inline-block;
+    transition: transform 0.2s ease, color 0.2s ease, text-shadow 0.3s ease;
+}
+
+.feature-value-clickable:hover {
+    transform: scale(1.3);
+    text-decoration: underline;
+    color: #3c8dbc;
+    text-shadow: 0 0 8px rgba(60, 141, 188, 0.6);
+}
+
+.grid-slot {
+    /* 位置和尺寸由脚本赋值 */
+    border: 2px dashed rgba(0,123,255,0.35);
+    border-radius: 12px;
+    box-sizing: border-box;
+    pointer-events: none;
+    z-index: 9998;
+    transition: box-shadow .12s ease, border-color .12s ease, opacity .12s ease;
+}
+
+
+/******************************
+----------登錄-註冊界面-----------
+***************************** */
+.vue-popup-mask {
+    position: fixed;
+    z-index: 9999;
+    background: rgba(0,0,0,0.4);
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.vue-popup-card {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 320px;
+    position: relative;
+    box-shadow: 0 0 12px rgba(0,0,0,0.2);
+}
+
+.popup-close {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    font-size: 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.err {
+    color: red;
+    margin-top: 10px;
+}
+
+/*************************************
+ ----------地圖、特徵--點擊小彈窗---------
+ *************************************/
+/* 弹窗的基本样式 */
+.popup,
+.popup2 {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+
+    /* 🍏 液态玻璃渐变 + 半透明 */
+    background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.05));
+    backdrop-filter: blur(8px) saturate(180%);
+    -webkit-backdrop-filter: blur(8px) saturate(180%);
+
+    padding: 6px 10px;  /* 微调内边距 */
+    max-width: 180px;
+    border-radius: 12px;
+
+    /* 🌫️ 内外阴影：柔和漂浮感 */
+    box-shadow:
+            inset 0 0 1px rgba(255,255,255,0.3),
+            0 4px 14px rgba(0, 0, 0, 0.2),
+            0 0 8px rgba(255,255,255,0.2);
+
+    border: 1px solid rgba(255, 255, 255, 0.3);  /* 高光边框 */
+
+    z-index: 99999;
+    opacity: 0;
+    visibility: hidden;
+
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    text-align: center;
+    color: #222; /* 字体深灰更适配亮背景 */
+    font-weight: 500;
+}
+
+
+
+.popup.active {
+    opacity: 1;
+    z-index: 99999;
+    visibility: visible!important;
+    transform: translateX(-50%) translateY(20px); /* 适当的偏移量 */
+}
+
+.popup2.active {
+    opacity: 1!important;
+    z-index: 99999;
+    visibility: visible!important;
+    transform: translateX(-50%) translateY(20px); /* 适当的偏移量 */
+}
+
+.popup-content {
+    font-family: 'Arial', sans-serif;
+    color: #333;
+    text-align: center;  /* 内容居中 */
+}
+
+.popup h4 {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0 0 10px;
+}
+
+.popup p,.popup2 p {
+    margin: 2px 0;
+    font-size: 13px;  /* 调整字体大小 */
+    /*background-color: rgba(255, 204, 153, 1);   !* 灰色底色，30% 不透明 *!*/
+    padding: 0;  /* 去掉内边距，确保底色紧贴文字 */
+    border-radius: 5px;  /* 圆角效果 */
+    font-weight: bold;
+    display: block;  /* 让背景色紧贴文字 */
+}
+
+.popup ul,.popup2 ul {
+    padding: 0;  /* 去除列表的默认内边距 */
+    list-style-type: none;  /* 去除默认的列表符号 */
+    margin: 0;  /* 去除默认的外边距 */
+}
+
+.popup li ,.popup2 li {
+    margin: 2px 0;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 1px 6px;  /* 微内边距让边框显得更自然 */
+
+    /* 🍏 半透明玻璃子项背景 */
+    background: linear-gradient(135deg, rgba(240,240,240,0.4), rgba(255,255,255,0.2));
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+
+    /* 🔲 液态边框 */
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 6px;
+
+    /* 💡 阴影让列表项浮起来 */
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1), inset 0 0 1px rgba(255,255,255,0.5);
+
+    color: #333;  /* 深灰文字更适配玻璃底 */
+}
+
+
+.popup li span,.popup2 li span {
+    font-weight: bold;
+    margin-right: 5px; /* 让文本与span之间的间距更紧凑 */
+}
+
+
+.popup-close-btn {
+    background-color: #007aff;
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.popup-close-btn:hover {
+    background-color: #005bb5;
+}
+
+
+/**************************
+----------聲調彈窗----------
+ **************************/
+/* 弹窗样式 */
+.popup-tones {
+    position: absolute;
+
+    /* 🧊 更淡的液态玻璃背景 */
+    background: linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.18),  /* 透明度更低 */
+            rgba(255, 255, 255, 0.05)
+    );
+    backdrop-filter: blur(20px) saturate(140%); /* 降低饱和度 */
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+
+    padding: 15px;
+    border-radius: 12px;
+
+    /* ✨ 柔和边框（减弱白边） */
+    border: 2px solid rgba(255, 255, 255, 0.25);
+
+    /* 🌫️ 阴影更轻柔，避免厚重 */
+    box-shadow:
+            inset 0 0 1px rgba(255,255,255,0.2),
+            0 4px 12px rgba(0, 0, 0, 0.15);
+
+    max-width: 300px;
+    min-width: 150px;
+    font-size: 14px;
+    color: #000000; /* 保持易读性 */
+
+    z-index: 10000;
+    display: none;
+    white-space: pre-wrap;
+
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+
+.popup-tones h3 {
+    margin-top: 0;
+    font-size: 16px;
+    color: #333;
+}

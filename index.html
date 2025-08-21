@@ -13,6 +13,9 @@
     <link rel="stylesheet" href="app/css/mappanel.css" />
     <link rel="stylesheet" href="app/css/Extrapanel.css" />
     <link rel="stylesheet" href="app/css/vue.css">
+    <link rel="stylesheet" href="app/css/button_switchs.css">
+    <link rel="stylesheet" href="app/css/input_style.css">
+    <link rel="stylesheet" href="app/css/popups.css">
 <!--    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">-->
 
     <!-- 加載 Vue 3 的 CDN -->
@@ -54,6 +57,11 @@
 <div id="query-detail-panel2" class="query-detail-panel2">
     <button id="close-panel2" class="close-btn">×</button>
     <div id='display-detail2' class="panel-content">
+    </div>
+</div>
+<div id="query-detail-panel3" class="query-detail-panel2">
+    <button id="close-panel3" class="close-btn">×</button>
+    <div id='display-detail3' class="panel-content">
     </div>
 </div>
 <div id="popup3" class="popup">
@@ -127,25 +135,11 @@
                     <h4 class="panel-subtitle" >中古音地位</h4>
                     <textarea id="status_inputs" placeholder="請輸入待查中古音地位 支持-全匹配"></textarea>
                 </div>
-                <div class="button-container-map">
-                    <button id="allmap-first" class="allmap-first">
-                        🌍繪圖
-                    </button>
-                    <div class="button-description-map">
-                        繪製所選的<br>所有方言點
-                    </div>
-                    <!-- 下拉選框 -->
-                    <div class="dropdown-container-map">
-                        <select id="max-level" class="dropdown-map">
-                            <option value="" selected disabled>請選擇</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                        </select>
-                    </div>
-                </div>
             </div>
+            <!-- 添加“輸入示例”按钮，垂直排列 -->
+            <button id="input-example-button" class="input-example-btn">輸入示例</button>
         </div>
+    </div>
 
         <div class="input-section">
             <div id="group_inputs_group" style="display: none;">
@@ -163,7 +157,7 @@
             </div>
         </div>
 
-        <!-- 操作與 debug -->
+        <!-- 操作運行 -->
         <div class="input-section">
             <div class="center-btn">
                 <button id="runBtn" class="fancy-run-btn">🚀 單擊運行</button>
@@ -174,14 +168,34 @@
                         <span class="button-icon-masschange">↻</span>
                     </button>
                 </div>
-
-
             </div>
 
 <!--            <div class="debug-row">-->
 <!--                <button id="testBackendBtn" class="vertical-btn">測試後端連線</button>-->
 <!--                <pre id="debug-log"></pre>-->
 <!--            </div>-->
+        </div>
+        <div class="button-container-map">
+            <div class="button-description-map">
+                繪製方言分佈<br>點圖(不帶特徵)
+            </div>
+            <button id="allmap-first" class="allmap-first">
+                🌍繪圖
+            </button>
+            <!-- 下拉選框 -->
+            <div>
+                <div class="button-description-map">
+                    音典分區級數
+                </div>
+                <div class="dropdown-container-map">
+                    <select id="max-level" class="dropdown-map">
+                        <option value="" selected disabled>請選擇</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                    </select>
+                </div>
+             </div>
         </div>
     </div>
 </div>

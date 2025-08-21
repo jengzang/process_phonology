@@ -249,6 +249,13 @@ closeBtn2.addEventListener("click", () => {
     panel2.style.display = "none";
 });
 
+const panel3 = document.getElementById("query-detail-panel3");
+const closeBtn3 = document.getElementById("close-panel3");
+closeBtn3.addEventListener("click", () => {
+    panel3.querySelector(".panel-content").innerHTML = "";
+    panel3.style.display = "none";
+});
+
 const miniBtn2 = document.getElementById("mini-btn2");
 miniBtn2.addEventListener("click", async () => {
     panel2.style.display = "flex";
@@ -418,12 +425,19 @@ async function func_mergeData() {
     let shouldContinue = true;
     let result = null;
     try {
+        const token = sessionStorage.getItem("ACCESS_TOKEN")
+        // 如果没有 token，直接返回，表示用户未登录
+        if (!token) {
+            shouldContinue = false;
+            throw "用戶未登錄，不查詢個人數據";
+        }
         // 用 URLSearchParams 拼接到 GET URL
         const queryString = new URLSearchParams(queryParams).toString();
         const response = await fetch(`${window.API_BASE}/get_custom?${queryString}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
+                ...(token ? { Authorization: `Bearer ${token}` } : {})
             }
         });
 
@@ -482,11 +496,12 @@ async function get_custom_feature(){
         queryParams.locations.forEach(loc => queryString.append("locations", loc));
         queryParams.regions.forEach(reg => queryString.append("regions", reg));
         queryString.append("word", queryParams.word);
-
+        const token = sessionStorage.getItem("ACCESS_TOKEN")
         const response = await fetch(`${window.API_BASE}/get_custom_feature?${queryString.toString()}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
+                ...(token ? { Authorization: `Bearer ${token}` } : {})
             }
         });
 
@@ -563,11 +578,12 @@ async function process_custom() {
         queryParams.locations.forEach(loc => queryString.append("locations", loc));
         queryParams.regions.forEach(reg => queryString.append("regions", reg));
         queryParams.need_features.forEach(f => queryString.append("need_features", f));
-
+        const token = sessionStorage.getItem("ACCESS_TOKEN")
         const response = await fetch(`${window.API_BASE}/get_custom?${queryString.toString()}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
+                ...(token ? { Authorization: `Bearer ${token}` } : {})
             }
         });
 

@@ -17,6 +17,7 @@ from app.service.api_logger import *
 
 router = APIRouter()
 
+
 @router.get("/search_chars/")
 async def search_chars(
         request: Request,
@@ -24,7 +25,7 @@ async def search_chars(
         locations: Optional[List[str]] = Query(None, description="要查的地點，可多個"),
         regions: Optional[List[str]] = Query(None, description="要查的音典分區，可多個（輸入某一級的音典分區）"),
         db: Session = Depends(get_db),
-        user: Optional[User] = Depends(get_current_user) # ✅ user 可為 None
+        user: Optional[User] = Depends(get_current_user)  # ✅ user 可為 None
 ):
     """
     - 用于 /api/search_chars 查字，返回中古地位、對應地點的讀音及注釋。
@@ -56,6 +57,7 @@ async def search_chars(
         referer = request.headers.get("referer", "")
         user_id = user.id if user else None
         log_detailed_api_to_db(db, path, duration, 200, ip, agent, referer, user_id, CLEAR_2HOUR)
+
 
 @router.get("/search_tones/")
 async def search_tones_o(

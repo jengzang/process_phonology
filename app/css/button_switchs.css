@@ -1,0 +1,769 @@
+/*======================================
+------初始歡迎界面按鈕---使用教程按鈕---------
+====================================== */
+/* 按鈕 hover 效果已升級（再強化） */
+#welcomeModal button,
+#contactBtn {
+    margin-top: 15px;
+    background-color: #007aff;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.5);
+    transform: scale(1);
+}
+
+#welcomeModal button:hover,
+#contactBtn:hover {
+    background-color: #339aff;
+    box-shadow: 0 0 20px rgba(0, 122, 255, 0.8), 0 0 10px #88cfff;
+    transform: translateY(-2px) scale(1.06) rotate(-0.5deg);
+}
+#openUsageModalBtn {
+    background: rgba(0, 122, 255, 0.1);
+    border: 1px solid rgba(0, 122, 255, 0.4);
+    color: #007aff;
+    padding: 5px;
+    font-size: 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    transition: all 0.2s ease-in-out;
+    /*margin-right: 20px ;*/
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    white-space: nowrap; /* 禁止文本换行 */
+}
+
+#openUsageModalBtn:hover {
+    background: rgba(0, 122, 255, 0.2);
+    border-color: #007aff;
+    box-shadow: 0 0 6px rgba(0, 122, 255, 0.4);
+    transform:scale(1.2);
+}
+
+/*====================================
+----------輸入界面的海量按鈕-------------
+=================================== */
+.mode-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    background: #888;
+    color: white;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background 0.3s ease;
+}
+/* 炫酷的 hover 效果 */
+.mode-btn:hover {
+    background: #444;  /* 背景变为深灰色 */
+    transform: scale(1.2) rotate(10deg);  /* 放大并旋转 */
+    box-shadow: 0 0 12px 4px rgba(0, 0, 0, 0.3); /* 增加阴影效果 */
+    filter: brightness(1.2); /* 提高亮度，使按钮更亮 */
+}
+
+/* 可选：点击时的效果 */
+.mode-btn:active {
+    transform: scale(0.9); /* 点击时按钮缩小 */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); /* 点击时阴影缩小 */
+}
+
+.toggle-btn {
+    position: fixed;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Hover 效果：炫酷放大、旋轉、發光 */
+.toggle-btn:hover {
+    background-color: #0051a8; /* 懸停時背景變深藍 */
+    transform: scale(1.1) rotate(10deg); /* 放大並旋轉 */
+    box-shadow: 0 0 15px 6px rgba(0, 123, 255, 0.7); /* 發光效果 */
+    filter: brightness(1.3); /* 增加亮度 */
+}
+
+/* 點擊時的效果：縮小，陰影效果 */
+.toggle-btn:active {
+    transform: scale(0.95); /* 點擊時縮小 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* 阴影效果 */
+}
+
+.switch-container-masschange {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+}
+
+.button-text-masschange {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; /* 黑體字型 */
+    font-size: 11px; /* 增加字體大小 */
+    font-weight: bold; /* 加粗文字 */
+    color: #333; /* 文字顏色 */
+    text-transform: uppercase; /* 使文字變成大寫 */
+    letter-spacing: 1px; /* 增加字間距 */
+    line-height: 1.4; /* 增加行高，讓文字更具空間感 */
+    text-align: center; /* 文字居中 */
+    margin-bottom: 0px; /* 讓文字和按鈕保持一定的距離 */
+    transition: color 0.3s ease, transform 0.3s ease; /* 添加過渡效果 */
+    white-space: nowrap; /* 禁止換行 */
+}
+
+.button-text-masschange:hover {
+    color: #1c8dba; /* 懸停時文字顏色變換 */
+    transform: scale(1.2); /* 懸停時文字微放大 */
+}
+
+.button-text-masschange:active {
+    color: #0077cc; /* 點擊時的顏色 */
+    transform: scale(0.9); /* 點擊時輕微縮小 */
+}
+
+.button-masschange {
+    width: 30px;
+    height: 30px;
+    background-color: #007aff; /* 蘋果藍，開啟狀態 */
+    color: white;
+    border: none;
+    border-radius: 50%; /* 圓形 */
+    font-size: 18px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s ease, filter 0.3s ease;
+}
+
+.button-masschange .button-icon-masschange {
+    font-size: 18px;
+}
+
+.button-masschange:hover {
+    background-color: mediumblue; /* 藍色懸停 */
+    transform: scale(1.4) rotate(60deg); /* 按鈕放大並旋轉 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* 添加陰影 */
+    filter: brightness(1.2); /* 增強亮度 */
+}
+
+.button-masschange:active {
+    transform: scale(0.9); /* 點擊時縮放 */
+}
+
+/* 關閉狀態樣式 */
+.button-masschange.closed {
+    background-color: gray; /* 蘋果灰，關閉狀態 */
+}
+
+/* 關閉狀態懸停效果 */
+.button-masschange.closed:hover {
+    background-color: #444444; /* 蘋果灰，關閉狀態懸停顏色 */
+    transform: scale(1.4) rotate(-60deg); /* 關閉狀態的懸停放大並旋轉 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* 加入微弱陰影 */
+    filter: brightness(1.1); /* 增強亮度 */
+}
+
+
+
+/* 設置蘋果風格的按鈕 */
+.allmap-first {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(90deg, #007aff,  mediumblue); /* 漸變藍色背景 */
+    border: none;
+    border-radius: 50px; /* 圓角 */
+    width: 60px;
+    height: 35px;
+    padding: 4px 10px;
+    color: white;
+    font-size: 14px;
+    white-space: nowrap; /* 防止文字換行 */
+    font-weight: 600;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease; /* 平滑過渡效果 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.19); /* 投影陰影效果 */
+}
+
+/* 懸停效果 */
+.allmap-first:hover {
+    background: linear-gradient(145deg, #4e5d5b, #212d2b); /* 改變漸變色 */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3), 0 12px 32px rgba(0, 0, 0, 0.25); /* 更強的陰影效果 */
+    transform: translateY(-3px); /* 鼠標懸停時按鈕向上漂浮 */
+}
+
+/* 內部圖標 */
+.allmap-first i {
+    margin-right: 10px; /* 圖標與文字間距 */
+}
+
+/* 點擊效果 */
+.allmap-first:active {
+    transform: translateY(2px); /* 點擊時向下 */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.15); /* 收縮陰影 */
+}
+
+/*===============================
+-----------無限彈窗關閉按鈕---------
+================================ */
+.close-btn {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    border-radius: 50%;
+    font-size: 20px;
+    color: #444;
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+    color: #000;
+    transform: scale(1.4) rotate(10deg);
+    box-shadow: 0 0 8px rgba(255, 0, 0, 0.4), 0 0 14px rgba(255, 0, 0, 0.2);
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* 点击时快速缩小+反光闪烁 */
+.close-btn:active {
+    transform: scale(0.9);
+    box-shadow: 0 0 18px rgba(255, 0, 0, 0.6);
+}
+
+
+
+
+/*===================================
+--切換隱藏按鈕----vue海量數據模式---表格模式--
+ ===================================*/
+.apple-button2 {
+    background: linear-gradient(145deg, #f6f6f6, #e6e6e6);
+    position: absolute;
+    top: 0;
+    right: 20px;
+    border: 1px solid #ccc;
+    border-radius: 18px;
+    color: #333;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    margin-left: auto; /* 将按钮推到父容器的右侧 */
+}
+
+/* 🔘 隱藏欄位控制按鈕 */
+#toggleColumnsBtn {
+    background: linear-gradient(to bottom, #ffffff, #e5e5e5);
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 13px;
+    padding: 4px 10px;
+    margin-left: 10px;
+    cursor: pointer;
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+    z-index: 1100;
+}
+
+#toggleColumnsBtn:hover {
+    background: linear-gradient(to bottom, #f0f0f0, #dcdcdc);
+    border-color: #999;
+}
+
+#toggleColumnsBtn:active {
+    transform: translateY(1px);
+    background: #ddd;
+}
+
+/*=====================================
+--------右側面板展開按鈕（藍色加號）-----------
+======================================= */
+/* 初始加号按钮样式 */
+.expand-button {
+    position: absolute;
+    right: 15px;  /* 位于页面右侧 */
+    top: 50%;     /* 垂直居中 */
+    transform: translateY(-50%);
+    width: 50px;
+    height: 50px;
+    background-color: #007aff;  /* 苹果蓝 */
+    color: white;
+    font-size: 32px;
+    text-align: center;
+    line-height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, background-color 0.3s ease;
+    transform-origin: center; /* 确保旋转围绕圆心 */
+}
+
+/* hover效果 */
+.expand-button:hover {
+    background-color: #0051a8;
+    transform: scale(1.2) rotate(20deg) translate(-25%, -25%); /* 放大并微旋转，同时保持中心不动 */
+    box-shadow: 0 0 15px 5px rgba(0, 124, 255, 0.7); /* 环绕发光效果 */
+    filter: brightness(1.3);  /* 增加亮度 */
+
+}
+
+.expand-button.open {
+    transform: translateY(-50%) rotate(45deg); /* 点击后旋转加号 */
+    background-color: #4cd964;  /* 点击后背景变绿 */
+
+}
+
+/* open状态下的hover效果 */
+.expand-button.open:hover {
+    transform: scale(1.2) rotate(45deg)translate(-25%, -25%);; /* 放大并继续旋转 */
+    background-color: #42b043; /* 背景变成稍微深一点的绿色 */
+    box-shadow: 0 0 15px 5px rgba(0, 205, 103, 0.7); /* 环绕发光效果 */
+    filter: brightness(1.3); /* 增加亮度 */
+}
+
+/*=======================================
+----------查字、查調、展開按鈕--------------
+ ==================================*/
+.btn-search {
+    padding: 6px 10px;
+    font-size: 15px;
+    background-color: #007aff;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    min-width: 25px;  /* 设置按钮的最小宽度 */
+    margin-right: 10px;  /* 按钮间距 */
+    white-space: nowrap;  /* 禁止按钮文字换行 */
+}
+
+/* 搜索按钮的炫酷hover效果 */
+.btn-search:hover {
+    background-color: #0051a8;  /* 悬停时背景变色 */
+    transform: scale(1.1);  /* 悬停时放大 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);  /* 更强的阴影效果 */
+}
+
+/* 圆形展开按钮样式 */
+.btn-search-circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;  /* 圆形 */
+    font-size: 15px;
+    font-weight: bolder;
+    background-color: #007aff;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s;
+}
+
+/* 圆形按钮的炫酷hover效果 */
+.btn-search-circle:hover {
+    background-color: #0051a8;  /* 悬停时背景变色 */
+    transform: scale(1.2) ;  /* 放大并旋转360度 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);  /* 更强的阴影效果 */
+}
+
+
+/*======================================
+-----------查字、查調面板的清空按鈕---------
+======================================= */
+.clear-btn {
+    position: absolute; /* 绝对定位 */
+    top: 10px; /* 距离顶部 10px */
+    right: 10px; /* 距离右侧 10px */
+    font-size: 16px; /* 小字体大小 */
+    width: 25px; /* 设置按钮的宽度 */
+    height: 25px; /* 设置按钮的高度 */
+    border: none; /* 去除边框 */
+    background: none; /* 去除背景 */
+    color: #888; /* 设置按钮颜色 */
+    text-align: center; /* 居中文本 */
+    cursor: pointer; /* 鼠标悬停时显示手型光标 */
+    font-weight: bold; /* 设置字体加粗 */
+}
+/* 🌀 Hover 效果 */
+.clear-btn:hover {
+    color: #e00; /* 深红色，更醒目 */
+    transform: scale(1.4) rotate(8deg); /* 轻微旋转 + 放大 */
+    text-shadow: 0 0 6px rgba(255, 0, 0, 0.5); /* 发光文字 */
+}
+
+
+/*=======================================
+----------提交（用戶個人數據）按鈕-----------
+======================================= */
+button[type="submit"] {
+    width: 100%;
+    padding: 3px;
+    background-color: #007aff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    margin-top: auto;  /* 使按鈕緊貼底部 */
+}
+
+/* 炫酷的 hover 效果 */
+button[type="submit"]:hover {
+    background-color: #42b043;  /* 懸停時背景變為綠色 */
+    transform: scale(1.1) translateY(-3px); /* 按鈕放大並向上移動 */
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2); /* 添加陰影 */
+    filter: brightness(1.2); /* 增加亮度 */
+}
+
+/* 點擊時的效果 */
+button[type="submit"]:active {
+    transform: scale(1) translateY(2px); /* 點擊時縮小並向下移動 */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* 減少陰影 */
+}
+
+/*==============================
+----------炫酷運行按鈕-----------
+=============================== */
+/* center-btn 保持居中對齊 */
+.center-btn {
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px; /* 控制按鈕和開關之間的間距 */
+    margin-top: 0px;     /* 與上方距離適中 */
+    margin-bottom: 20px;  /* 與下方拉開距離（視覺呼吸） */
+}
+
+.fancy-run-btn {
+    font-size: 18px;
+    font-weight: bold;
+    padding: 14px 28px;
+    color: white;
+    background: linear-gradient(135deg, #6e00ff, #00c3ff);
+    border: none;
+    border-radius: 30px;
+    box-shadow: 0 0 12px rgba(0, 195, 255, 0.6), 0 0 30px rgba(110, 0, 255, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    letter-spacing: 1px;
+    position: relative;
+    overflow: hidden;
+}
+.fancy-run-btn:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 20px rgba(0, 195, 255, 0.8), 0 0 50px rgba(110, 0, 255, 0.5);
+}
+
+/* ===============================
+-----------繪圖特徵點擊按鈕----------
+============================== */
+/* 按钮样式 */
+.single-button {
+    font-size: 14px;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #fff;
+    color: #333;
+    transition: border 0.3s ease, background-color 0.3s ease;
+    margin-left: 5px;
+    font-weight: 500;
+}
+
+.single-button:hover {
+    background-color: #f0f0f0; /* 按钮悬停背景色 */
+    border-color: #888; /* 按钮悬停时边框颜色 */
+}
+
+/*===============================
+---------小彈窗內部的小按鈕------------
+============================== */
+
+.mini-button {
+    margin-top: 2px;
+    padding: 1px 2px;
+    font-size: 11px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.mini-button:hover {
+    background-color: #1a682b;
+}
+
+
+
+
+
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+---------↑上面是按鈕button↑----------↓下面是開關switch↓--------------
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+
+/*====================================
+---------自定義數據 顯示 開關------------
+===================================== */
+/* 整个容器样式 */
+.custom-switch-container {
+    position: absolute;
+    left: 70%;  /* 定位到父容器的 70% 位置 */
+    transform: translateX(-50%);  /* 居中对齐 */
+    display: flex;
+    align-items: center;  /* 垂直居中 */
+    justify-content: center;  /* 水平居中 */
+    font-family: 'Arial', sans-serif;
+    font-size: 16px;
+    /*width: 100%;  !* 确保容器占满父容器 *!*/
+    /*height: 100%;  !* 使容器高度填充父容器 *!*/
+}
+
+/* 自定义开关容器 */
+.custom-switch {
+    position: relative;
+    cursor: pointer;
+    width: 50px;
+    height: 30px;
+    background-color: #ccc;  /* 灰色背景 */
+    border-radius: 30px;  /* 圆角效果 */
+    display: flex;
+    align-items: center;  /* 垂直居中 */
+    justify-content: center;  /* 水平居中 */
+    transition: background-color 0.3s ease;
+}
+
+/* 小圆点 */
+.custom-slider:before {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 26px;
+    height: 26px;
+    background-color: white;
+    border-radius: 50%;  /* 小圆点 */
+    transition: all 0.3s ease;
+}
+
+/* 开启状态时的背景和小圆点位置 */
+.custom-switch.open {
+    background-color: #4CAF50;  /* 绿色 */
+}
+
+.custom-switch.open .custom-slider:before {
+    transform: translateX(20px); /* 小圆点向右移动 */
+}
+
+/* 增加炫酷的hover效果：仅背景变化 */
+.custom-switch:hover {
+    background-color: dimgray; /* 悬停时背景变为绿色渐变 */
+    box-shadow: 0 0 10px 4px rgba(0, 123, 255, 0.7);  /* 添加发光效果 */
+    transform: scale(1.3); /* 悬停时轻微放大 */
+}
+
+/* 悬停时小圆点保持原位置，不移动 */
+.custom-switch:hover .custom-slider:before {
+    background-color: white;  /* 保持白色滑块 */
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);  /* 添加小圆点的发光效果 */
+}
+
+/* 开启状态下的悬停效果：背景颜色变化，不带光环效果 */
+.custom-switch.open:hover {
+    background: linear-gradient(135deg, forestgreen, #4CAF50); /* 背景渐变 */
+    transform: scale(1.3); /* 悬停时按钮放大更大 */
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2); /* 添加较强的阴影效果 */
+}
+
+/* 开启状态下滑块悬停效果 */
+.custom-switch.open:hover .custom-slider:before {
+    /*background-color: #fff;  !* 保持白色滑块 *!*/
+    /*transform: scale(1.1); !* 滑块轻微放大 *!*/
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* 添加阴影 */
+}
+
+
+/* 按钮内的文字 */
+#switch-text {
+    color: black;  /* 黑色文字 */
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;  /* 文字大写 */
+    position: absolute;
+    z-index: 1;  /* 确保文字位于圆点之上 */
+    transition: transform 0.3s ease, color 0.3s ease;
+    pointer-events: none;  /* 禁止文字的点击事件 */
+    top: 50%;  /* 垂直居中 */
+    transform: translateY(-50%);  /* 通过 translateY 将文字向上移动自身高度的 50% */
+}
+
+
+/* 开启状态时文字的颜色变化 */
+.custom-switch.open #switch-text {
+    color: black;  /* 保持文字为黑色 */
+    transform: translateX(-25px) translateY(-50%);  /* 让文本略微移动并确保上下居中 */
+    top: 50%;  /* 确保文字垂直居中 */
+    position: absolute;
+    z-index: 1;  /* 确保文字位于圆点之上 */
+    pointer-events: none;  /* 禁止文字的点击事件 */
+    transition: transform 0.3s ease, color 0.3s ease, text-shadow 0.3s ease;
+
+    /* 动态光环旋转效果 */
+    animation: glowing 2s infinite linear;
+    white-space: nowrap;  /* 禁止换行 */
+}
+
+/* 动态光环旋转效果 */
+@keyframes glowing {
+    0% {
+        text-shadow:
+                0 0 5px rgba(255, 255, 255, 0.7),
+                0 0 10px rgba(255, 255, 255, 0.5),
+                0 0 15px rgba(255, 255, 255, 0.3),
+                0 0 20px rgba(0, 255, 0, 0.8),  /* 绿色光环效果 */
+                0 0 40px rgba(0, 255, 0, 0.8),  /* 绿色光环效果 */
+                0 0 60px rgba(0, 255, 0, 0.8);  /* 绿色光环效果 */
+    }
+    50% {
+        text-shadow:
+                0 0 10px rgba(255, 255, 255, 0.9),
+                0 0 15px rgba(255, 255, 255, 0.6),
+                0 0 20px rgba(255, 255, 255, 0.4),
+                0 0 30px rgba(0, 255, 0, 0.9),  /* 更亮的绿色光环 */
+                0 0 50px rgba(0, 255, 0, 0.9),
+                0 0 70px rgba(0, 255, 0, 0.9);  /* 更亮的绿色光环 */
+    }
+    100% {
+        text-shadow:
+                0 0 5px rgba(255, 255, 255, 0.7),
+                0 0 10px rgba(255, 255, 255, 0.5),
+                0 0 15px rgba(255, 255, 255, 0.3),
+                0 0 20px rgba(0, 255, 0, 0.8),
+                0 0 40px rgba(0, 255, 0, 0.8),
+                0 0 60px rgba(0, 255, 0, 0.8);
+    }
+}
+
+
+/* 鼠标悬停时的效果 */
+.apple-button2:hover {
+    background: linear-gradient(145deg, #e6e6e6, #f6f6f6);
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* 鼠标点击时的效果 */
+.apple-button2:active {
+    background: linear-gradient(145deg, #ddd, #f1f1f1);
+    box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+
+/*==============================
+----------蘋果樣式的開關----------
+============================= */
+/* 苹果风格的按钮样式 */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 42px; /* 原宽度60px * 0.7 = 42px */
+    height: 23.8px; /* 原高度34px * 0.7 = 23.8px */
+}
+
+/* 背景容器 */
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* 背景圆角矩形 */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 34px; /* 圆角不变 */
+}
+
+/* 圆形滑块 */
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18.2px;  /* 原高度26px * 0.7 = 18.2px */
+    width: 18.2px;   /* 原宽度26px * 0.7 = 18.2px */
+    border-radius: 50%;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: 0.4s;
+}
+
+
+/* 控件显示时，改变背景和滑块的位置 */
+input:checked + .slider {
+    background-color: #007aff; /* 绿色背景 */
+}
+
+input:checked + .slider:before {
+    transform: translateX(18.2px); /* 滑块向右移动 */
+}
+
+
+/* 增加炫酷的hover效果 */
+.switch:hover .slider {
+    background-color: darkblue;  /* 悬停时背景变为绿色 */
+    box-shadow: 0 0 12px 5px rgba(0, 123, 255, 0.7);  /* 添加发光效果 */
+    transform: translateX(0px) scale(1.1); /* 增加轻微放大效果 */
+}
+
+/* 悬停时滑块保持原位置并放大 */
+.switch:hover .slider:before {
+    background-color: white;  /* 保持白色滑块 */
+    transform:  translateX(18.2px) scale(1.1); /* 滑块放大 */
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);  /* 添加滑块的发光效果 */
+}

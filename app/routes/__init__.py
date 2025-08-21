@@ -17,14 +17,14 @@ from .auth import router as auth_router
 from .get_locs import router as locs_router
 
 def setup_routes(app: FastAPI):
-    app.include_router(phonology_router, prefix="/api")
+    app.include_router(phonology_router, prefix="/api", tags=["query"])
     app.include_router(partitions_router, prefix="/api")
     app.include_router(region_router, prefix="/api")
     app.include_router(batch_match_router, prefix="/api")
     app.include_router(coordinates_router, prefix="/api")
-    app.include_router(form_router, prefix="/api")
-    app.include_router(custom_query_router, prefix="/api")
-    app.include_router(search_router, prefix="/api")
+    app.include_router(form_router, prefix="/api", tags=["custom"])
+    app.include_router(custom_query_router, prefix="/api", tags=["custom"])
+    app.include_router(search_router, prefix="/api", tags=["custom"])
     app.include_router(index_router)
     app.include_router(locs_router, prefix="/api")
     app.include_router(auth_router, prefix="/auth", tags=["Authentication"])

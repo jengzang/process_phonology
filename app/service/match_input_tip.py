@@ -6,7 +6,10 @@ from difflib import SequenceMatcher
 
 from opencc import OpenCC
 from pypinyin import lazy_pinyin
+from sqlalchemy.orm import Session
 
+from app.auth.models import User
+from app.custom.models import Information
 from common.getloc_by_name_region import query_dialect_abbreviations
 from common.config import QUERY_DB_PATH, SUPPLE_DB_PATH
 from common.s2t import s2t_pro
@@ -104,7 +107,7 @@ def read_partition_hierarchy(parent_regions=None, db_path=QUERY_DB_PATH):
     return result
 
 
-def match_custom_feature(locations, regions, keyword):
+def match_custom_feature(locations, regions, keyword, user: User, db: Session):
     opencc_t2s = OpenCC('t2s')
     # 候選集初始化
     candidate_set = set()
@@ -133,26 +136,24 @@ def match_custom_feature(locations, regions, keyword):
     all_locations = query_dialect_abbreviations(
         regions, locations, db_path=SUPPLE_DB_PATH, tables="informations"
     )
-    # print(all_locations)
-    conn = sqlite3.connect(SUPPLE_DB_PATH)
-    cursor = conn.cursor()
+
+    # 创建结果列表
     result = []
 
+    # 使用 ORM 查询
     for location in all_locations:
-        cursor.execute("""
-               SELECT "簡稱", "特徵"
-               FROM informations
-               WHERE "簡稱" = ?
-           """, (location,))
-        rows = cursor.fetchall()
+        records = db.query(Information).filter(
+            Information.user_id == user.id,
+            Information.簡稱 == location
+        ).all()
 
-        for row in rows:
-            特徵 = row[1]
+        for record in records:
+            特徵 = record.特徵
 
             # 直接或轉換字匹配
             if any(c in 特徵 for c in candidate_set):
                 result.append({
-                    "簡稱": row[0],
+                    "簡稱": record.簡稱,
                     "特徵": 特徵
                 })
                 continue
@@ -162,11 +163,10 @@ def match_custom_feature(locations, regions, keyword):
             ratio = SequenceMatcher(None, word_pinyin, 特徵_pinyin).ratio()
             if ratio > 0.7:
                 result.append({
-                    "簡稱": row[0],
+                    "簡稱": record.簡稱,
                     "特徵": 特徵
                 })
 
-    conn.close()
     return result
 
 

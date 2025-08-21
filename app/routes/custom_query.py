@@ -3,8 +3,12 @@
 📦 路由模塊：處理 /api/get_custom 及 /api/get_custom_feature 查詢提交資料。
 """
 
-from fastapi import APIRouter, Request, HTTPException, Query
-from typing import List
+from fastapi import APIRouter, Request, HTTPException, Query, Depends
+from typing import List, Optional
+
+from app.auth.dependencies import get_current_user
+from app.auth.models import User
+from app.custom.database import get_db
 from app.schemas import QueryParams, FeatureQueryParams
 from app.custom.read_custom import get_from_submission
 from app.service.match_input_tip import match_custom_feature
@@ -16,10 +20,12 @@ router = APIRouter()
 
 @router.get("/get_custom")
 async def query_location_data(
-    request: Request,
-    locations: List[str] = Query(..., description="要查的地點，可多個"),
-    regions: List[str] = Query(..., description="要查的音典分區，可多個"),
-    need_features: List[str] = Query(..., description="要查的特徵"),
+        request: Request,
+        locations: List[str] = Query(..., description="要查的地點，可多個"),
+        regions: List[str] = Query(..., description="要查的音典分區，可多個"),
+        need_features: List[str] = Query(..., description="要查的特徵"),
+        db: Session = Depends(get_db),
+        user: Optional[User] = Depends(get_current_user)  # ✅ user 可為 None
 ):
     """
     用于 /api/get_custom 查詢用戶自定義填入的地點的相關信息用於繪圖。
@@ -33,7 +39,7 @@ async def query_location_data(
     log_all_fields(request.url.path, query_params.dict())
     start = time.time()
     try:
-        result = get_from_submission(query_params.locations, query_params.regions, query_params.need_features)
+        result = get_from_submission(query_params.locations, query_params.regions, query_params.need_features, user, db)
         if not result:
             raise HTTPException(status_code=404, detail="No matching data found")
         return result
@@ -47,10 +53,12 @@ async def query_location_data(
 
 @router.get("/get_custom_feature")
 async def get_custom_feature(
-    request: Request,
-    locations: List[str] = Query(..., description="要查的地點，可多個"),
-    regions: List[str] = Query(..., description="要查的音典分區，可多個"),
-    word: str = Query(..., description="用戶輸入，待匹配特徵"),
+        request: Request,
+        locations: List[str] = Query(..., description="要查的地點，可多個"),
+        regions: List[str] = Query(..., description="要查的音典分區，可多個"),
+        word: str = Query(..., description="用戶輸入，待匹配特徵"),
+        db: Session = Depends(get_db),
+        user: Optional[User] = Depends(get_current_user)  # ✅ user 可為 None
 ):
     """
     用于 /api/get_custom_feature 查詢用戶自定義填入的地點所含的特徵。
@@ -67,7 +75,8 @@ async def get_custom_feature(
         result = match_custom_feature(
             query_params.locations,
             query_params.regions,
-            query_params.word
+            query_params.word,
+            user, db
         )
         if not result:
             raise HTTPException(status_code=404, detail="No matching features found")

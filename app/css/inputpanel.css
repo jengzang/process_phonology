@@ -124,41 +124,6 @@
 /*    padding: 12px 0;*/
 /*}*/
 
-/* 🔹 中古音分類輸入區塊（左右並排） */
-.input-row {
-    display: flex;
-    gap: 10px;
-}
-
-.input-col {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.input-col label {
-    font-weight: bold;
-    margin-bottom: 4px;
-}
-
-.input-col textarea {
-    height: 60px;
-}
-
-
-/* 通用輸入區塊排版 */
-.input-section {
-    margin-top: 0px;      /* ✅ 往上靠緊一點 */
-    margin-bottom: 0px;   /* 下方略有空隙即可 */
-    padding: 0px 0;       /* 減少上下 padding */
-}
-
-/* 增加input-section hover效果 */
-.input-section:hover {
-    background-color: #f9f9f9; /* 悬停时背景颜色变化 */
-    transform: scale(1.02); /* 轻微放大 */
-}
-
 
 /* 地點區排版 */
 .location-row {
@@ -192,12 +157,6 @@ label {
     margin-bottom: 2px;
 }
 
-/* 输入框悬停效果 */
-.location-input:hover,
-.region-input:hover {
-    transform: scale(1.05); /* 放大效果 */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* 增加阴影 */
-}
 
 /* text area悬停效果 */
 textarea:hover {
@@ -235,74 +194,41 @@ label:hover {
 }
 
 
+/*!* 測試後端連線 *!*/
+/*.debug-row {*/
+/*    display: flex;*/
+/*    gap: 10px;*/
+/*    align-items: stretch;*/
+/*    margin-top: 16px;*/
+/*}*/
+/*.vertical-btn {*/
+/*    background-color: #666;*/
+/*    color: white;*/
+/*    font-size: 12px;*/
+/*    border-radius: 4px;*/
+/*    width: 40px;*/
+/*    padding: 6px 0;*/
+/*    line-height: 1.2;*/
+/*    text-align: center;*/
+/*    white-space: pre-wrap;*/
+/*    cursor: pointer;*/
+/*    border: none;*/
+/*}*/
+/*.vertical-btn:hover {*/
+/*    background-color: #444;*/
+/*}*/
 
+/*#debug-log {*/
+/*    flex: 1;*/
+/*    padding: 8px;*/
+/*    background: #fcfcfc;*/
+/*    border: 1px dashed #999;*/
+/*    font-size: 12px;*/
+/*    white-space: pre-wrap;*/
+/*    overflow-y: auto;*/
+/*    border-radius: 6px;*/
+/*}*/
 
-/* center-btn 保持居中對齊 */
-.center-btn {
-    text-align: center;
-    margin-top: 20px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px; /* 控制按鈕和開關之間的間距 */
-}
-
-
-
-.fancy-run-btn {
-    font-size: 18px;
-    font-weight: bold;
-    padding: 14px 28px;
-    color: white;
-    background: linear-gradient(135deg, #6e00ff, #00c3ff);
-    border: none;
-    border-radius: 30px;
-    box-shadow: 0 0 12px rgba(0, 195, 255, 0.6), 0 0 30px rgba(110, 0, 255, 0.3);
-    cursor: pointer;
-    transition: all 0.3s ease-in-out;
-    letter-spacing: 1px;
-    position: relative;
-    overflow: hidden;
-}
-.fancy-run-btn:hover {
-    transform: scale(1.2);
-    box-shadow: 0 0 20px rgba(0, 195, 255, 0.8), 0 0 50px rgba(110, 0, 255, 0.5);
-}
-
-/* 測試後端連線 */
-.debug-row {
-    display: flex;
-    gap: 10px;
-    align-items: stretch;
-    margin-top: 16px;
-}
-.vertical-btn {
-    background-color: #666;
-    color: white;
-    font-size: 12px;
-    border-radius: 4px;
-    width: 40px;
-    padding: 6px 0;
-    line-height: 1.2;
-    text-align: center;
-    white-space: pre-wrap;
-    cursor: pointer;
-    border: none;
-}
-.vertical-btn:hover {
-    background-color: #444;
-}
-
-#debug-log {
-    flex: 1;
-    padding: 8px;
-    background: #fcfcfc;
-    border: 1px dashed #999;
-    font-size: 12px;
-    white-space: pre-wrap;
-    overflow-y: auto;
-    border-radius: 6px;
-}
 
 /* 音典分區下拉 */
 .text-btn {
@@ -433,12 +359,6 @@ label:hover {
     background: #fff;
 }
 
-.center-btn {
-    text-align: center;
-    margin-top: 10px;     /* 與上方距離適中 */
-    margin-bottom: 28px;  /* 與下方拉開距離（視覺呼吸） */
-}
-
 .input-section:empty {
     display: none;
     visibility: hidden;
@@ -491,132 +411,15 @@ label:hover {
 }
 
 
-.switch-container-masschange {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1px;
-}
-
-.button-text-masschange {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; /* 黑體字型 */
-    font-size: 11px; /* 增加字體大小 */
-    font-weight: bold; /* 加粗文字 */
-    color: #333; /* 文字顏色 */
-    text-transform: uppercase; /* 使文字變成大寫 */
-    letter-spacing: 1px; /* 增加字間距 */
-    line-height: 1.4; /* 增加行高，讓文字更具空間感 */
-    text-align: center; /* 文字居中 */
-    margin-bottom: 0px; /* 讓文字和按鈕保持一定的距離 */
-    transition: color 0.3s ease, transform 0.3s ease; /* 添加過渡效果 */
-    white-space: nowrap; /* 禁止換行 */
-}
-
-.button-text-masschange:hover {
-    color: #1c8dba; /* 懸停時文字顏色變換 */
-    transform: scale(1.2); /* 懸停時文字微放大 */
-}
-
-.button-text-masschange:active {
-    color: #0077cc; /* 點擊時的顏色 */
-    transform: scale(0.9); /* 點擊時輕微縮小 */
-}
-
-
-
-.button-masschange {
-    width: 30px;
-    height: 30px;
-    background-color: #007aff; /* 蘋果藍，開啟狀態 */
-    color: white;
-    border: none;
-    border-radius: 50%; /* 圓形 */
-    font-size: 18px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s ease, filter 0.3s ease;
-}
-
-.button-masschange .button-icon-masschange {
-    font-size: 18px;
-}
-
-.button-masschange:hover {
-    background-color: mediumblue; /* 藍色懸停 */
-    transform: scale(1.4) rotate(60deg); /* 按鈕放大並旋轉 */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* 添加陰影 */
-    filter: brightness(1.2); /* 增強亮度 */
-}
-
-.button-masschange:active {
-    transform: scale(0.9); /* 點擊時縮放 */
-}
-
-/* 關閉狀態樣式 */
-.button-masschange.closed {
-    background-color: gray; /* 蘋果灰，關閉狀態 */
-}
-
-/* 關閉狀態懸停效果 */
-.button-masschange.closed:hover {
-    background-color: #444444; /* 蘋果灰，關閉狀態懸停顏色 */
-    transform: scale(1.4) rotate(-60deg); /* 關閉狀態的懸停放大並旋轉 */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* 加入微弱陰影 */
-    filter: brightness(1.1); /* 增強亮度 */
-}
-
-
-/* 設置蘋果風格的按鈕 */
-.allmap-first {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(90deg, #007aff,  mediumblue); /* 漸變藍色背景 */
-    border: none;
-    border-radius: 50px; /* 圓角 */
-    width: 60px;
-    height: 35px;
-    padding: 4px 10px;
-    color: white;
-    font-size: 14px;
-    white-space: nowrap; /* 防止文字換行 */
-    font-weight: 600;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.3s ease; /* 平滑過渡效果 */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.19); /* 投影陰影效果 */
-}
-
-/* 懸停效果 */
-.allmap-first:hover {
-    background: linear-gradient(145deg, #4e5d5b, #212d2b); /* 改變漸變色 */
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3), 0 12px 32px rgba(0, 0, 0, 0.25); /* 更強的陰影效果 */
-    transform: translateY(-3px); /* 鼠標懸停時按鈕向上漂浮 */
-}
-
-/* 內部圖標 */
-.allmap-first i {
-    margin-right: 10px; /* 圖標與文字間距 */
-}
-
-/* 點擊效果 */
-.allmap-first:active {
-    transform: translateY(2px); /* 點擊時向下 */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.15); /* 收縮陰影 */
-}
-
 /* 容器設置 */
 .button-container-map {
     display: flex;
-    flex-direction: column; /* 垂直排列 */
+    flex-direction: row; /* 垂直排列 */
     align-items: center; /* 使元素緊貼容器的上部 */
     justify-content: flex-start; /* 讓元素緊貼容器上部 */
 
     gap: 8px; /* 控制按鈕和文字之間的間距 */
-    flex: 0 0 30%; /* 確保寬度為父容器的 30% */
+    /*flex: 0 0 30%; !* 確保寬度為父容器的 30% *!*/
     max-width: 240px; /* 最大寬度，防止過度擴展 */
     margin: 0 auto; /* 水平居中 */
 }
@@ -636,7 +439,7 @@ label:hover {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    margin-bottom: 20px;
+    /*margin-bottom: 20px;*/
     width: 50px; /* 可以調整寬度 */
     margin-left: 0; /* 確保容器從左邊開始 */
     /* 防止選項內容撐開 */
@@ -692,27 +495,5 @@ label:hover {
     box-shadow: 0 4px 10px rgba(0, 122, 255, 0.2);
 }
 
-#openUsageModalBtn {
-    background: rgba(0, 122, 255, 0.1);
-    border: 1px solid rgba(0, 122, 255, 0.4);
-    color: #007aff;
-    padding: 5px;
-    font-size: 14px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    transition: all 0.2s ease-in-out;
-    /*margin-right: 20px ;*/
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    white-space: nowrap; /* 禁止文本换行 */   
-}
 
-#openUsageModalBtn:hover {
-    background: rgba(0, 122, 255, 0.2);
-    border-color: #007aff;
-    box-shadow: 0 0 6px rgba(0, 122, 255, 0.4);
-    transform:scale(1.2);
-}
 
