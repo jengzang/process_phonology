@@ -57,8 +57,8 @@
 .panel-content1 h3 {
     font-size: 18px;
     text-align: center;
-    margin: 0px;  /* 增加 h2 和表单之间的空隙 */
-    padding:0px;
+    margin: 0;  /* 增加 h2 和表单之间的空隙 */
+    padding:0;
 }
 
 /*!* 特徵和值在同一行 *!*/
@@ -326,7 +326,7 @@
     align-self: center;
     align-items: center;
     gap: 10px; /* 控制按钮与文字之间距离 */
-    margin-top: 0px;
+    margin-top: 0;
     margin-bottom: 10px;
 }
 .panel-content1 #login,
@@ -336,25 +336,6 @@
     margin: 0;
 }
 
-.panel-content1 #login {
-    background: linear-gradient(145deg, #f0f0f0, #cacaca);
-    border: 1px solid #bbb;
-    border-radius: 8px;
-    padding: 4px 10px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #333;
-    cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    transition: all 0.3s ease;
-    margin-right: 10px;
-}
-
-.panel-content1 #login:hover {
-    background: linear-gradient(145deg, #e0e0e0, #d4d4d4);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    transform: translateY(-1px);
-}
 
 /* 可选：调整 p 的字体大小略微柔和 */
 .panel-content1 p {

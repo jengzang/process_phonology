@@ -183,7 +183,31 @@
     filter: brightness(1.1); /* 增強亮度 */
 }
 
+.panel-content1 #login , .input-example-btn{
+    background: linear-gradient(145deg, #f0f0f0, #cacaca);
+    border: 1px solid #bbb;
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #333;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    margin-right: 10px;
+}
+.input-example-btn {
+    writing-mode: vertical-rl; /* 让文字竖向排列 */
+    margin-right: 0;
+    margin-left: 10px;
+    padding: 10px 6px;
+}
 
+.panel-content1 #login:hover,.input-example-btn:hover {
+    background: linear-gradient(145deg, #e0e0e0, #d4d4d4);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transform: translateY(-1px);
+}
 
 /* 設置蘋果風格的按鈕 */
 .allmap-first {

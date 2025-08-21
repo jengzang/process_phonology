@@ -35,7 +35,6 @@ async function analysis_from_db() {
 
     try {
         // log("📦 發送 Payload", payload);
-        const fetchStart = performance.now();
         setLoadingMessage("📡 數據讀取中…");
         const token = sessionStorage.getItem("ACCESS_TOKEN");  // 或從你儲存 token 的地方取出
         const res = await window.fetch(`${window.API_BASE}/phonology`, {
@@ -249,12 +248,19 @@ closeBtn2.addEventListener("click", () => {
     panel2.style.display = "none";
 });
 
+const inputExampleButton = document.getElementById("input-example-button");
+const queryDetailPanel3 = document.getElementById("query-detail-panel3");
+// 点击“輸入示例”按钮时，显示面板
+inputExampleButton.addEventListener("click", () => {
+    queryDetailPanel3.style.display = "flex"; // 显示面板
+});
 const panel3 = document.getElementById("query-detail-panel3");
 const closeBtn3 = document.getElementById("close-panel3");
 closeBtn3.addEventListener("click", () => {
-    panel3.querySelector(".panel-content").innerHTML = "";
+    // panel3.querySelector(".panel-content").innerHTML = "";
     panel3.style.display = "none";
 });
+
 
 const miniBtn2 = document.getElementById("mini-btn2");
 miniBtn2.addEventListener("click", async () => {
@@ -517,7 +523,7 @@ async function get_custom_feature(){
             (Array.isArray(data) ? data : []).map(d => d?.["特徵"]).filter(Boolean)
         )];
         // console.log('特徵列表:', features);
-        const { queryStart, cursorPos, value } = getQueryStart(inputEl);
+        // const { queryStart, cursorPos, value } = getQueryStart(inputEl);
 
         // const query = value.slice(queryStart, cursorPos).trim();
         // if (!query) {

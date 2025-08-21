@@ -331,6 +331,11 @@ label:hover {
     gap: 16px;
     margin-top: 10px;
     flex: 0 0 auto;
+    width: 100%;
+    justify-content: center; /* 子項未撐滿時居中 */
+}
+.group-row2 > * {
+    flex: 0 0 auto; /* 子元素寬度根據內容自動撐開 */
 }
 
 .group-row > div {
@@ -357,6 +362,19 @@ label:hover {
     border-radius: 6px;
     box-sizing: border-box;
     background: #fff;
+}
+
+/* 通用輸入區塊排版 */
+.input-section {
+    margin-top: 0px;      /* ✅ 往上靠緊一點 */
+    margin-bottom: 0px;   /* 下方略有空隙即可 */
+    padding: 0px 0;       /* 減少上下 padding */
+}
+
+/* 增加input-section hover效果 */
+.input-section:hover {
+    background-color: #f9f9f9; /* 悬停时背景颜色变化 */
+    transform: scale(1.02); /* 轻微放大 */
 }
 
 .input-section:empty {
@@ -496,4 +514,41 @@ label:hover {
 }
 
 
+/* 输入示例按钮的容器，垂直排列 */
+.input-example-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
 
+.feature-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: -apple-system, BlinkMacSystemFont, "San Francisco", "Helvetica Neue", sans-serif;
+    font-size: 14px;
+    margin-top: 10px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border-radius: 12px;
+    overflow: hidden;
+    color: #222;
+}
+
+.feature-table th,
+.feature-table td {
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: top;
+}
+
+.feature-table th {
+    background: rgba(255, 255, 255, 0.3);
+    font-weight: bold;
+    color: #000;
+}
+
+.feature-table td {
+    line-height: 1.6;
+}

@@ -468,12 +468,12 @@ async function initVue(mountTarget = '#resultPanelContent',
 
                 return displayedData.value.map(item => {
                     let locationContent = null;
-
                     // 只显示第一次出现的地点
                     if (!displayedLocations.has(item.地點)) {
                         locationContent = h('p', { class: 'locations-vue' }, `${item.地點}`);
                         displayedLocations.add(item.地點);  // 记录该地点已显示过
                     }
+
 
                     // 当处于隐藏模式时，修改 .characters-vue 的显示方式
                     let charactersContent;
@@ -494,6 +494,7 @@ async function initVue(mountTarget = '#resultPanelContent',
                         charactersContent // 渲染字符部分
                     ]);
                 });
+
             };
 
             // 切换隐藏模式的按钮处理函数

@@ -59,9 +59,39 @@
     <div id='display-detail2' class="panel-content">
     </div>
 </div>
-<div id="query-detail-panel3" class="query-detail-panel2">
+<div id="query-detail-panel3" class="query-detail-panel" style="left: 20%;">
     <button id="close-panel3" class="close-btn">×</button>
     <div id='display-detail3' class="panel-content">
+        <p style="margin: 0"><span class="example-input"><strong>「泥」</strong></span> 使用 <span class="example-desc">泥母</span> 進行分析。</p>
+        <p style="margin: 0"><span class="example-input"><strong>「豪」</strong></span> 使用 <span class="example-desc">豪韻</span> 進行分析。</p>
+        <p style="margin: 0"><span class="example-input"><strong>「蟹-等」</strong></span> 使用 <span class="example-desc">蟹攝一、二、三、四等</span> 進行分析("-"代表全匹配)</p>
+        <p style="margin: 0"><span class="example-input"><strong>「次浊-調」</strong></span> 使用 <span class="example-desc">次濁聲母+平上去入</span> 進行分析。</p>
+        <p style="margin: 0"><span class="example-input"><strong>「宕 江」</strong></span> 使用合併後的 <span class="example-desc">宕、江攝</span> 轄字進行分析(中間空格代表一起分析，回車則是按照不同特徵處理)</p>
+        <p style="margin: 0"><span class="example-input"><strong>「庄組」</strong></span> 使用 <span class="example-desc">庄組</span> 進行分析（如果只輸入「庄」，會使用 <span class="example-desc">庄母</span> 分析）。</p>
+        <p style="margin: 0"><span class="example-input"><strong>「流開一」</strong></span> 使用 <span class="example-desc">流攝開口一等字</span> 進行分析。</p>
+        <p style="margin: 0"><span class="example-input"><strong>「假知組 假章組」</strong></span> 使用 <span class="example-desc">假攝的知、章組</span> 轄字進行分析。</p>
+        <p style="margin-bottom:0;font-size: 17px ">支持的輸入見下表（簡體也可以）</p>
+        <table class="feature-table">
+            <thead>
+            <tr>
+                <th>類別</th>
+                <th>對應值</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr><td>攝</td><td>通、宕、江、止、遇、蟹、流、山、效、咸、深、臻、曾、梗、果、假</td></tr>
+            <tr><td>呼</td><td>合、開</td></tr>
+            <tr><td>等</td><td>一、二、三、四</td></tr>
+            <tr><td>韻</td><td>之、仙、佳、侯、侵、元、先、冬、凡、刪、咍、咸、唐、嚴、夬、宵、寒、尤、山、幽、庚、廢、微、支、文、東、桓、模、欣、歌、江、泰、添、灰、痕、登、皆、真、祭、耕、肴、脂、臻、蒸、蕭、虞、覃、談、豪、銜、鐘、陽、青、魂、魚、鹽、麻、齊、#清(清有歧義，需用#指定清韻)</td></tr>
+            <tr><td>入</td><td>入、舒</td></tr>
+            <tr><td>調</td><td>平、上、去、入</td></tr>
+            <tr><td>清濁</td><td>全清、全濁、次清、次濁、*清(清有歧義，需用*指定)、濁</td></tr>
+            <tr><td>系</td><td>幫、知、端、見</td></tr>
+            <tr><td>組</td><td>幫、影、日、曉、泥、知、章、端、精、莊、見、非</td></tr>
+            <tr><td>母</td><td>並、云、以、來、初、匣、奉、娘、定、崇、常、幫、影、從、微、徹、心、敷、日、昌、明、曉、書、泥、溪、滂、澄、生、疑、知、禪、章、端、精、群、船、莊、見、透、邪、非、@清(清有歧義，需用@指定清母)</td></tr>
+            </tbody>
+        </table>
+
     </div>
 </div>
 <div id="popup3" class="popup">
@@ -135,12 +165,13 @@
                     <h4 class="panel-subtitle" >中古音地位</h4>
                     <textarea id="status_inputs" placeholder="請輸入待查中古音地位 支持-全匹配"></textarea>
                 </div>
+                <!-- 添加“輸入示例”按钮，垂直排列 -->
+                <div class="input-example-container">
+                    <button id="input-example-button" class="input-example-btn">輸入示例</button>
+                </div>
             </div>
-            <!-- 添加“輸入示例”按钮，垂直排列 -->
-            <button id="input-example-button" class="input-example-btn">輸入示例</button>
-        </div>
-    </div>
 
+        </div>
         <div class="input-section">
             <div id="group_inputs_group" style="display: none;">
                 <h4 class="panel-subtitle">分類與待查音節</h4>

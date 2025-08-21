@@ -36,6 +36,8 @@
     z-index: 10000;
     font-family: -apple-system, BlinkMacSystemFont, "San Francisco", "Helvetica Neue", sans-serif;
     transition: all 0.4s ease;
+    /*transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;*/
+
     opacity: 1;
 }
 
@@ -198,6 +200,20 @@
     z-index: 9998;
     transition: box-shadow .12s ease, border-color .12s ease, opacity .12s ease;
 }
+
+.example-input {
+    font-family: "SF Pro Display", "PingFang TC", "Helvetica Neue", sans-serif;
+    font-weight: bold;
+    color: #007aff; /* 蘋果藍 可自定 */
+}
+
+.example-desc {
+    font-family: "华文楷体", "Times New Roman", serif;
+    font-size: 18px;
+    font-weight: bold;
+    color: #444;
+}
+
 
 
 /******************************

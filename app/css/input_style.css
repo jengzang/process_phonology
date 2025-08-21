@@ -125,19 +125,6 @@
 }
 
 
-/* 通用輸入區塊排版 */
-.input-section {
-    margin-top: 0px;      /* ✅ 往上靠緊一點 */
-    margin-bottom: 0px;   /* 下方略有空隙即可 */
-    padding: 0px 0;       /* 減少上下 padding */
-}
-
-/* 增加input-section hover效果 */
-.input-section:hover {
-    background-color: #f9f9f9; /* 悬停时背景颜色变化 */
-    transform: scale(1.02); /* 轻微放大 */
-}
-
 
 /* 输入框悬停效果 */
 .location-input:hover,
