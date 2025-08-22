@@ -299,9 +299,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 const query = new URLSearchParams();
                 locations.forEach(loc => query.append("locations", loc));
                 regions.forEach(reg => query.append("regions", reg));
-
+                const token = sessionStorage.getItem("ACCESS_TOKEN")
                 const res = await fetch(`${window.API_BASE}/get_locs/?${query.toString()}`, {
-                    method: "GET"
+                    method: "GET",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(token ? { Authorization: `Bearer ${token}` } : {})
+                    }
                 });
 
                 const data = await res.json();

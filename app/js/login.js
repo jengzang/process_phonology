@@ -183,7 +183,6 @@ function showAuthPopup() {
                 }
             })
 
-
             // ✅ 格式化為北京時間（UTC+8）
             const fmt = (isoStr) => {
                 const utc = new Date(isoStr)
@@ -234,8 +233,7 @@ function showAuthPopup() {
                 >👤 使用用戶名
                 </button>
               </div>
-
-
+              
               <!-- 郵箱登入 -->
               <div v-if="loginMode === 'email'">
                 <div class="form-row" style="display: flex; justify-content: center;">
@@ -309,18 +307,17 @@ function showAuthPopup() {
                   <span
                       @click="showPassword = !showPassword"
                       style="
-                  position: absolute;
-                  right: 15px;  /* 🎯 調整這個來精準對齊 input 內右邊 */
-                  top: 50%;
-                  transform: translateY(-50%);
-                  cursor: pointer;
-                  user-select: none;
-                  font-size: 16px;
-                ">
-                {{ showPassword ? '👁️' : '🙈' }}
-              </span>
+                          position: absolute;
+                          right: 15px;  /* 🎯 調整這個來精準對齊 input 內右邊 */
+                          top: 50%;
+                          transform: translateY(-50%);
+                          cursor: pointer;
+                          user-select: none;
+                          font-size: 16px;
+                        ">
+                        {{ showPassword ? '👁️' : '🙈' }}
+                  </span>
                 </div>
-
               </div>
 
               <div class="form-row" style="display: flex; justify-content: center;">
@@ -410,7 +407,7 @@ function showAuthPopup() {
               <p id="login-info" style="font-size: 20px">⏱️ 總在線時長：
                 {{ formatOnlineTime(user.total_online_seconds) }}</p>
               <p id="login-info" style=" font-size: 20px;">
-                📊 總查詢次數：<span style="color: #780106;margin-bottom: 0;">{{ queryStats.total }}</span> 次
+                📊 總查詢次數：<span style="color: #cd0b0b;margin-bottom: 0;">{{ queryStats.total }}</span> 次
               </p>
               <ul class="api-log-list">
                 <li
@@ -418,16 +415,14 @@ function showAuthPopup() {
                     :key="item.label"
                     class="api-log-item"
                 >
-                 -- {{ item.label }}：{{ item.count }} 次
+                  -- {{ item.label }}：{{ item.count }} 次
                 </li>
               </ul>
-
+              <div class="form-row" style="justify-content: center;">
+                  <button class="btn-search" @click="logout">登出</button>
+              </div>
             </div>
-
-            <div class="form-row" style="justify-content: center;">
-              <button class="btn-search" @click="logout">登出</button>
-            </div>
-          </div>
+        </div>
         `
     })
 

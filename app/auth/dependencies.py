@@ -53,9 +53,11 @@ def check_api_usage_limit(
     - 未登录用户: 根据 IP 地址限制流量。
     """
     one_hour_ago = datetime.utcnow() - timedelta(hours=1)
+    print(user)
     # 1) 可选登录场景处理
     if user is None:
         if require_login:  # 匿名用户：无法按用户做配额，这里选择放行（如需限制可改为 raise 或基于 IP 做限流）
+            print("1111")
             raise HTTPException(status_code=401, detail="💡 請先登錄")
         # 未登录用户，按 IP 进行限制
         if ip_address is None:

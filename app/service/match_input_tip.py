@@ -11,11 +11,11 @@ from sqlalchemy.orm import Session
 from app.auth.models import User
 from app.custom.models import Information
 from common.getloc_by_name_region import query_dialect_abbreviations
-from common.config import QUERY_DB_PATH, SUPPLE_DB_PATH
+from common.config import SUPPLE_DB_PATH, QUERY_DB_ADMIN
 from common.s2t import s2t_pro
 
 
-def read_partition_hierarchy(parent_regions=None, db_path=QUERY_DB_PATH):
+def read_partition_hierarchy(parent_regions=None, db_path=QUERY_DB_ADMIN):
     """
     傳入 parent_region，返回它下層的分區：
     - 一級 → 回傳其二級列表
@@ -170,7 +170,7 @@ def match_custom_feature(locations, regions, keyword, user: User, db: Session):
     return result
 
 
-def match_locations(user_input, filter_valid_abbrs_only=True):
+def match_locations(user_input, filter_valid_abbrs_only=True, exact_only=True, query_db=QUERY_DB_ADMIN):
     def is_pinyin_similar(a, b, threshold=0.9):
         if not a or not b:
             return False
@@ -212,7 +212,7 @@ def match_locations(user_input, filter_valid_abbrs_only=True):
     # - clean_str（第一候選組合）
     possible_inputs = set([user_input, converted_str]) | converted_candidates
 
-    conn = sqlite3.connect(QUERY_DB_PATH)
+    conn = sqlite3.connect(query_db)
     cursor = conn.cursor()
 
     # 根據 filter_valid_abbrs_only 決定是否過濾掉非存儲標記為1的數據
@@ -236,6 +236,11 @@ def match_locations(user_input, filter_valid_abbrs_only=True):
         matched_abbrs.update([row[0] for row in exact])
         # print(f"[DEBUG] 完全匹配【{term}】：{exact}")
 
+    # 如果指定只做完全匹配，但找不到，提前返回空
+    if exact_only and not matched_abbrs:
+        return [], 0, [], [], [], [], [], []
+
+    # 原來的邏輯保留：有完全匹配就返回
     if matched_abbrs:
         return list(matched_abbrs), 1, [], [], [], [], [], []
 
@@ -304,7 +309,7 @@ def match_locations(user_input, filter_valid_abbrs_only=True):
     )
 
 
-def match_locations_batch(input_string: str, filter_valid_abbrs_only=True):
+def match_locations_batch(input_string: str, filter_valid_abbrs_only=True, exact_only=True,query_db=QUERY_DB_ADMIN):
     input_string = input_string.strip()
     if not input_string:
         # print("⚠️ 輸入為空，無法處理。")
@@ -319,7 +324,7 @@ def match_locations_batch(input_string: str, filter_valid_abbrs_only=True):
         if part:
             # print(f"\n🔹 處理第 {idx + 1} 個地名：{part}")
             try:
-                res = match_locations(part, filter_valid_abbrs_only)
+                res = match_locations(part, filter_valid_abbrs_only, exact_only,query_db=query_db)
                 # print(f"   ⮡ 結果: {res}")
                 results.append(res)
             except Exception as e:

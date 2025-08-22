@@ -2,27 +2,31 @@ import re
 import sqlite3
 
 import pandas as pd
+from fastapi import HTTPException
 
 from common.getloc_by_name_region import query_dialect_abbreviations
-from common.config import QUERY_DB_PATH
+from common.config import QUERY_DB_ADMIN
 
 
-def search_tones(locations=None, regions=None, get_raw: bool = False):
+def search_tones(locations=None, regions=None, get_raw: bool = False, db_path=QUERY_DB_ADMIN):
     # 假设 query_dialect_abbreviations 函数返回一个地点简称的列表
-    all_locations = query_dialect_abbreviations(regions, locations)
+    all_locations = query_dialect_abbreviations(regions, locations, db_path=db_path)
+    if not all_locations:
+        raise HTTPException(status_code=404, detail="🛑 請輸入正確的地點！\n建議點擊地點輸入框下方的提示地點！")
 
     # 打开数据库连接
-    conn = sqlite3.connect(QUERY_DB_PATH)
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
-    # 查询dialects表的相关列
-    query = """
-    SELECT 簡稱, T1陰平, T2陽平, T3陰上, T4陽上, T5陰去, T6陽去, T7陰入, T8陽入, T9其他調, T10輕聲 FROM dialects
+    # if all_locations is not None and len(all_locations) > 0:
+    placeholders = ','.join(['?'] * len(all_locations))  # 動態生成 SQL IN 子句的佔位符
+    query = f"""
+    SELECT 簡稱, T1陰平, T2陽平, T3陰上, T4陽上, T5陰去, T6陽去, T7陰入, T8陽入, T9其他調, T10輕聲
+    FROM dialects
+    WHERE 簡稱 IN ({placeholders})
     """
-    # 使用pandas读取数据
-    df = pd.read_sql(query, conn)
+    df = pd.read_sql(query, conn, params=all_locations)
 
-    # 设置簡稱为索引
     df.set_index('簡稱', inplace=True)
 
     # 如果传入了abbreviation，则根据它过滤数据

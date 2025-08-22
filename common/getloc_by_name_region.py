@@ -1,13 +1,13 @@
 import os
 import sqlite3
 
-from common.config import QUERY_DB_PATH
+from common.config import QUERY_DB_ADMIN
 
 
 def query_dialect_abbreviations(
         region_input=None,
         location_sequence=None,
-        db_path=QUERY_DB_PATH,
+        db_path=QUERY_DB_ADMIN,
         tables="dialects",
         need_storage_flag=True,  # 是否需要存儲標記
         debug=False
@@ -89,3 +89,5 @@ def query_dialect_abbreviations(
         print(f"=== 最終結果（保留資料庫順序 + 地點）: {final_result} ===")
 
     return final_result
+
+# result = query_dialect_abbreviations(region_input=[],location_sequence= ['東莞'],debug=True)

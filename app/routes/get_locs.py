@@ -2,9 +2,13 @@
 📦 路由模塊：處理 /api/get_locs 查詢地點。
 """
 
-from fastapi import APIRouter, Request, Query
+from fastapi import APIRouter, Request, Query, Depends
 from typing import List, Optional
+
+from app.auth.dependencies import get_current_user
+from app.auth.models import User
 from app.service.match_input_tip import match_locations_batch
+from common.config import QUERY_DB_ADMIN, QUERY_DB_USER
 from common.getloc_by_name_region import query_dialect_abbreviations
 import time
 from app.service.api_logger import *
@@ -16,7 +20,8 @@ router = APIRouter()
 async def get_all_locs(
         request: Request,
         locations: Optional[List[str]] = Query(None, description="要查的地點，可多個"),
-        regions: Optional[List[str]] = Query(None, description="要查的音典分區，可多個（輸入某一級的音典分區）")
+        regions: Optional[List[str]] = Query(None, description="要查的音典分區，可多個（輸入某一級的音典分區）"),
+        user: Optional[User] = Depends(get_current_user)
 ):
     """
     - 用于 /api/get_locs 查匹配的地點（音典分區+地點），返回地點序列。
@@ -28,11 +33,13 @@ async def get_all_locs(
     start = time.time()
     try:
         locations_processed = []
+        query_db = QUERY_DB_ADMIN if user and user.role == "admin" else QUERY_DB_USER
         for location in locations or []:
-            matched = match_locations_batch(location)
+            matched = match_locations_batch(location,query_db=query_db)
             extracted = [res[0][0] for res in matched if res[0]]
             locations_processed.extend(extracted)
-        result = query_dialect_abbreviations(region_input=regions, location_sequence=locations_processed, )
+        result = query_dialect_abbreviations(region_input=regions,
+                                             location_sequence=locations_processed, db_path=query_db)
         return {"locations_result": result}
     finally:
         duration = time.time() - start

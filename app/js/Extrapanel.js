@@ -53,11 +53,14 @@ async function locations2regions(){
         suggestionadd.style.display = "none";
         return;
     }
-
+    const token = sessionStorage.getItem("ACCESS_TOKEN")
 // 请求匹配的地名数据
     fetch(`${window.API_BASE}/batch_match?input_string=${encodeURIComponent(query)}&filter_valid_abbrs_only=false`, {
         method: "GET",
-        headers: { "Content-Type": "application/json" }
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+        }
     })
         .then(res => res.json())
         .then(results => {
@@ -395,6 +398,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let lastPositionsDiv = null;
 
     charactersBtn.addEventListener('click', async () => {
+        document.getElementById('loading-overlay').classList.remove('loading-hidden');
         await create_map1();
         // 获取输入框中的汉字
         const chars = inputBox.value.trim().split(""); // 将输入框内容拆分成字符数组
@@ -421,17 +425,35 @@ document.addEventListener("DOMContentLoaded", function () {
                     ...(token ? { Authorization: `Bearer ${token}` } : {})  // ✅ 若存在則加入 Authorization
                 }
             });
-            if (response.ok && token) {
-                await update_userdatas_bytoken(token)
+            const data = await response.json();
+            if (!response.ok  || !Array.isArray(data.result)){
+                if (data.detail.includes("登錄")) {
+                    alert(data.detail);
+                    showAuthPopup();
+                }else
+                {alert(data.detail)}
             }
-
             // 处理返回的 JSON 数据
             if (response.ok) {
-                const data = await response.json(); // 获取响应数据
+                if (token) {
+                    await update_userdatas_bytoken(token)
+                }
                 const resultData = data.result; // 提取 `result` 数组
 
                 // 在前端控制台输出返回的数据
                 // console.log('从后端返回的数据:', resultData);
+                // 🔍 找出所有未匹配到音节的汉字
+                const charsWithoutSyllables = resultData
+                    .filter(item => Array.isArray(item["音节"]) && item["音节"].length === 0)
+                    .map(item => item.char);
+
+                // 🚨 如果所有都未匹配，或者有部分未匹配的
+                if (charsWithoutSyllables.length === resultData.length) {
+                    alert(`❌ 所有漢字「${charsWithoutSyllables.join(' ')}」都未找到對應音節！`);
+                    return;
+                } else if (charsWithoutSyllables.length > 0) {
+                    alert(`⚠️ 以下漢字未找到對應音節：「${charsWithoutSyllables.join(' ')}」`);
+                }
 
                 if (Array.isArray(resultData)) {
                     resultData.forEach((item) => {
@@ -495,6 +517,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         // 将整个容器添加到 DOM 中
                         contentSearch.appendChild(infoContainer);
                     });
+                    document.getElementById('loading-overlay').classList.add('loading-hidden');
                     lastCharDiv = [];
                     lastPositionsDiv = [];
                 } else {
@@ -539,12 +562,20 @@ document.addEventListener("DOMContentLoaded",  function () {
                     ...(token ? { Authorization: `Bearer ${token}` } : {})  // ✅ 若存在則加入 Authorization
                 }
             });
-            if (response.ok && token) {
-                await update_userdatas_bytoken(token)
+            const data = await response.json();
+            if (!response.ok || !Array.isArray(data.tones_result)) {
+                if (data.detail.includes("登錄")) {
+                    alert(data.detail);
+                    showAuthPopup();
+                } else {
+                    alert(data.detail)
+                }
             }
             // 处理返回的 JSON 数据
             if (response.ok) {
-                const data = await response.json(); // 获取响应数据
+                if (token) {
+                    await update_userdatas_bytoken(token)
+                }
                 const resultData = data.tones_result; // 提取 `result` 数组
 
                 // // 在前端控制台输出返回的数据

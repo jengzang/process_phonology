@@ -43,6 +43,8 @@ async def query_location_data(
         if not result:
             raise HTTPException(status_code=404, detail="No matching data found")
         return result
+    except HTTPException:
+        raise   # ✅ 让 HTTPException 保持原样传递
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
@@ -81,8 +83,8 @@ async def get_custom_feature(
         if not result:
             raise HTTPException(status_code=404, detail="No matching features found")
         return result
-    except HTTPException as e:
-        raise e
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:

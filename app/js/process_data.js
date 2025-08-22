@@ -10,7 +10,7 @@ async function analysis_from_db() {
     const pho_values = parseMultilineListInput("pho_values");
 
     if (isEmptyInput(locations) && isEmptyInput(regions)) {
-        alert("請輸入地點或分區！");
+        alert("⚠️ 請輸入地點或分區！");
         return;
     }
 
@@ -58,10 +58,14 @@ async function analysis_from_db() {
 
         if (!res.ok || !result.success || !Array.isArray(result.results)) {
             console.error("❌ 回傳錯誤", result);
-            alert(result.detail);
+            // alert(result.detail);
             clearLoadingMessage();
             if (result.detail.includes("登錄")) {
+                alert(result.detail);
                 showAuthPopup();
+            }
+            else {
+                alert(result.detail);
             }
             return;
         }
@@ -76,6 +80,7 @@ async function analysis_from_db() {
         }
     } catch (error) {
         console.error("分析失敗", error);
+        // alert(result.detail);
         // log("❌ 錯誤", { message: error.message });
         alert("❌ 請求後端錯誤：" + error.message);
         clearLoadingMessage();

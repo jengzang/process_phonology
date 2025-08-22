@@ -9,7 +9,7 @@ import time
 from typing import Optional
 
 import pandas as pd
-from fastapi import APIRouter, Request, Depends
+from fastapi import APIRouter, Request, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.auth.database import get_db
@@ -19,7 +19,8 @@ from app.schemas import AnalysisPayload
 from app.service.phonology2status import pho2sta
 from app.service.status_arrange_pho import sta2pho
 from app.service.api_logger import update_count, log_all_fields, log_detailed_api, log_detailed_api_to_db
-from common.config import CLEAR_2HOUR, REQUIRE_LOGIN
+from common.config import CLEAR_2HOUR, REQUIRE_LOGIN, DIALECTS_DB_USER
+from common.config import DIALECTS_DB_USER, DIALECTS_DB_ADMIN
 
 router = APIRouter()
 
@@ -38,7 +39,9 @@ async def api_run_phonology_analysis(
 
     start = time.time()
     try:
-        result = await asyncio.to_thread(run_phonology_analysis, **payload.dict())
+        # 根據用戶身分決定資料庫
+        db_path = DIALECTS_DB_ADMIN if user and user.role == "admin" else DIALECTS_DB_USER
+        result = await asyncio.to_thread(run_phonology_analysis, **payload.dict(), dialects_db=db_path)
         status = 200
         if isinstance(result, pd.DataFrame):
             return {"success": True, "results": result.to_dict(orient="records")}
@@ -46,6 +49,9 @@ async def api_run_phonology_analysis(
             merged = pd.concat(result, ignore_index=True)
             return {"success": True, "results": merged.to_dict(orient="records")}
         return {"success": False, "error": "未識別的分析結果格式"}
+    except HTTPException as http_exc:
+        status = http_exc.status_code  # 抓出 status
+        raise
     except Exception as e:
         status = 500
         return {"success": False, "error": str(e)}
@@ -71,7 +77,8 @@ def run_phonology_analysis(
         features: list,
         status_inputs: list = None,
         group_inputs: list = None,
-        pho_values: list = None
+        pho_values: list = None,
+        dialects_db=DIALECTS_DB_USER
 ):
     """
     統一介面函數：根據 mode ('s2p' 或 'p2s') 執行 sta2pho 或 pho2sta。
@@ -91,12 +98,12 @@ def run_phonology_analysis(
     if mode == 's2p':
         # if not status_inputs:
         #     raise ValueError("🔴 mode='s2p' 時，請提供 status_inputs。")
-        return sta2pho(locations, regions, features, status_inputs)
+        return sta2pho(locations, regions, features, status_inputs, dialects_db)
 
     elif mode == 'p2s':
         # if not group_inputs :
         #     raise ValueError("🔴 mode='p2s' 時，請提供 group_inputs ")
-        return pho2sta(locations, regions, features, group_inputs, pho_values)
+        return pho2sta(locations, regions, features, group_inputs, pho_values, dialects_db)
 
 
     else:

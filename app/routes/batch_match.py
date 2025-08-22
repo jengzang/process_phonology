@@ -4,9 +4,15 @@
 """
 
 import time
-from fastapi import APIRouter, Request, Query
+from typing import Optional
+
+from fastapi import APIRouter, Request, Query, Depends
+
+from app.auth.dependencies import get_current_user
+from app.auth.models import User
 from app.service.api_logger import *
 from app.service.match_input_tip import match_locations_batch
+from common.config import QUERY_DB_ADMIN, QUERY_DB_USER
 
 router = APIRouter()
 
@@ -14,7 +20,8 @@ router = APIRouter()
 async def batch_match(
         request: Request,
         input_string: str = Query(..., description="用戶輸入的字符串，用於後端匹配正確的地點"),
-        filter_valid_abbrs_only: bool = Query(True, description="是否過濾沒有字表的簡稱（若為真則過濾）")
+        filter_valid_abbrs_only: bool = Query(True, description="是否過濾沒有字表的簡稱（若為真則過濾）"),
+        user: Optional[User] = Depends(get_current_user)
 ):
     """
     用于 /api/batch_match 路由，匹配用戶輸入的地點，並提示正確的地點。
@@ -32,10 +39,11 @@ async def batch_match(
     })
     start = time.time()
     try:
+        query_db = QUERY_DB_ADMIN if user and user.role == "admin" else QUERY_DB_USER
         input_string = input_string.strip()
         if not input_string:
             return []
-        results = match_locations_batch(input_string, filter_valid_abbrs_only)
+        results = match_locations_batch(input_string, filter_valid_abbrs_only, False,query_db=query_db)
         responses = []
         for idx, res in enumerate(results):
             part = re.split(r"[ ,;/，；、]+", input_string)[idx].strip()

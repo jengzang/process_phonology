@@ -280,10 +280,13 @@ const fetchSuggestion = () => {
         suggestion.style.display = "none";
         return;
     }
-
+    const token = sessionStorage.getItem("ACCESS_TOKEN")
     fetch(`${window.API_BASE}/batch_match?input_string=${encodeURIComponent(query)}`, {
         method: "GET",
-        headers: { "Content-Type": "application/json" }
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+        }
     })
 
         .then(res => res.json())

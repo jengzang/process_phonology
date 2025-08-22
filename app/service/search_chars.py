@@ -1,6 +1,7 @@
 import numpy as np
+from fastapi import HTTPException
 
-from common.config import DIALECTS_DB_PATH, CHARACTERS_DB_PATH
+from common.config import CHARACTERS_DB_PATH, DIALECTS_DB_USER
 
 import sqlite3
 
@@ -8,9 +9,11 @@ from common.s2t import s2t_pro
 from common.getloc_by_name_region import query_dialect_abbreviations
 
 
-def search_characters(chars, locations=None, regions=None):
+def search_characters(chars, locations=None, regions=None, db_path=DIALECTS_DB_USER):
     # 假设 query_dialect_abbreviations 函数返回一个地点简称的列表
     all_locations = query_dialect_abbreviations(regions, locations)
+    if not all_locations:
+        raise HTTPException(status_code=404, detail="🛑 請輸入正確的地點！\n建議點擊地點輸入框下方的提示地點！")
 
     # 确保 chars 是一个字符列表
     if isinstance(chars, str):
@@ -27,7 +30,7 @@ def search_characters(chars, locations=None, regions=None):
     result = []
 
     # 连接到方言数据库和字符数据库，设置 row_factory 为 sqlite3.Row
-    dialect_conn = sqlite3.connect(DIALECTS_DB_PATH)
+    dialect_conn = sqlite3.connect(db_path)
     dialect_conn.row_factory = sqlite3.Row  # 使查询结果返回字典
     characters_conn = sqlite3.connect(CHARACTERS_DB_PATH)
     characters_conn.row_factory = sqlite3.Row  # 使查询结果返回字典

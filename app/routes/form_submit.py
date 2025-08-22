@@ -33,6 +33,8 @@ async def submit_form(
         if not result.get("success"):
             raise HTTPException(status_code=422, detail=result.get("message"))
         return result
+    except HTTPException:
+        raise  # ✅ 让 HTTPException 保持原样传递
     except Exception as e:
         print(f"Error: {str(e)}")
         raise HTTPException(status_code=500, detail="伺服器錯誤")
@@ -61,6 +63,8 @@ async def delete_form(
         if not result.get("success"):
             raise HTTPException(status_code=422, detail=result.get("message"))
         return result
+    except HTTPException:
+        raise  # ✅ 让 HTTPException 保持原样传递
     except Exception as e:
         print(f"Error: {str(e)}")
         raise HTTPException(status_code=500, detail="伺服器錯誤")

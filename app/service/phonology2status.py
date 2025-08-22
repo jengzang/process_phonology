@@ -2,8 +2,9 @@ import re
 import sqlite3
 
 import pandas as pd
+from fastapi import HTTPException
 
-from common.config import DIALECTS_DB_PATH, CHARACTERS_DB_PATH
+from common.config import CHARACTERS_DB_PATH, DIALECTS_DB_USER
 from app.service.process_sp_input import split_pho_input
 from common.constants import AMBIG_VALUES, HIERARCHY_COLUMNS, s2t_column
 from common.getloc_by_name_region import query_dialect_abbreviations
@@ -28,7 +29,7 @@ from app.service.match_input_tip import match_locations_batch
 """
 
 
-def query_dialect_features(locations, features, db_path=DIALECTS_DB_PATH, table="dialects"):
+def query_dialect_features(locations, features, db_path=DIALECTS_DB_USER, table="dialects"):
     """
     從 dialects 數據庫中查出指定地點與特徵（如聲母、韻母等）對應的漢字。
 
@@ -206,7 +207,7 @@ def analyze_characters_from_db(
 
 def pho2sta(locations, regions, features, status_inputs,
             pho_values=None,
-            dialect_db_path=DIALECTS_DB_PATH,
+            dialect_db_path=DIALECTS_DB_USER,
             character_db_path=CHARACTERS_DB_PATH):
     def convert_simplified_to_traditional(simplified_text):
         return "".join([s2t_column.get(ch, ch) for ch in simplified_text])
@@ -233,8 +234,9 @@ def pho2sta(locations, regions, features, status_inputs,
     locations_new = query_dialect_abbreviations(regions, locations)
     match_results = match_locations_batch(" ".join(locations_new))
     if not any(res[1] == 1 for res in match_results):
-        print("🛑 沒有任何地點完全匹配，終止分析。")
-        return []
+        # print("🛑 沒有任何地點完全匹配，終止分析。")
+        raise HTTPException(status_code=404, detail="🛑 沒有任何地點完全匹配，終止分析。")
+        # return []
 
     unique_abbrs = list({abbr for res in match_results for abbr in res[0]})
     # print(f"\n📍 確認匹配地點：{unique_abbrs}")

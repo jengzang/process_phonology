@@ -2,13 +2,17 @@
 """
 📦 路由模塊：處理 /api/get_coordinates 查詢地點座標資料。
 """
+from typing import Optional
 
 from fastapi import APIRouter, Request, Query, HTTPException, Depends
+
+from app.auth.dependencies import get_current_user
+from app.auth.models import User
 from app.schemas import CoordinatesQuery
 from app.service.locs_regions import get_coordinates_from_db
 from common.getloc_by_name_region import query_dialect_abbreviations
 from app.service.match_input_tip import match_locations_batch
-from common.config import SUPPLE_DB_PATH
+from common.config import SUPPLE_DB_PATH, QUERY_DB_ADMIN, QUERY_DB_USER
 import time
 from app.service.api_logger import *
 
@@ -17,7 +21,8 @@ router = APIRouter()
 @router.get("/get_coordinates")
 async def get_coordinates(
         request: Request,
-        query: CoordinatesQuery = Depends()
+        query: CoordinatesQuery = Depends(),
+        user: Optional[User] = Depends(get_current_user)
 ):
     """
     獲取坐標
@@ -45,23 +50,26 @@ async def get_coordinates(
         if not query.regions.strip() and not query.locations.strip():
             raise HTTPException(status_code=400, detail="請輸入地點或簡稱！")
 
+        query_db = QUERY_DB_ADMIN if user and user.role == "admin" else QUERY_DB_USER
+
         locations_list = query.locations.split(',')
         regions_list = query.regions.split(',')
         locations_processed = []
 
         for location in locations_list:
-            matched = match_locations_batch(location)
+            matched = match_locations_batch(location,query_db=query_db)
             extracted = [res[0][0] for res in matched if res[0]]
             locations_processed.extend(extracted)
 
         if query.iscustom:
             abbr1 = query_dialect_abbreviations(regions_list, locations_list, db_path=SUPPLE_DB_PATH,
                                                 tables="informations")
-            abbr2 = query_dialect_abbreviations(regions_list, locations_processed, need_storage_flag=query.flag)
-            result = get_coordinates_from_db(abbr2, abbr1, use_supplementary_db=True)
+            abbr2 = query_dialect_abbreviations(regions_list, locations_processed,
+                                                need_storage_flag=query.flag, db_path=query_db)
+            result = get_coordinates_from_db(abbr2, abbr1, use_supplementary_db=True,db_path=query_db)
         else:
-            abbrs = query_dialect_abbreviations(regions_list, locations_processed)
-            result = get_coordinates_from_db(abbrs)
+            abbrs = query_dialect_abbreviations(regions_list, locations_processed, db_path=query_db)
+            result = get_coordinates_from_db(abbrs, db_path=query_db)
 
         return result
 

@@ -242,6 +242,11 @@ async function create_map1(){
     if (window.isCustomOn) {
         url.searchParams.append('iscustom', 'true');
     }
+    // ✅ 加上 token
+    const token = sessionStorage.getItem("ACCESS_TOKEN")
+    if (token) {
+        url.searchParams.append('token', token);
+    }
 
     // 显示加载提示
     // const debugLog = document.getElementById("debug-log");
@@ -265,8 +270,17 @@ async function create_map1(){
         // 解析返回的数据
         window.locations_data = await res.json();
         // console.log("✅ 后端返回数据:", locations_data);  // 打印接收到的所有数据
+// 判断整个数据结构是否为空或不合法
+        if (
+            !window.locations_data ||
+            !Array.isArray(window.locations_data.coordinates_locations) ||
+            window.locations_data.coordinates_locations.length === 0
+        ) {
+            console.warn("⚠️ 返回成功但數據不完整或為空！");
+            return;
+        }
 
-// 如果数据存在，动态更新地图
+        // 如果数据存在，动态更新地图
         if (locations_data) {
             // 更新地图中心点和缩放级别
             map.setCenter(locations_data.center_coordinate);
@@ -716,6 +730,10 @@ async function create_dot_all() {
     url.searchParams.append('regions', regions);
     url.searchParams.append('iscustom', 'true');
     url.searchParams.append('flag', 'False');
+    const token = sessionStorage.getItem("ACCESS_TOKEN")
+    if (token) {
+        url.searchParams.append('token', token);
+    }
 
     // const debugLog = document.getElementById("debug-log");
     // debugLog.textContent = "📡 發送請求中...";
@@ -727,6 +745,16 @@ async function create_dot_all() {
             const errorData = await res.json();  // 尝试获取返回的JSON错误信息
             alert(`後端錯誤！錯誤信息: ${errorData.detail || '請稍後重試'}`)
             // debugLog.textContent = "❌ 请求失败";
+            return;
+        }
+
+        // 判断整个数据结构是否为空或不合法
+        if (
+            !window.locations_data ||
+            !Array.isArray(window.locations_data.coordinates_locations) ||
+            window.locations_data.coordinates_locations.length === 0
+        ) {
+            alert("❌ 輸入的地點未能完全匹配！\n可點擊輸入框下方選框的正確地點")
             return;
         }
 

@@ -3,17 +3,17 @@ import re
 import sqlite3
 from typing import Union, List
 
-from common.config import QUERY_DB_PATH, SUPPLE_DB_PATH
+from common.config import SUPPLE_DB_PATH, QUERY_DB_ADMIN
 
 
-def fetch_dialect_region(input_data: Union[str, List[str]]) -> dict:
+def fetch_dialect_region(input_data: Union[str, List[str]], query_db=QUERY_DB_ADMIN) -> dict:
     if isinstance(input_data, list):
         query_str = input_data[0]  # 取數組的第一個元素
     else:
         query_str = input_data  # 如果是字符串，直接使用它
 
     # 連接資料庫並查詢
-    conn = sqlite3.connect(QUERY_DB_PATH)
+    conn = sqlite3.connect(query_db)
     cursor = conn.cursor()
 
     def query_database(db_path: str, table_name: str) -> tuple:
@@ -26,7 +26,7 @@ def fetch_dialect_region(input_data: Union[str, List[str]]) -> dict:
         return result
 
     # 首先查詢主資料庫的表
-    result = query_database(QUERY_DB_PATH, 'dialects')  # 假設主資料庫表名為 'dialects'
+    result = query_database(query_db, 'dialects')  # 假設主資料庫表名為 'dialects'
 
     # 如果在主資料庫中找不到結果，則查詢補充資料庫的表
     if not result:
@@ -44,7 +44,7 @@ import math
 import re
 
 def get_coordinates_from_db(abbreviation_list, supplementary_abbreviation_list=None,
-                            db_path=QUERY_DB_PATH, use_supplementary_db=False):
+                            db_path=QUERY_DB_ADMIN, use_supplementary_db=False):
     # print("即將處理經緯度")
 
     def haversine(lat1, lon1, lat2, lon2):

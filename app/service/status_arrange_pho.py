@@ -2,8 +2,9 @@ import re
 import sqlite3
 
 import pandas as pd
+from fastapi import HTTPException
 
-from common.config import CHARACTERS_DB_PATH, DIALECTS_DB_PATH
+from common.config import CHARACTERS_DB_PATH, DIALECTS_DB_USER
 from common.constants import HIERARCHY_COLUMNS, AMBIG_VALUES
 from app.service.process_sp_input import auto_convert_batch
 from common.getloc_by_name_region import query_dialect_abbreviations
@@ -80,7 +81,8 @@ def query_characters_by_path(path_string, db_path=CHARACTERS_DB_PATH, table="cha
         after = len(filtered_df)
         print(f"🔽 篩選 {column} = {value}：剩下 {after} 筆（原本 {before} 筆）")
         if after == 0:
-            return [], []
+            raise HTTPException(status_code=404, detail="❌ 輸入的中古地位不存在")
+            # return [], []
 
     # 提取漢字
     if "漢字" not in filtered_df.columns:
@@ -112,7 +114,7 @@ def query_characters_by_path(path_string, db_path=CHARACTERS_DB_PATH, table="cha
     return characters, multi_chars
 
 
-def query_by_status(char_list, locations, features, user_input, db_path=DIALECTS_DB_PATH, table="dialects"):
+def query_by_status(char_list, locations, features, user_input, db_path=DIALECTS_DB_USER, table="dialects"):
     """
     📌 根據提供的漢字名單，查詢其在不同地點與語音特徵（如聲母/韻母）下的分佈情況。
 
@@ -236,7 +238,7 @@ def query_by_status(char_list, locations, features, user_input, db_path=DIALECTS
 def run_status(
         input_strings,
         db_path=CHARACTERS_DB_PATH,
-        table="characters"
+        table="characters",
 ):
     """
            📌 功能總結：
@@ -264,7 +266,6 @@ def run_status(
            )
     """
     results_summary = []
-
 
     def convert_path_str(path_str: str) -> str:
         """
@@ -423,8 +424,8 @@ def sta2pho(
         regions,
         features,
         test_inputs,
-        db_path_char=CHARACTERS_DB_PATH,
-        db_path_dialect=DIALECTS_DB_PATH
+        db_path_dialect=DIALECTS_DB_USER,
+        db_path_char=CHARACTERS_DB_PATH
 ):
     """
     📌 主控函數：對語音條件輸入進行特徵分析，支援多地點與特徵欄位。
@@ -433,8 +434,9 @@ def sta2pho(
     locations_new = query_dialect_abbreviations(regions, locations)
     match_results = match_locations_batch(" ".join(locations_new))
     if not any(res[1] == 1 for res in match_results):
-        print("🛑 沒有任何地點完全匹配，終止分析。")
-        return []
+        raise HTTPException(status_code=404, detail="🛑 沒有任何地點完全匹配，終止分析。")
+        # print("🛑 沒有任何地點完全匹配，終止分析。")
+        # return []
 
     unique_abbrs = list({abbr for res in match_results for abbr in res[0]})
     # print(f"\n📍 完全匹配地點簡稱：{unique_abbrs}")
@@ -468,7 +470,7 @@ def sta2pho(
                         auto_features.append("聲調")
 
             else:
-                print(f"⚠️ 未支援的特徵類型：{feat}，略過")
+                print(f"⚠️ 未支持的特徵類型：{feat}，略過")
 
         test_inputs = auto_inputs
         features = auto_features
@@ -548,7 +550,6 @@ def extract_unique_values(db_path=CHARACTERS_DB_PATH, table="characters"):
             print(f"⚠️ 欄位「{col}」不存在")
 
     return unique_values
-
 
 # if __name__ == "__main__":
 #     pd.set_option('display.max_rows', None)

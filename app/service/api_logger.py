@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 import ast
 
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.auth.models import ApiUsageLog, ApiUsageSummary
@@ -63,6 +64,8 @@ def aggregate_keyword_log():
                 for item in value:
                     total_counts[field][item] += 1
                     daily_counts[date][field][item] += 1
+            except HTTPException:
+                raise  # ✅ 让 HTTPException 保持原样传递
             except Exception as e:
                 print(f"[aggregate_keyword_log] Error: {e} | Line: {line}")
 
