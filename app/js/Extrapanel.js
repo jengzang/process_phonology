@@ -146,7 +146,7 @@ document.getElementById("infoForm").addEventListener("submit", async function (e
     const auth = await ensureAuthenticated(event);
     if (!auth){
         // console.log("攔截")
-        alert("提交個人數據需登錄！")
+        alert("💡 提交個人數據需登錄！")
     }  // 🚫 未登入 → 已經 preventDefault 並提示，直接退出
     else
     {
@@ -160,7 +160,7 @@ document.getElementById("infoForm").addEventListener("submit", async function (e
 
         // 表單驗證
         if (!location || !region || !coordinates || !feature || !value) {
-            alert("所有字段（除說明）必須填寫！");
+            alert("❌ 所有字段（除說明）必須填寫！");
             return;  // 如果有空的字段，則不提交
         }
 
@@ -215,7 +215,7 @@ customToggle.addEventListener('click', async function (e) {
 
     const auth = await ensureAuthenticated(e);
     if (!auth) {
-        alert("自定義數據庫需要登錄")
+        alert("💡 自定義數據庫需要登錄")
         return;
     } // 🚫 未登入直接退出
 
@@ -402,7 +402,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const regions = regionsInput.value.trim().split(/\s+/); // 获取并拆分 regions
 
         if (chars.length === 0) {
-            alert("请输入汉字！");
+            alert("❌ 请输入汉字！");
             return;
         }
 
@@ -418,7 +418,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const response = await fetch(`${window.API_BASE}/search_chars/?${params.toString()}`, {
                 method: 'GET',
                 headers: {
-                    Authorization: `Bearer ${token}`  // ✅ 傳 JWT token
+                    ...(token ? { Authorization: `Bearer ${token}` } : {})  // ✅ 若存在則加入 Authorization
                 }
             });
             if (response.ok && token) {

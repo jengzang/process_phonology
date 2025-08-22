@@ -1,10 +1,28 @@
+from datetime import timedelta, datetime
+
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from app.auth import utils, models
 from app.schemas import auth as schemas
-from common.config import REQUIRE_EMAIL_VERIFICATION
+from common.config import REQUIRE_EMAIL_VERIFICATION, REGISTRATION_WINDOW_MINUTES, MAX_REGISTRATIONS_PER_IP
 
 
 def register_user(db: Session, user: schemas.UserCreate, register_ip: str) -> models.User:
+    # 限制：同 IP 10 分鐘最多註冊 3 次
+    window_start = datetime.utcnow() - timedelta(minutes=REGISTRATION_WINDOW_MINUTES)
+
+    recent_count = db.query(models.User).filter(
+        models.User.register_ip == register_ip,
+        models.User.created_at >= window_start
+    ).count()
+
+    if recent_count >= MAX_REGISTRATIONS_PER_IP:
+        raise HTTPException(
+            status_code=429,
+            detail="🚫 該 IP 註冊過於頻繁，請稍後再試"
+        )
+
+    # 檢查帳號是否存在
     if db.query(models.User).filter(models.User.username == user.username).first():
         raise ValueError("Username already exists")
     if db.query(models.User).filter(models.User.email == user.email).first():
@@ -13,19 +31,19 @@ def register_user(db: Session, user: schemas.UserCreate, register_ip: str) -> mo
     db_user = models.User(
         username=user.username,
         email=user.email,
-        # full_name=user.full_name,
-        # phone=user.phone,
         hashed_password=utils.get_password_hash(user.password),
         register_ip=register_ip,
-        is_verified=not REQUIRE_EMAIL_VERIFICATION,  # 开关：不要求验证时直接设为已验证
+        is_verified=not REQUIRE_EMAIL_VERIFICATION,
         login_count=0,
         failed_attempts=0,
         total_online_seconds=0,
+        created_at=datetime.utcnow()  # ⬅️ 確保你有這個欄位！
     )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
     return db_user
+
 
 def authenticate_user(db: Session, username: str, password: str, login_ip: str) -> models.User:
     user = db.query(models.User).filter(models.User.username == username).first()

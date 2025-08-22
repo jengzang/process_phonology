@@ -66,9 +66,18 @@ AUDIENCE = "dialects_web"  # 可自定義
 
 # 是否要求郵件驗證
 REQUIRE_EMAIL_VERIFICATION = False  # 改成 False 就不需要驗證
+# 限制註冊頻率
+MAX_REGISTRATIONS_PER_IP = 3
+REGISTRATION_WINDOW_MINUTES = 10
+# 每分鐘最多嘗試登錄
+MAX_LOGIN_PER_MINUTE = 10
 
-# 一小時內用戶使用api時長最多為30分鐘
-MAX_USAGE_SECONDS_PER_HOUR = 1800  # 30 分鐘
+# 登錄才能用
+REQUIRE_LOGIN = False
+
+# 一小時內用戶使用api時長
+MAX_USER_USAGE_PER_HOUR = 1000  # 1000秒
+MAX_IP_USAGE_PER_HOUR = 500
 
 # =============== 配置 =======================
 # banner配置

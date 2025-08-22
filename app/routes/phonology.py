@@ -19,7 +19,7 @@ from app.schemas import AnalysisPayload
 from app.service.phonology2status import pho2sta
 from app.service.status_arrange_pho import sta2pho
 from app.service.api_logger import update_count, log_all_fields, log_detailed_api, log_detailed_api_to_db
-from common.config import CLEAR_2HOUR
+from common.config import CLEAR_2HOUR, REQUIRE_LOGIN
 
 router = APIRouter()
 
@@ -31,7 +31,8 @@ async def api_run_phonology_analysis(
         db: Session = Depends(get_db),
         user: Optional[User] = Depends(get_current_user),  # ✅ user 可為 None
 ):
-    check_api_usage_limit(db, user)  # 限制訪問
+    ip_address = request.client.host  # 默认是请求的客户端 IP 地址
+    check_api_usage_limit(db, user, REQUIRE_LOGIN, ip_address=ip_address)  # 限制訪問
     update_count(request.url.path)
     log_all_fields(request.url.path, payload.dict())
 

@@ -120,22 +120,22 @@ html, body {
 @media (max-aspect-ratio: 1/1) {
     /* 屏幕宽度小于高度时的样式 */
     /* 面板上下叠加，1/5, 2/5, 2/5 */
-    .panel-medium {
+    #inputpanel.panel-medium {
         width: 100%;    /* 占满屏幕宽度 */
-        height: 15vh;   /* 1/5 的高度 */
+        height: 36vh;   /* 1/5 的高度 */
         top: 0;
         left: 0;
     }
     #resultPanel.panel-medium {
         width: 100%;
-        height: 40vh;   /* 2/5 的高度 */
-        top: 15vh;
+        height: 30vh;   /* 2/5 的高度 */
+        top: 36vh;
         left: 0;
     }
     #mapPanel.panel-medium {
         width: 100%;
-        height: 45vh;   /* 2/5 的高度 */
-        top: 55vh;
+        height: 34vh;   /* 2/5 的高度 */
+        top: 66vh;
         left: 0;
         overflow-x: hidden; /* 禁止水平滚动 */
     }
@@ -148,8 +148,40 @@ html, body {
     #mode-subtitle{
         display: none;
     }
-}
+    .feature-box{
+        max-width: 100px!important;
+        padding: 2px!important;
+    }
+    .mode-box{
+        max-width: 200px!important;
+        padding:2px!important;
 
+    }
+    .panel-header{
+        padding: 2px;
+
+    }
+    .mode-title {
+        font-size: 13px!important;
+        margin-left: -10px;
+    }
+
+    .mode-desc {
+        font-size: 11px!important;
+        margin-left: -24px;
+    }
+    .checkbox-group label {
+        font-size: 12px!important;
+    }
+}
+@media (max-width: 768px){
+    .mode-box {
+        max-width: 100px!important;
+    }
+    .feature-box {
+        max-width: 50px!important;
+    }
+}
 
 
 #panelRestoreBtn {

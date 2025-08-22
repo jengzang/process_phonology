@@ -10,7 +10,7 @@ from app.auth.dependencies import check_api_usage_limit, get_current_user
 from app.auth.models import User
 from app.service.match_input_tip import match_locations_batch
 from app.service.search_chars import search_characters
-from common.config import CLEAR_2HOUR
+from common.config import CLEAR_2HOUR, REQUIRE_LOGIN
 from common.search_tones import search_tones
 import time
 from app.service.api_logger import *
@@ -33,7 +33,8 @@ async def search_chars(
     - locations-要查的地點，可多個
     - region-要查的音典分區，可多個（輸入某一級的音典分區）
     """
-    check_api_usage_limit(db, user)  # 限制訪問
+    ip_address = request.client.host  # 默认是请求的客户端 IP 地址
+    check_api_usage_limit(db, user, REQUIRE_LOGIN, ip_address=ip_address)  # 限制訪問
     update_count(request.url.path)
     log_all_fields(request.url.path, {"chars": chars, "locations": locations, "regions": regions})
     start = time.time()

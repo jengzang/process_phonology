@@ -1,8 +1,12 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError
 from sqlalchemy.orm import Session
 
+from app.auth.dependencies import check_login_rate_limit
+from app.auth.models import ApiUsageLog
 from app.schemas import auth as schemas
 from app.auth import service, utils, models
 from app.auth.database import get_db
@@ -11,6 +15,7 @@ from common.config import REQUIRE_EMAIL_VERIFICATION
 router = APIRouter()
 # Swagger 的 "Authorize" 按钮会用到这个 tokenUrl
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+
 
 # 注册：根据开关决定是否要求邮箱验证；生成验证链接并发送
 @router.post("/register", response_model=schemas.UserResponse)
@@ -34,23 +39,65 @@ def register(user: schemas.UserCreate, request: Request, db: Session = Depends(g
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
 # 登录：未验证时返回 403；其它无效凭证返回 401
 @router.post("/login", response_model=schemas.Token)
 def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     client_ip = utils.extract_client_ip(request)
+
+    # ✅ 檢查 IP 是否超過登入次數限制
+    check_login_rate_limit(db, client_ip)
+
     try:
         user = service.authenticate_user(db, form_data.username, form_data.password, login_ip=client_ip)
     except PermissionError:
+        # ❌ 驗證失敗也記 log
+        db.add(ApiUsageLog(
+            user_id=None,
+            path="/login",
+            duration=0,
+            status_code=403,
+            ip=client_ip,
+            called_at=datetime.utcnow()
+        ))
+        db.commit()
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Email not verified")
     except ValueError:
+        db.add(ApiUsageLog(
+            user_id=None,
+            path="/login",
+            duration=0,
+            status_code=401,
+            ip=client_ip,
+            called_at=datetime.utcnow()
+        ))
+        db.commit()
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+
+    # ✅ 成功登入後也寫入一筆記錄
+    db.add(ApiUsageLog(
+        user_id=user.id,
+        path="/login",
+        duration=0,
+        status_code=200,
+        ip=client_ip,
+        called_at=datetime.utcnow()
+    ))
+    db.commit()
 
     token = utils.create_access_token(subject=user.username, expires_minutes=utils.ACCESS_TOKEN_EXPIRE_MINUTES)
     return {"access_token": token, "token_type": "bearer"}
 
+
 # 邮箱验证：点击邮件中的链接来到这里
 @router.get("/verify-email", name="verify_email")
 def verify_email(token: str, db: Session = Depends(get_db)):
+    """
+    暫時不用這個函數。
+    :param token:
+    :param db:
+    :return:
+    """
     try:
         payload = utils.decode_access_token(token)
         email = payload.get("sub")

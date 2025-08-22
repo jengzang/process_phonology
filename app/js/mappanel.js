@@ -61,8 +61,39 @@ AMapLoader.load({
     map.addControl(overView);
 
 
-    // 控件初始显示状态
-    let isControlsVisible = true;
+// 初始化控件顯示狀態
+    let isControlsVisible;
+
+// 判斷當前螢幕方向，並設置控件顯示狀態
+    function checkScreenOrientation() {
+        // console.log('Screen width:', window.innerWidth, 'Screen height:', window.innerHeight);
+        if (window.innerWidth > window.innerHeight) {
+            // 豎屏：默認顯示控件
+            // console.log('Portrait mode detected. Showing controls.');
+            isControlsVisible = true;
+            scale.show();
+            toolBar.show();
+            controlBar.show();
+            overView.show();
+            document.getElementById('toggleControlsRadio').checked = true;
+        } else {
+            // 橫屏：默認隱藏控件
+            // console.log('Landscape mode detected. Hiding controls.');
+            isControlsVisible = false;
+            scale.hide();
+            toolBar.hide();
+            controlBar.hide();
+            overView.hide();
+            document.getElementById('toggleControlsRadio').checked = false;
+        }
+    }
+// 初始檢查螢幕方向
+    checkScreenOrientation();
+// 當螢幕方向改變時，重新檢查並調整顯示狀態
+    window.addEventListener('resize', function() {
+        console.log('Window resized');
+        checkScreenOrientation();
+    });
 
     // 单选按钮控制事件：点击按钮时，切换控件显示/隐藏
     document.getElementById('toggleControlsRadio').addEventListener('click', function() {
@@ -131,40 +162,59 @@ document.addEventListener('DOMContentLoaded', function () {
     const inputCard = document.getElementById('inputCard');
     const body = document.body;
 
-    // 设置初始状态为最小化
     let isMaximized = false;
-
-    // 鼠标点击区域外，恢复最小化
+    let isClickedMaximized = false;  // 新增一個標誌來控制點擊是否觸發最大化
+    // 監聽 body 上的點擊事件
     body.addEventListener('click', (event) => {
         if (isMaximized && !inputCard.contains(event.target)) {
-            inputCard.classList.remove('maximized');  // 恢复最小化
+            // 點擊外部恢復最小化
+            inputCard.classList.remove('maximized');
             isMaximized = false;
+            isClickedMaximized = false; // 清除點擊最大化標誌
         }
     });
 
-    // 按下 ESC 键时恢复最小化
+    // 按下 ESC 鍵時恢復最小化
     window.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && isMaximized) {
-            inputCard.classList.remove('maximized');  // 恢复最小化
+            inputCard.classList.remove('maximized');
             isMaximized = false;
+            isClickedMaximized = false; // 清除點擊最大化標誌
         }
     });
 
-    // 鼠标 hover 事件触发最大化
-    inputCard.addEventListener('mouseenter', () => {
+    // // 初始化時檢查是否豎屏
+    // if (window.innerWidth > window.innerHeight) {
+    //     // 鼠标 hover 事件触发最大化
+    //     inputCard.addEventListener('mouseenter', () => {
+    //         if (!isMaximized && !isClickedMaximized) { // 只有當不是點擊觸發時才最大化
+    //             inputCard.classList.add('maximized');
+    //             isMaximized = true;
+    //         }
+    //     });
+    //
+    //     inputCard.addEventListener('mouseleave', () => {
+    //         if (!isClickedMaximized) { // 只有當不是點擊觸發時才最小化
+    //             inputCard.classList.remove('maximized');
+    //             isMaximized = false;
+    //         }
+    //     });
+    // }
+
+    // 點擊事件觸發最大化
+    inputCard.addEventListener('click', () => {
         if (!isMaximized) {
-            inputCard.classList.add('maximized');  // 最大化
+            inputCard.classList.add('maximized');
             isMaximized = true;
-        }
-    });
-
-    inputCard.addEventListener('mouseleave', () => {
-        if (isMaximized) {
-            inputCard.classList.remove('maximized');  // 最小化
+            isClickedMaximized = true; // 設置標誌，表示點擊觸發最大化
+        } else {
+            inputCard.classList.remove('maximized');
             isMaximized = false;
+            isClickedMaximized = false; // 取消點擊觸發標誌
         }
     });
 });
+
 
 
 //初次绘图
@@ -179,7 +229,7 @@ async function create_map1(){
     // }
 
     if (isEmptyInput(locations) && isEmptyInput(regions)) {
-        alert("請輸入地點或分區！");
+        alert("❌ 請輸入地點或分區！");
         return;
     }
 
@@ -205,8 +255,9 @@ async function create_map1(){
 
         // 检查请求是否成功
         if (!res.ok) {
-            console.error("❌ 请求失败:", res.status);
-            alert("後端錯誤！請稍後重試。");
+            // console.error("❌ 请求失败:", res.status);
+            const errorData = await res.json();  // 尝试获取返回的JSON错误信息
+            alert(`後端錯誤！錯誤信息: ${errorData.detail || '請稍後重試'}`)
             // debugLog.textContent = "❌ 请求失败";
             return;
         }
@@ -618,7 +669,7 @@ async function create_dot_all() {
     let maxLevel = 0;  // 存储最大 level
 
     if (isEmptyInput(locations) && isEmptyInput(regions)) {
-        alert("請輸入地點或分區！");
+        alert("❌ 請輸入地點或分區！");
         return;
     }
 
@@ -672,8 +723,9 @@ async function create_dot_all() {
     try {
         const res = await fetch(url, { method: "GET" });
         if (!res.ok) {
-            console.error("❌ 请求失败:", res.status);
-            alert("後端錯誤！請稍後重試。");
+            // console.error("❌ 请求失败:", res.status);
+            const errorData = await res.json();  // 尝试获取返回的JSON错误信息
+            alert(`後端錯誤！錯誤信息: ${errorData.detail || '請稍後重試'}`)
             // debugLog.textContent = "❌ 请求失败";
             return;
         }

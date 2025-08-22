@@ -9,6 +9,7 @@
     align-items: stretch;
     max-width: 100%; /* 防止容器寬度超出父元素 */
     /*overflow: hidden; !* 防止橫向滾動條出現 *!*/
+    justify-content: center;
 }
 
 .mode-box,
@@ -18,16 +19,22 @@
     border-radius: 10px;
     padding: 12px;
     box-sizing: border-box;
+    min-width: 0;
+    flex: 1 1 auto;         /* 可撐開，也可收縮 */
 }
 
 .mode-box {
     flex: 2.2;
+    max-width: 200px;
+    justify-content: center;
 }
 .feature-box {
     flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
+    max-width: 100px;
+
 }
 
 /* 炫酷的hover效果 */
@@ -129,12 +136,15 @@
 .location-row {
     display: flex;
     gap: 10px;
+    justify-content: center;
 }
 .location-input,
 .region-input {
     flex: 1;
     display: flex;
     flex-direction: column;
+    justify-content: center;
+    max-width: 250px;
 }
 
 textarea {
@@ -149,6 +159,7 @@ textarea {
     border: 1px solid #ccc;
     border-radius: 6px;
     background: #fff;
+    min-width: 60px;
 }
 
 label {
@@ -325,17 +336,34 @@ label:hover {
     display: flex;
     gap: 16px;
     margin-top: 10px;
+    justify-content: center;
 }
 .group-row2 {
     display: flex;
     gap: 16px;
     margin-top: 10px;
-    flex: 0 0 auto;
+    /*flex: 0 0 auto;*/
     width: 100%;
     justify-content: center; /* 子項未撐滿時居中 */
 }
-.group-row2 > * {
-    flex: 0 0 auto; /* 子元素寬度根據內容自動撐開 */
+/*.group-row2 > div {*/
+/*    !*flex: 0.5;*!*/
+/*    display: flex;*/
+/*    flex-direction: column;*/
+/*    justify-content: flex-start;*/
+/*    min-width: 0; !* 🔧 確保它會收縮 *!*/
+/*    overflow: hidden;       !* ✅ 防止內容撐開 *!*/
+/*}*/
+#status_inputs_group {
+    flex: 3;
+    min-width: 0;
+    max-width: 400px;
+}
+
+.input-example-container {
+    flex: 1;
+    min-width: 0;
+    max-width: 50px;
 }
 
 .group-row > div {
@@ -345,14 +373,14 @@ label:hover {
     justify-content: flex-start;
 }
 
-.group-row label {
+.group-row label,.group-row2 label {
     font-size: 14px;
     font-weight: 500;
     color: #333;
     margin-bottom: 4px;
 }
 
-.group-row textarea {
+.group-row textarea,.group-row2 textarea {
     height: 60px;
     resize: none;
     font-family: monospace;
@@ -533,22 +561,47 @@ label:hover {
     border-radius: 12px;
     overflow: hidden;
     color: #222;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);  /* 添加陰影 */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* 平滑過渡效果 */
 }
 
 .feature-table th,
 .feature-table td {
     border: 1px solid rgba(0, 0, 0, 0.1);
-    padding: 8px 10px;
+    padding: 12px 15px;  /* 增加間距 */
     text-align: left;
     vertical-align: top;
+    word-wrap: break-word;  /* 強制換行 */
+    white-space: normal;
 }
 
 .feature-table th {
     background: rgba(255, 255, 255, 0.3);
     font-weight: bold;
     color: #000;
+    white-space: nowrap;  /* 防止文字換行 */
+    overflow: hidden;     /* 防止超出範圍 */
+    text-overflow: ellipsis; /* 當文字過長時顯示省略號 */
 }
+
 
 .feature-table td {
     line-height: 1.6;
+    background: rgba(255, 255, 255, 0.1);  /* 單元格背景 */
 }
+
+/* 增加 hover 效果 */
+.feature-table tr:hover {
+    /*transform: translateY(-5px);  !* 偏移 *!*/
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);  /* 放大陰影 */
+}
+
+/* 奇偶行交替背景色 */
+.feature-table tr:nth-child(odd) {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.feature-table tr:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+

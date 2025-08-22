@@ -48,6 +48,7 @@ async def get_coordinates(
         locations_list = query.locations.split(',')
         regions_list = query.regions.split(',')
         locations_processed = []
+
         for location in locations_list:
             matched = match_locations_batch(location)
             extracted = [res[0][0] for res in matched if res[0]]
@@ -63,6 +64,15 @@ async def get_coordinates(
             result = get_coordinates_from_db(abbrs)
 
         return result
+
+    except HTTPException as e:
+        # 如果捕捉到 HTTPException 类型的错误，则返回它本身的错误信息
+        raise HTTPException(status_code=e.status_code, detail=f"錯誤信息: {e.detail}")
+
+    except Exception as e:
+        # 其他异常类型，返回详细错误信息
+        raise HTTPException(status_code=500, detail=f"處理過程中出現錯誤: {str(e)}")
+
     finally:
         duration = time.time() - start
         log_detailed_api(request.url.path, duration, 200, request.client.host, request.headers.get("user-agent", ""),

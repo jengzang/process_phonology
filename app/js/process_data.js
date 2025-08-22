@@ -60,7 +60,7 @@ async function analysis_from_db() {
             console.error("❌ 回傳錯誤", result);
             alert(result.detail);
             clearLoadingMessage();
-            if(result.detail ==="💡 請先登入"){
+            if (result.detail.includes("登錄")) {
                 showAuthPopup();
             }
             return;

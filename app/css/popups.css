@@ -13,7 +13,7 @@
     top: 50%;
     left: 0.5%;
     transform: translateY(-50%);
-    width: 21%;
+    width: 40%;
     height: 60vh;
 
     /* 🍸 Apple 风格液态玻璃背景 */
@@ -90,8 +90,8 @@
         transform: translateY(-10%);
         top: 10%;
         left: 10%;
-        width: 80%;
-        height: 20vh;
+        width: 70%;
+        height: 50vh;
     }
     .query-detail-panel:hover {
         transform: translateY(-10%) scale(1.01);
@@ -208,9 +208,10 @@
 }
 
 .example-desc {
-    font-family: "华文楷体", "Times New Roman", serif;
+    font-family: "楷体", "Times New Roman", serif;
     font-size: 18px;
     font-weight: bold;
+    text-decoration: underline ;
     color: #444;
 }
 
@@ -246,7 +247,12 @@
     background: none;
     border: none;
     cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;    /* 超出内容隐藏 */
+    text-overflow: ellipsis; /* 显示省略号 */
 }
+
+
 
 .err {
     color: red;

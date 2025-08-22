@@ -165,10 +165,10 @@
 
 @media (max-aspect-ratio: 1/1) {
     .expansion-panel-search {
-        left: 25% !important; /* 左侧位置在页面的3/10 */
-        width: 50% !important; /* 设置元素宽度 */
+        left: 22% !important; /* 左侧位置在页面的3/10 */
+        width: 48% !important; /* 设置元素宽度 */
         top: 0; /* 顶部贴着页面上边缘 */
-        height: 50px; /* 默认高度为页面的2/5 */
+        height: 5.5%; /* 默认高度为页面的2/5 */
         justify-content: center; /* 水平居中 */
         display: flex;
     }
@@ -328,6 +328,11 @@
     gap: 10px; /* 控制按钮与文字之间距离 */
     margin-top: 0;
     margin-bottom: 10px;
+}
+.login-line p{
+    white-space: nowrap;
+    overflow: hidden;    /* 超出内容隐藏 */
+    text-overflow: ellipsis; /* 显示省略号 */
 }
 .panel-content1 #login,
 .panel-content1 p {

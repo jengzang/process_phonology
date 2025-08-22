@@ -29,10 +29,12 @@
     /*transform: scale(1);   !* 最大化面板 *!*/
 }
 
-/* 在 hover 时触发最大化 */
-.input-card:hover {
-    transform: translateX(80px) translateY(50px);  /* 向右和向下展开 */
+@media (orientation: landscape) {
+    .input-card:hover {
+        transform: translateX(80px) translateY(50px);
+    }
 }
+
 
 /* 控件面板内的内容样式 */
 .input-card .input-item {

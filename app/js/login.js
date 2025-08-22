@@ -22,9 +22,10 @@ function showAuthPopup() {
             }
 
             const validateEmail = (email) => {
-                const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-                return re.test(email)
-            }
+                const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                return re.test(email);
+            };
+
 
             const login = async () => {
                 error.value = ''
@@ -53,11 +54,26 @@ function showAuthPopup() {
                         error.value = ''
                     }, 1500)
                 } catch (e) {
-                    const msg = e.message || ''
+                    let msg = '未知錯誤';
+                    // 情況 1：Error.message 是 JSON 字串：{"detail":"..."}
+                    if (typeof e?.message === 'string') {
+                        try {
+                            const data = JSON.parse(e.message);
+                            msg = data?.detail ?? e.message;
+                        } catch {
+                            // 不是 JSON，就直接顯示
+                            msg = e.message;
+                        }
+                        // 情況 2：有些封裝會把 detail 掛在 err.detail 上
+                    } else if (e && typeof e === 'object' && 'detail' in e) {
+                        msg = e.detail;
+                    }
+
+                    // 你的自訂文案
                     if (msg.includes('Invalid credentials')) {
-                        error.value = '用戶名不存在或密碼錯誤！'
+                        error.value = '用戶名不存在或密碼錯誤！';
                     } else {
-                        error.value = msg
+                        error.value = msg; // ✅ 只顯示內容
                     }
                 } finally {
                     loading.value = false  // ✅ 保證流程結束後可再次提交
@@ -162,7 +178,8 @@ function showAuthPopup() {
         },
         template: `
       <div class="query-detail-panel" @click.self="close">
-        <button class="popup-close" @click="close" style="position:absolute;top:8px;right:12px;font-size:20px;background:none;border:none;cursor:pointer;">×</button>
+        <button class="popup-close" @click="close" style="position:absolute;top:8px;right:12px;font-size:20px;
+        background:none;border:none;cursor:pointer;overflow: hidden;text-overflow: ellipsis;white-space: nowrap">×</button>
 
         <!-- 登錄介面 -->
         <div v-if="mode === 'login'" style="padding: 12px; text-align: center;">

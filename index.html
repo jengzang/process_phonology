@@ -2,7 +2,8 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8" />
-<!--    <meta http-equiv="X-UA-Compatible" content="IE=edge">-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <!--    <meta http-equiv="X-UA-Compatible" content="IE=edge">-->
 <!--    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">-->
     <title>方言比較-地理語言學</title>
 
@@ -59,12 +60,15 @@
     <div id='display-detail2' class="panel-content">
     </div>
 </div>
-<div id="query-detail-panel3" class="query-detail-panel" style="left: 20%;">
+<div id="query-detail-panel3" class="query-detail-panel" style="left: 20%">
     <button id="close-panel3" class="close-btn">×</button>
     <div id='display-detail3' class="panel-content">
-        <p style="margin: 0"><span class="example-input"><strong>「泥」</strong></span> 使用 <span class="example-desc">泥母</span> 進行分析。</p>
+        <p style="margin: 0">說明<br><span class="example-input"><strong>-</strong></span> 代表 <span class="example-desc">全匹配</span> 分析，意為提取所有“-”後對應的所有中古類別。</p>
+        <p style="margin: 0"><span class="example-input"><strong>空格</strong></span> 代表 <span class="example-desc">合併</span> 分析，即一起分析多個特徵的所轄字。</p>
+        <p style="margin-top: 0"><span class="example-input"><strong>回車</strong></span> 代表 <span class="example-desc">獨立</span> 分析，即把輸入特徵按回車拆分再各自分析轄字。</p>
+        <p style="margin: 0">一些示例<br><span class="example-input"><strong>「泥」</strong></span> 使用 <span class="example-desc">泥母</span> 進行分析。</p>
         <p style="margin: 0"><span class="example-input"><strong>「豪」</strong></span> 使用 <span class="example-desc">豪韻</span> 進行分析。</p>
-        <p style="margin: 0"><span class="example-input"><strong>「蟹-等」</strong></span> 使用 <span class="example-desc">蟹攝一、二、三、四等</span> 進行分析("-"代表全匹配)</p>
+        <p style="margin: 0"><span class="example-input"><strong>「蟹-等」</strong></span> 使用 <span class="example-desc">蟹攝一、二、三、四等</span> 進行分析("-"代表全匹配,“-”後需輸入中古類別)</p>
         <p style="margin: 0"><span class="example-input"><strong>「次浊-調」</strong></span> 使用 <span class="example-desc">次濁聲母+平上去入</span> 進行分析。</p>
         <p style="margin: 0"><span class="example-input"><strong>「宕 江」</strong></span> 使用合併後的 <span class="example-desc">宕、江攝</span> 轄字進行分析(中間空格代表一起分析，回車則是按照不同特徵處理)</p>
         <p style="margin: 0"><span class="example-input"><strong>「庄組」</strong></span> 使用 <span class="example-desc">庄組</span> 進行分析（如果只輸入「庄」，會使用 <span class="example-desc">庄母</span> 分析）。</p>
@@ -91,7 +95,9 @@
             <tr><td>母</td><td>並、云、以、來、初、匣、奉、娘、定、崇、常、幫、影、從、微、徹、心、敷、日、昌、明、曉、書、泥、溪、滂、澄、生、疑、知、禪、章、端、精、群、船、莊、見、透、邪、非、@清(清有歧義，需用@指定清母)</td></tr>
             </tbody>
         </table>
-
+        <p><span class="example-desc">點擊按鈕即可查詢！</span>在分析結果界面，像這樣的 <span class="example-input"><strong>藍色字</strong></span> 都是
+            <span class="example-desc">可點擊</span>的。單擊後可在浮窗中選擇，再次生成新窗口<span class="example-desc">細分查詢</span>
+            。這樣的窗口可以<span class="example-desc">無限生成</span>(瀏覽器帶得動的話)，可以同時對比多個地點/特徵。</p>
     </div>
 </div>
 <div id="popup3" class="popup">
@@ -160,7 +166,7 @@
 
         <!-- 中古音輸入 -->
         <div class="input-section">
-            <div  id="status_input_button"  class="group-row2">
+            <div  id="status_input_button" class="group-row2">
                 <div id="status_inputs_group">
                     <h4 class="panel-subtitle" >中古音地位</h4>
                     <textarea id="status_inputs" placeholder="請輸入待查中古音地位 支持-全匹配"></textarea>
@@ -170,19 +176,19 @@
                     <button id="input-example-button" class="input-example-btn">輸入示例</button>
                 </div>
             </div>
-
         </div>
+
         <div class="input-section">
             <div id="group_inputs_group" style="display: none;">
                 <h4 class="panel-subtitle">分類與待查音節</h4>
                 <div class="group-row">
-                    <div>
+                    <div style="max-width: 250px;">
                         <label for="group_inputs">按中古音分類</label>
-                        <textarea id="group_inputs" placeholder="請輸入分類所用的中古音地位(留空則用默認）"></textarea>
+                        <textarea id="group_inputs" placeholder="輸入分類所用中古類別「清濁/系/組/母/攝/韻/入/調」"></textarea>
                     </div>
-                    <div>
+                    <div style="max-width: 250px;">
                         <label for="pho_values">待查音節</label>
-                        <textarea id="pho_values" placeholder="請輸入待查的音節(留空則查全部）"></textarea>
+                        <textarea id="pho_values" placeholder="輸入待查的音節(留空則查全部）"></textarea>
                     </div>
                 </div>
             </div>
@@ -303,7 +309,7 @@
                     <input type="checkbox" id="togglesearch" name="toggleControls" />
                     <span class="slider"></span>
                 </label>
-                <label for="togglesearch" class="custom-label">搜索地點</label>
+                <label  class="custom-label">搜索地點</label>
             </div>
             <div class="input-item">
                 <!-- 苹果风格的开关按钮 -->
@@ -311,14 +317,14 @@
                     <input type="checkbox" id="toggleControlsRadio" name="toggleControls" checked/>
                     <span class="slider"></span>
                 </label>
-                <label for="toggleControlsRadio" class="custom-label">顯示/隱藏 控件</label>
+                <label  class="custom-label">顯示/隱藏 控件</label>
             </div>
             <div class="input-item">
                 <label class="switch">
                     <input type="checkbox" id="toggleBg" name="mapStyle" value="bg" checked />
                     <span class="slider"></span>
                 </label>
-                <label for="toggleBg" class="custom1-label">區域面 </label>
+                <label  class="custom1-label">區域面 </label>
             </div>
 
             <div class="input-item">
@@ -326,7 +332,7 @@
                     <input type="checkbox" id="toggleRoad" name="mapStyle" value="road" />
                     <span class="slider"></span>
                 </label>
-                <label for="toggleRoad" class="custom1-label">道路</label>
+                <label  class="custom1-label">道路</label>
             </div>
 
             <div class="input-item">
@@ -334,7 +340,7 @@
                     <input type="checkbox" id="toggleBuilding" name="mapStyle" value="building" checked />
                     <span class="slider"></span>
                 </label>
-                <label for="toggleBuilding" class="custom1-label">建築物 </label>
+                <label  class="custom1-label">建築物 </label>
             </div>
 
             <div class="input-item">
@@ -342,7 +348,7 @@
                     <input type="checkbox" id="togglePoint" name="mapStyle" value="point" checked />
                     <span class="slider"></span>
                 </label>
-                <label for="togglePoint" class="custom1-label">標註</label>
+                <label  class="custom1-label">標註</label>
             </div>
         </div>
         <div id="myPageTop">
@@ -415,6 +421,15 @@
     <!-- 可拖动的展开部分 -->
     <div class="expansion-panel-search">
         <div class="content-search">
+            <div class="syllables">
+                <br>更詳細的查字功能，可移步<br>
+                <a href="https://mcpdict.vear.vip/" target="_blank" rel="noopener noreferrer">
+                    漢字音典（唯二網頁版）
+                </a>
+                <br><a href="https://jyutdict.org/" target="_blank" rel="noopener noreferrer">
+                    泛粵典(官網)
+                </a>
+            </div>
             <!-- 这里是可填充的内容 -->
             <button class="clear-btn" id="clear-btn">×</button> <!-- 清空按钮 -->
         </div>

@@ -250,17 +250,17 @@ function validateInputs() {
     const status_inputs = parseMultilineListInput("status_inputs");
     const group_inputs  = parseMultilineListInput("group_inputs");
 
-    // 檢查 status_inputs
+    // 檢查 status_inputs 是否有不合法字符
     for (const ch of status_inputs) {
-        if (!allow_chars_status.has(ch)) {
+        if (![...ch].every(char => allow_chars_status.has(char))) {
             alert(`❌ 中古地位輸入有不合法字符：${ch}`);
             return false;
         }
     }
 
-    // 檢查 group_inputs
+    // 檢查 group_inputs 是否有不合法字符
     for (const ch of group_inputs) {
-        if (!allow_chars_groups.has(ch)) {
+        if (![...ch].every(char => allow_chars_groups.has(char))) {
             alert(`❌ 中古分類有不合法字符：${ch}`);
             return false;
         }
@@ -268,6 +268,7 @@ function validateInputs() {
 
     return true; // ✅ 都合法
 }
+
 
 // 主邏輯 監聽runBtn
 document.addEventListener("DOMContentLoaded", () => {
@@ -285,7 +286,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const regions = document.getElementById('regions').value.trim().split(/\s+/);
 
         if (isEmptyInput(locations) && isEmptyInput(regions)) {
-            alert("請輸入地點或分區！");
+            alert("❌ 請輸入地點或分區！");
             return;
         }
         if (!validateInputs()) {
@@ -300,10 +301,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 regions.forEach(reg => query.append("regions", reg));
 
                 const res = await fetch(`${window.API_BASE}/get_locs/?${query.toString()}`, {
-                    method: "GET",
-                    headers: {
-                        "Authorization": `Bearer ${token}`
-                    }
+                    method: "GET"
                 });
 
                 const data = await res.json();

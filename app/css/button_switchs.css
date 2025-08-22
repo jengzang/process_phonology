@@ -195,7 +195,16 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     transition: all 0.3s ease;
     margin-right: 10px;
+    min-width: 22px;
 }
+
+#login{
+    white-space: nowrap;
+    overflow: hidden;    /* 超出内容隐藏 */
+    text-overflow: ellipsis; /* 显示省略号 */
+    margin-right: 0!important;
+}
+
 .input-example-btn {
     writing-mode: vertical-rl; /* 让文字竖向排列 */
     margin-right: 0;
@@ -270,6 +279,7 @@
     -webkit-backdrop-filter: blur(6px);
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     transition: all 0.3s ease;
+    z-index: 999;
 }
 
 .close-btn:hover {
@@ -493,9 +503,24 @@ button[type="submit"]:active {
     justify-content: center;
     align-items: center;
     gap: 10px; /* 控制按鈕和開關之間的間距 */
-    margin-top: 0px;     /* 與上方距離適中 */
+    margin-top: 0;     /* 與上方距離適中 */
     margin-bottom: 20px;  /* 與下方拉開距離（視覺呼吸） */
 }
+
+@media (max-aspect-ratio: 1/1) {
+    .center-btn {
+        flex-direction: column; /* 元素垂直排列 */
+        align-items: center;    /* 垂直方向置中 */
+        gap: 10px;              /* 垂直間距可稍微加大 */
+        max-width: 100px;
+    }
+    .center-btn > * {
+        width: auto;         /* 自適應寬度 */
+        max-width: 100%;     /* 不超出容器 */
+        flex-shrink: 1;      /* 允許縮小 */
+    }
+}
+
 
 .fancy-run-btn {
     font-size: 18px;
@@ -511,6 +536,7 @@ button[type="submit"]:active {
     letter-spacing: 1px;
     position: relative;
     overflow: hidden;
+    white-space: nowrap;
 }
 .fancy-run-btn:hover {
     transform: scale(1.2);
@@ -788,6 +814,6 @@ input:checked + .slider:before {
 /* 悬停时滑块保持原位置并放大 */
 .switch:hover .slider:before {
     background-color: white;  /* 保持白色滑块 */
-    transform:  translateX(18.2px) scale(1.1); /* 滑块放大 */
+    /*transform:  translateX(18.2px) scale(1.1); !* 滑块放大 *!*/
     box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);  /* 添加滑块的发光效果 */
 }
