@@ -451,9 +451,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (charsWithoutSyllables.length === resultData.length) {
                     alert(`❌ 所有漢字「${charsWithoutSyllables.join(' ')}」都未找到對應音節！`);
                     return;
-                } else if (charsWithoutSyllables.length > 0) {
-                    alert(`⚠️ 以下漢字未找到對應音節：「${charsWithoutSyllables.join(' ')}」`);
                 }
+                // else if (charsWithoutSyllables.length > 0) {
+                //     alert(`⚠️ 以下漢字未找到對應音節：「${charsWithoutSyllables.join(' ')}」`);
+                // }
 
                 if (Array.isArray(resultData)) {
                     resultData.forEach((item) => {
@@ -542,6 +543,7 @@ document.addEventListener("DOMContentLoaded",  function () {
 
 
     tonesBtn.addEventListener('click', async (e) => {
+        document.getElementById('loading-overlay').classList.remove('loading-hidden');
         // 获取输入框中的汉字
         const locations = locationsInput.value.trim().split(/\s+/); // 获取并拆分 locations
         const regions = regionsInput.value.trim().split(/\s+/); // 获取并拆分 regions
@@ -703,6 +705,7 @@ document.addEventListener("DOMContentLoaded",  function () {
 
                 // 将表格添加到页面中的 .content-search 元素
                 contentSearch.appendChild(table);
+                document.getElementById('loading-overlay').classList.add('loading-hidden');
                 // 关闭弹窗的功能：点击页面其他地方
                 document.addEventListener('click', function(event) {
                     if (!popup.contains(event.target) && !event.target.classList.contains('location-tones')) {
@@ -727,7 +730,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     clearBtn.addEventListener('click', function () {
         // 清空除了按钮以外的内容
-        contentSearch.querySelectorAll(':not(.clear-btn)').forEach(el => el.remove());
+        contentSearch.querySelectorAll(':scope > *:not(.clear-btn):not(#loading-overlay)').forEach(el => el.remove());
         // console.log("内容已清空，按钮未受影响");
     });
 });
