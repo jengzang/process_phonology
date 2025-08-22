@@ -3,7 +3,7 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.auth.dependencies import check_login_rate_limit
 from app.auth.models import ApiUsageLog
@@ -131,7 +131,10 @@ def me(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
         print("JWTError:", e)  # 临时日志
         raise HTTPException(status_code=401, detail="Invalid token")
 
-    user = db.query(models.User).filter(models.User.username == username).first()
+    user = db.query(models.User) \
+        .options(joinedload(models.User.usage_summary)) \
+        .filter(models.User.username == username) \
+        .first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 

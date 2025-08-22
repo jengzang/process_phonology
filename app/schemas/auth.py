@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr, ConfigDict, Field
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
+
 
 # 請求體
 class UserCreate(BaseModel):
@@ -9,6 +10,12 @@ class UserCreate(BaseModel):
     password: str = Field(min_length=6, max_length=128)
     # full_name: Optional[str] = None
     # phone: Optional[str] = None
+
+
+class ApiUsageStat(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    path: str
+    count: int
 
 # 響應體
 class UserResponse(BaseModel):
@@ -36,10 +43,16 @@ class UserResponse(BaseModel):
     current_session_started_at: Optional[datetime] = None
     last_seen: Optional[datetime] = None
 
+    usage_summary: List[ApiUsageStat] = []
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
 
+
 class LogoutResponse(BaseModel):
     session_seconds: int
     total_online_seconds: int
+
+

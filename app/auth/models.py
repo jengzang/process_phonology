@@ -39,6 +39,7 @@ class User(Base):
     last_seen = Column(DateTime, nullable=True)                   # 最近一次有有效 token 的請求時間
 
     profile_picture = Column(String(255), nullable=True)
+    usage_summary = relationship("ApiUsageSummary", back_populates="user", lazy="joined")
 
     # informations = relationship("Information", back_populates="user")
 
@@ -57,4 +58,15 @@ class ApiUsageLog(Base):
 
     user = relationship("User", backref="api_logs")
 
+
+class ApiUsageSummary(Base):
+    __tablename__ = "api_usage_summary"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    path = Column(String(255), nullable=False)
+    count = Column(Integer, default=0)
+    last_updated = Column(DateTime, default=func.now(), onupdate=func.now())
+
+    user = relationship("User", back_populates="usage_summary")
 

@@ -12,6 +12,7 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 # database路徑依賴
 QUERY_DB_PATH = os.path.join(BASE_DIR, "data", "dialects_query.db")
 DIALECTS_DB_PATH = os.path.join(BASE_DIR, "data", "dialects_all.db")
+DIALECTS_DB_USER = os.path.join(BASE_DIR, "data", "dialects_all.db")
 CHARACTERS_DB_PATH = os.path.join(BASE_DIR, "data", "characters.db")
 SUPPLE_DB_PATH = os.path.join(BASE_DIR, "data", "supplements.db")
 SUPPLE_DB_URL = f"sqlite:///{SUPPLE_DB_PATH}"

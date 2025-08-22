@@ -531,12 +531,17 @@ document.addEventListener("DOMContentLoaded",  function () {
         regions.forEach(reg => params.append("regions", reg));
 
         try {
+            const token = sessionStorage.getItem("ACCESS_TOKEN")
             // 發送 GET 請求到後端
             const response = await fetch(`${window.API_BASE}/search_tones/?${params.toString()}`, {
                 method: 'GET',
+                headers: {
+                    ...(token ? { Authorization: `Bearer ${token}` } : {})  // ✅ 若存在則加入 Authorization
+                }
             });
-
-
+            if (response.ok && token) {
+                await update_userdatas_bytoken(token)
+            }
             // 处理返回的 JSON 数据
             if (response.ok) {
                 const data = await response.json(); // 获取响应数据

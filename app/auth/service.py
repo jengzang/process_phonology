@@ -1,6 +1,7 @@
 from datetime import timedelta, datetime
 
 from fastapi import HTTPException
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from app.auth import utils, models
 from app.schemas import auth as schemas
@@ -46,7 +47,12 @@ def register_user(db: Session, user: schemas.UserCreate, register_ip: str) -> mo
 
 
 def authenticate_user(db: Session, username: str, password: str, login_ip: str) -> models.User:
-    user = db.query(models.User).filter(models.User.username == username).first()
+    user = db.query(models.User).filter(
+        or_(
+            models.User.username == username,
+            models.User.email == username
+        )
+    ).first()
     if not user:
         # 不暴露用户存在性
         raise ValueError("Invalid credentials")

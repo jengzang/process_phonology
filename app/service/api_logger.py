@@ -9,7 +9,7 @@ import ast
 
 from sqlalchemy.orm import Session
 
-from app.auth.models import ApiUsageLog
+from app.auth.models import ApiUsageLog, ApiUsageSummary
 from common.config import KEYWORD_LOG_FILE, SUMMARY_FILE, API_USAGE_FILE, API_DETAILED_JSON, API_DETAILED_FILE
 
 # === 队列 ===
@@ -151,10 +151,12 @@ def log_detailed_api_to_db(
     user_id: int = None,  # optional
     clear_old: bool = False  # ✅ 新增參數：是否清理舊資料
 ):
+    # ✅ Step 1: 寫入詳細 log（短期）
     if clear_old:
         two_hours_ago = datetime.utcnow() - timedelta(hours=2)
         db.query(ApiUsageLog).filter(ApiUsageLog.called_at < two_hours_ago).delete()
         db.commit()
+
     log = ApiUsageLog(
         path=path,
         duration=duration,
@@ -165,8 +167,23 @@ def log_detailed_api_to_db(
         user_id=user_id,
     )
     db.add(log)
-    db.commit()
 
+    # ✅ Step 2: 更新 summary 表（長期累加）
+    if user_id:
+        summary = db.query(ApiUsageSummary).filter_by(user_id=user_id, path=path).first()
+        if summary:
+            summary.count += 1
+            summary.last_updated = datetime.utcnow()
+        else:
+            summary = ApiUsageSummary(
+                user_id=user_id,
+                path=path,
+                count=1,
+                last_updated=datetime.utcnow()
+            )
+            db.add(summary)
+
+    db.commit()
 
 
 # === 后台线程写入详细响应 ===

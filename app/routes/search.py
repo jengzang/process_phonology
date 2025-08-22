@@ -64,13 +64,17 @@ async def search_chars(
 async def search_tones_o(
         request: Request,
         locations: Optional[List[str]] = Query(None, description="要查的地點，可多個"),
-        regions: Optional[List[str]] = Query(None, description="要查的音典分區，可多個（輸入某一級的音典分區）")
+        regions: Optional[List[str]] = Query(None, description="要查的音典分區，可多個（輸入某一級的音典分區）"),
+        db: Session = Depends(get_db),
+        user: Optional[User] = Depends(get_current_user)  # ✅ user 可為 None
 ):
     """
     - 用于 /api/search_tones 查調，返回調值、調類。
     - locations-要查的地點，可多個
     - region-要查的音典分區，可多個（輸入某一級的音典分區）
     """
+    ip_address = request.client.host  # 默认是请求的客户端 IP 地址
+    check_api_usage_limit(db, user, REQUIRE_LOGIN, ip_address=ip_address)  # 限制訪問
     update_count(request.url.path)
     log_all_fields(request.url.path, {"locations": locations, "regions": regions})
     start = time.time()
@@ -88,3 +92,9 @@ async def search_tones_o(
                          request.client.host,
                          request.headers.get("user-agent", ""),
                          request.headers.get("referer", ""))
+        path = request.url.path
+        ip = request.client.host
+        agent = request.headers.get("user-agent", "")
+        referer = request.headers.get("referer", "")
+        user_id = user.id if user else None
+        log_detailed_api_to_db(db, path, duration, 200, ip, agent, referer, user_id, CLEAR_2HOUR)
