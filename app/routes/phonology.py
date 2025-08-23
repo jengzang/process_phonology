@@ -42,6 +42,8 @@ async def api_run_phonology_analysis(
         # 根據用戶身分決定資料庫
         db_path = DIALECTS_DB_ADMIN if user and user.role == "admin" else DIALECTS_DB_USER
         result = await asyncio.to_thread(run_phonology_analysis, **payload.dict(), dialects_db=db_path)
+        if not result:
+            raise HTTPException(status_code=404, detail="❌ 輸入的中古地位不存在")
         status = 200
         if isinstance(result, pd.DataFrame):
             return {"success": True, "results": result.to_dict(orient="records")}
@@ -98,12 +100,12 @@ def run_phonology_analysis(
     if mode == 's2p':
         # if not status_inputs:
         #     raise ValueError("🔴 mode='s2p' 時，請提供 status_inputs。")
-        return sta2pho(locations, regions, features, status_inputs, dialects_db)
+        return sta2pho(locations, regions, features, status_inputs, db_path_dialect=dialects_db)
 
     elif mode == 'p2s':
         # if not group_inputs :
         #     raise ValueError("🔴 mode='p2s' 時，請提供 group_inputs ")
-        return pho2sta(locations, regions, features, group_inputs, pho_values, dialects_db)
+        return pho2sta(locations, regions, features, group_inputs, pho_values, dialect_db_path=dialects_db)
 
 
     else:

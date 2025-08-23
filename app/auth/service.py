@@ -1,4 +1,5 @@
 from datetime import timedelta, datetime
+from typing import Optional
 
 from fastapi import HTTPException
 from sqlalchemy import or_
@@ -94,6 +95,7 @@ def logout_user(db: Session, user: models.User) -> int:
     db.commit()
     return session_secs
 
+
 # --- 心跳 / 訪問受保護接口時更新 last_seen（並分段累加在線時長）---
 def touch_activity(db: Session, user: models.User) -> None:
     now = utils.now_utc_naive()
@@ -116,4 +118,44 @@ def touch_activity(db: Session, user: models.User) -> None:
 # --- 簽發 token ---
 def issue_token_for_user(user: models.User, minutes: int = utils.ACCESS_TOKEN_EXPIRE_MINUTES) -> str:
     return utils.create_access_token(subject=user.username, expires_minutes=minutes)
+
+
+def update_user_profile(
+        db: Session,
+        email: str,  # 邮箱为必填项
+        username: Optional[str] = None,  # 用户名可选
+        password: Optional[str] = None,  # 当前密码可选
+        new_password: Optional[str] = None,  # 新密码可选
+) -> models.User:
+    # 查询用户
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="用戶未找到")
+
+    # 如果提供了当前密码（并且要修改密码），则验证当前密码
+    if new_password and not password:
+        raise HTTPException(status_code=400, detail="修改密碼時需要提供當前密碼")
+
+    if password and not utils.verify_password(password, user.hashed_password):
+        raise HTTPException(status_code=400, detail="當前密碼錯誤")
+
+    # 如果提供了新的用户名，则修改用户名
+    if username:
+        # 验证用户名是否已存在
+        existing_user = db.query(models.User).filter(models.User.username == username).first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="用戶名已存在")
+        user.username = username  # 更新用户名
+
+    # 如果提供了新密码，则修改密码
+    if new_password:
+        if len(new_password) < 6:
+            raise HTTPException(status_code=400, detail="新密碼必須至少 6 個字符")
+        user.hashed_password = utils.get_password_hash(new_password)  # 更新密码
+
+    # 提交更改到数据库
+    db.commit()
+    db.refresh(user)
+
+    return user
 

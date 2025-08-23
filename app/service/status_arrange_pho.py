@@ -81,8 +81,8 @@ def query_characters_by_path(path_string, db_path=CHARACTERS_DB_PATH, table="cha
         after = len(filtered_df)
         print(f"🔽 篩選 {column} = {value}：剩下 {after} 筆（原本 {before} 筆）")
         if after == 0:
-            raise HTTPException(status_code=404, detail="❌ 輸入的中古地位不存在")
-            # return [], []
+            # raise HTTPException(status_code=404, detail="❌ 輸入的中古地位不存在")
+            return [], []
 
     # 提取漢字
     if "漢字" not in filtered_df.columns:
@@ -424,8 +424,8 @@ def sta2pho(
         regions,
         features,
         test_inputs,
-        db_path_dialect=DIALECTS_DB_USER,
-        db_path_char=CHARACTERS_DB_PATH
+        db_path_char=CHARACTERS_DB_PATH,
+        db_path_dialect=DIALECTS_DB_USER
 ):
     """
     📌 主控函數：對語音條件輸入進行特徵分析，支援多地點與特徵欄位。
@@ -485,6 +485,8 @@ def sta2pho(
             # print(f"📘📘 分析輸入：{user_input} 對應特徵：{features[0]}")
 
             summary = run_status([user_input], db_path=db_path_char)
+            # if not summary[1]:  # 这里检查 summary 中第二个元素
+            #     raise HTTPException(status_code=404, detail="❌ 輸入的中古地位不存在")
 
             for path_input, chars, multi, path_details in summary:
                 if chars is False:
@@ -510,6 +512,8 @@ def sta2pho(
             print(f"\n📘 分析輸入：{user_input} 對應特徵：{feature}")
 
             summary = run_status([user_input], db_path=db_path_char)
+            # if not summary[1]:  # 这里检查 summary 中第二个元素
+            #     raise HTTPException(status_code=404, detail="❌ 輸入的中古地位不存在")
 
             for path_input, chars, multi, path_details in summary:
                 if chars is False:

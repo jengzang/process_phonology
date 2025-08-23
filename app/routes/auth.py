@@ -1,12 +1,14 @@
 from datetime import datetime
+from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Form
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError
 from sqlalchemy.orm import Session, joinedload
 
 from app.auth.dependencies import check_login_rate_limit
 from app.auth.models import ApiUsageLog
+from app.auth.service import update_user_profile
 from app.schemas import auth as schemas
 from app.auth import service, utils, models
 from app.auth.database import get_db
@@ -161,3 +163,24 @@ def logout(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
 
     session_secs = service.logout_user(db, user)
     return {"session_seconds": session_secs, "total_online_seconds": user.total_online_seconds}
+
+@router.put("/updateProfile")
+async def update_profile(
+    username: str = Form(None),  # 使用 Form 获取数据
+    email: str = Form(...),
+    password: str = Form(None),
+    new_password: Optional[str] = Form(None),
+    db: Session = Depends(get_db)
+):
+
+    try:
+        updated_user = update_user_profile(
+            db=db,
+            email=email,
+            username=username,
+            password=password,
+            new_password=new_password
+        )
+        return {"message": "用戶資料更新成功！", "user": {"username": updated_user.username, "email": updated_user.email}}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

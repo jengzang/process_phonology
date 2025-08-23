@@ -33,7 +33,7 @@ def handle_form_deletion(form_data: dict, user: User, db: Session):
         return {
             column.key: getattr(obj, column.key)
             for column in class_mapper(obj.__class__).columns
-            if getattr(obj, column.key) not in (None, '', [])
+            if (getattr(obj, column.key) not in (None, '', []) or column.key == '說明')
         }
 
     # 刪除找到的紀錄
@@ -46,13 +46,13 @@ def handle_form_deletion(form_data: dict, user: User, db: Session):
     db.commit()
     # 刪除找到的紀錄
     deleted_records_str = "\n".join([
-        # 預先定義需要顯示的欄位，過濾掉不需要的欄位（例如 id, 存儲標記, user_id）
-        f"{'地點':<15} {'音典分區':<20} {'經緯度':<20} {'特徵':<20} {'值':<20} {'說明':<20}"
-    ] + [
-        # 逐筆生成內容，不顯示不需要的欄位
-        f"{record['簡稱']:<15} {record['音典分區']:<20} {record['經緯度']:<20} {record['特徵']:<20} {record['值']:<20} {record['說明']:<20}"
-        for record in deleted_records
-    ])
+            f"{'地點':<15} {'音典分區':<20} {'經緯度':<20} {'特徵':<20} {'值':<20} {'說明':<20}"
+        ] + [
+            # 处理 `說明` 为 `None` 的情况，使用空字符串代替
+            f"{record.get('簡稱', ''):<15} {record.get('音典分區', ''):<20} {record.get('經緯度', ''):<20} "
+            f"{record.get('特徵', ''):<20} {record.get('值', ''):<20} {record.get('說明', '') or '無說明':<20}"
+            for record in deleted_records
+        ])
 
     return {
         "success": True,

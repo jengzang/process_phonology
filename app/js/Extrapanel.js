@@ -399,7 +399,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     charactersBtn.addEventListener('click', async () => {
         document.getElementById('loading-overlay').classList.remove('loading-hidden');
-        await create_map1();
+        // await create_map1();
         // 获取输入框中的汉字
         const chars = inputBox.value.trim().split(""); // 将输入框内容拆分成字符数组
         const locations = locationsInput.value.trim().split(/\s+/); // 获取并拆分 locations
@@ -407,6 +407,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (chars.length === 0) {
             alert("❌ 请输入汉字！");
+            document.getElementById('loading-overlay').classList.add('loading-hidden');
             return;
         }
 
@@ -432,6 +433,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     showAuthPopup();
                 }else
                 {alert(data.detail)}
+                document.getElementById('loading-overlay').classList.add('loading-hidden');
             }
             // 处理返回的 JSON 数据
             if (response.ok) {
@@ -450,6 +452,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 // 🚨 如果所有都未匹配，或者有部分未匹配的
                 if (charsWithoutSyllables.length === resultData.length) {
                     alert(`❌ 所有漢字「${charsWithoutSyllables.join(' ')}」都未找到對應音節！`);
+                    document.getElementById('loading-overlay').classList.add('loading-hidden');
                     return;
                 }
                 // else if (charsWithoutSyllables.length > 0) {
@@ -460,6 +463,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     resultData.forEach((item) => {
                         // 如果音节或 location 为空，则跳过当前元素
                         if (!item.音节.length|| !item.location) {
+                            document.getElementById('loading-overlay').classList.add('loading-hidden');
                             return; // 跳过当前元素
                         }
                         // 创建 charDiv，如果和上一个不一样
@@ -518,17 +522,21 @@ document.addEventListener("DOMContentLoaded", function () {
                         // 将整个容器添加到 DOM 中
                         contentSearch.appendChild(infoContainer);
                     });
+                    await create_map1();
                     document.getElementById('loading-overlay').classList.add('loading-hidden');
                     lastCharDiv = [];
                     lastPositionsDiv = [];
                 } else {
+                    document.getElementById('loading-overlay').classList.add('loading-hidden');
                     console.error("返回的数据不是一个数组:", resultData);
                 }
             } else {
                 const error = await response.json();
+                document.getElementById('loading-overlay').classList.add('loading-hidden');
                 console.error('Error:', error);
             }
         } catch (error) {
+            document.getElementById('loading-overlay').classList.add('loading-hidden');
             console.error('请求失败:', error);
         }
     });
@@ -548,7 +556,6 @@ document.addEventListener("DOMContentLoaded",  function () {
         const locations = locationsInput.value.trim().split(/\s+/); // 获取并拆分 locations
         const regions = regionsInput.value.trim().split(/\s+/); // 获取并拆分 regions
         await ensureAuthenticated(e,false)
-        await create_map1();
 
         // 構造查詢字符串
         const params = new URLSearchParams();
@@ -572,6 +579,7 @@ document.addEventListener("DOMContentLoaded",  function () {
                 } else {
                     alert(data.detail)
                 }
+                document.getElementById('loading-overlay').classList.add('loading-hidden');
             }
             // 处理返回的 JSON 数据
             if (response.ok) {
@@ -700,7 +708,7 @@ document.addEventListener("DOMContentLoaded",  function () {
 
                     tbody.appendChild(row);
                 });
-
+                await create_map1();
                 table.appendChild(tbody);
 
                 // 将表格添加到页面中的 .content-search 元素
@@ -714,6 +722,7 @@ document.addEventListener("DOMContentLoaded",  function () {
                 });
             }
         } catch (error) {
+            document.getElementById('loading-overlay').classList.add('loading-hidden');
             console.log("报错报错")
         }
     })
