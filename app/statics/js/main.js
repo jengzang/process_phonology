@@ -293,13 +293,13 @@ document.addEventListener("DOMContentLoaded", () => {
             // 直接 return，不繼續執行後續邏輯
             return;
         }
-        const token = sessionStorage.getItem("ACCESS_TOKEN");
+        const token = localStorage.getItem("ACCESS_TOKEN");
         if (!token) {
             try {
                 const query = new URLSearchParams();
                 locations.forEach(loc => query.append("locations", loc));
                 regions.forEach(reg => query.append("regions", reg));
-                const token = sessionStorage.getItem("ACCESS_TOKEN")
+                const token = localStorage.getItem("ACCESS_TOKEN")
                 const res = await fetch(`${window.API_BASE}/get_locs/?${query.toString()}`, {
                     method: "GET",
                     headers: {

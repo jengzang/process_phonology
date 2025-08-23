@@ -36,7 +36,7 @@ async function analysis_from_db() {
     try {
         // log("📦 發送 Payload", payload);
         setLoadingMessage("📡 數據讀取中…");
-        const token = sessionStorage.getItem("ACCESS_TOKEN");  // 或從你儲存 token 的地方取出
+        const token = localStorage.getItem("ACCESS_TOKEN");  // 或從你儲存 token 的地方取出
         const res = await window.fetch(`${window.API_BASE}/phonology`, {
             method: "POST",
             headers: {
@@ -138,7 +138,7 @@ async function get_detail(location,feature_value,bool=false,vue = false,
     };
     // console.log(payload);
     try {
-        const token = sessionStorage.getItem("ACCESS_TOKEN");  // 或從你儲存 token 的地方取出
+        const token = localStorage.getItem("ACCESS_TOKEN");  // 或從你儲存 token 的地方取出
         const res = await window.fetch(`${window.API_BASE}/phonology`, {
             method: "POST",
             headers: {
@@ -198,50 +198,62 @@ miniBtn.addEventListener("click", async () => {
 //  刪除用戶自定義數據
 const miniBtn0 = document.getElementById("mini-btn0");
 miniBtn0.addEventListener("click", async () => {
-
     const feature = window.detailfeature;
     const value = window.detailvalue;
     const location = window.detaillocation;
+    // 顯示確認刪除的對話框
+    const isConfirmed = confirm(
+        "⚠️ 你確定要刪除這條信息嗎？\n" +
+        "📍 " + location + "\n" +
+        "🔧 " + feature + "" +
+        "  🔢 " + value + "\n" +
+        "🗑️ 刪除後將無法恢復！"
+    );
 
-    // 表單驗證
-    if (!location || !feature || !value) {
-        alert("⚠️ 刪除失敗，地點/特徵/值存在空值");
-        return;  // 如果有空的字段，則不提交
-    }
 
-    // 構建表單數據對象
-    const formData = {
-        location: location,
-        // region: null,
-        // coordinates: null,
-        feature: feature,
-        value: value,
-        // description: null // 如果說明為空，設置為 null
-    };
-    const token = sessionStorage.getItem("ACCESS_TOKEN")
-    fetch(`${window.API_BASE}/delete_form`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify(formData)
-    })
-        .then(response => response.json())
-        .then(data => {
-            // 根據後端返回的結果處理
-            if (data.success) {
-                alert("🧹 刪除成功！\n請點擊自定按鈕刷新！\n" + data.message);
-                // 可以選擇清空表單或其他操作
-                // document.getElementById("infoForm").reset();  // 清空表單
-            } else {
-                alert("刪除失敗：" + data.message);
-            }
+    // 如果用戶點擊確定，執行刪除操作
+    if (isConfirmed) {
+
+        // 表單驗證
+        if (!location || !feature || !value) {
+            alert("⚠️ 刪除失敗，地點/特徵/值存在空值");
+            return;  // 如果有空的字段，則不提交
+        }
+
+        // 構建表單數據對象
+        const formData = {
+            location: location,
+            // region: null,
+            // coordinates: null,
+            feature: feature,
+            value: value,
+            // description: null // 如果說明為空，設置為 null
+        };
+        const token = localStorage.getItem("ACCESS_TOKEN")
+        fetch(`${window.API_BASE}/delete_form`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                ...(token ? {Authorization: `Bearer ${token}`} : {})
+            },
+            body: JSON.stringify(formData)
         })
-        .catch(error => {
-            console.error("刪除失敗:", error);
-            alert("刪除時發生錯誤！");
-        });
+            .then(response => response.json())
+            .then(data => {
+                // 根據後端返回的結果處理
+                if (data.success) {
+                    alert("🧹 刪除成功！\n請點擊自定按鈕刷新！\n" + data.message);
+                    // 可以選擇清空表單或其他操作
+                    // document.getElementById("infoForm").reset();  // 清空表單
+                } else {
+                    alert("刪除失敗：" + data.message);
+                }
+            })
+            .catch(error => {
+                console.error("刪除失敗:", error);
+                alert("刪除時發生錯誤！");
+            });
+    }
 
 });
 
@@ -436,7 +448,7 @@ async function func_mergeData() {
     let shouldContinue = true;
     let result = null;
     try {
-        const token = sessionStorage.getItem("ACCESS_TOKEN")
+        const token = localStorage.getItem("ACCESS_TOKEN")
         // 如果没有 token，直接返回，表示用户未登录
         if (!token) {
             shouldContinue = false;
@@ -507,7 +519,7 @@ async function get_custom_feature(){
         queryParams.locations.forEach(loc => queryString.append("locations", loc));
         queryParams.regions.forEach(reg => queryString.append("regions", reg));
         queryString.append("word", queryParams.word);
-        const token = sessionStorage.getItem("ACCESS_TOKEN")
+        const token = localStorage.getItem("ACCESS_TOKEN")
         const response = await fetch(`${window.API_BASE}/get_custom_feature?${queryString.toString()}`, {
             method: 'GET',
             headers: {
@@ -589,7 +601,7 @@ async function process_custom() {
         queryParams.locations.forEach(loc => queryString.append("locations", loc));
         queryParams.regions.forEach(reg => queryString.append("regions", reg));
         queryParams.need_features.forEach(f => queryString.append("need_features", f));
-        const token = sessionStorage.getItem("ACCESS_TOKEN")
+        const token = localStorage.getItem("ACCESS_TOKEN")
         const response = await fetch(`${window.API_BASE}/get_custom?${queryString.toString()}`, {
             method: 'GET',
             headers: {

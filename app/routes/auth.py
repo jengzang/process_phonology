@@ -49,7 +49,7 @@ def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db
 
     # ✅ 檢查 IP 是否超過登入次數限制
     check_login_rate_limit(db, client_ip)
-
+    agent = request.headers.get("user-agent", "")
     try:
         user = service.authenticate_user(db, form_data.username, form_data.password, login_ip=client_ip)
     except PermissionError:
@@ -60,7 +60,8 @@ def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db
             duration=0,
             status_code=403,
             ip=client_ip,
-            called_at=datetime.utcnow()
+            called_at=datetime.utcnow(),
+            user_agent=agent
         ))
         db.commit()
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Email not verified")
@@ -71,7 +72,8 @@ def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db
             duration=0,
             status_code=401,
             ip=client_ip,
-            called_at=datetime.utcnow()
+            called_at=datetime.utcnow(),
+            user_agent=agent
         ))
         db.commit()
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")

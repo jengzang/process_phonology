@@ -40,6 +40,14 @@ def get_current_user(
     return user
 
 
+def get_current_admin_user(current_user: models.User = Depends(get_current_user)) -> models.User:
+    if current_user is None:
+        raise HTTPException(status_code=401, detail="Token 无效或用户不存在")
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="你没有访问此资源的权限")
+    return current_user
+
+
 def check_api_usage_limit(
         db: Session,
         user: Optional[User],

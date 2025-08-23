@@ -53,7 +53,7 @@ async function locations2regions(){
         suggestionadd.style.display = "none";
         return;
     }
-    const token = sessionStorage.getItem("ACCESS_TOKEN")
+    const token = localStorage.getItem("ACCESS_TOKEN")
 // 请求匹配的地名数据
     fetch(`${window.API_BASE}/batch_match?input_string=${encodeURIComponent(query)}&filter_valid_abbrs_only=false`, {
         method: "GET",
@@ -176,7 +176,7 @@ document.getElementById("infoForm").addEventListener("submit", async function (e
             value: value,
             description: description || null // 如果說明為空，設置為 null
         };
-        const token = sessionStorage.getItem("ACCESS_TOKEN")
+        const token = localStorage.getItem("ACCESS_TOKEN")
         // console.log("準備發給後端")
         // 發送數據到後端（使用 fetch API）
         fetch(`${window.API_BASE}/submit_form`, {
@@ -418,7 +418,7 @@ document.addEventListener("DOMContentLoaded", function () {
         regions.forEach(reg => params.append("regions", reg));
 
         try {
-            const token = sessionStorage.getItem("ACCESS_TOKEN")
+            const token = localStorage.getItem("ACCESS_TOKEN")
             // 發送 GET 請求到後端
             const response = await fetch(`${window.API_BASE}/search_chars/?${params.toString()}`, {
                 method: 'GET',
@@ -563,7 +563,7 @@ document.addEventListener("DOMContentLoaded",  function () {
         regions.forEach(reg => params.append("regions", reg));
 
         try {
-            const token = sessionStorage.getItem("ACCESS_TOKEN")
+            const token = localStorage.getItem("ACCESS_TOKEN")
             // 發送 GET 請求到後端
             const response = await fetch(`${window.API_BASE}/search_tones/?${params.toString()}`, {
                 method: 'GET',

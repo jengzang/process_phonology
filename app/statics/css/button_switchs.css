@@ -583,6 +583,7 @@ button[type="submit"]:active {
 
 .mini-button:hover {
     background-color: #1a682b;
+    transform: scale(1.2);
 }
 
 

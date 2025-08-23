@@ -48,7 +48,7 @@ function showAuthPopup() {
                 try {
                     const form = new URLSearchParams()
                     if (loginMode.value === 'email') {
-                        form.append('username', email.value) // 後端統一為 username
+                        form.append('email', email.value)
                     } else {
                         form.append('username', username.value)
                     }
@@ -65,7 +65,7 @@ function showAuthPopup() {
                     setTimeout(() => {
                         mode.value = 'profile'
                         error.value = ''
-                    }, 1500)
+                    }, 1000)
                 } catch (e) {
                     let msg = '未知錯誤';
                     // 情況 1：Error.message 是 JSON 字串：{"detail":"..."}
@@ -155,6 +155,7 @@ function showAuthPopup() {
 
             const fetchUser = async () => {
                 try {
+
                     const res = await api('/auth/me')
                     user.value = res
                 } catch {
@@ -354,7 +355,7 @@ function showAuthPopup() {
               <div v-if="loginMode === 'email'">
                 <div class="form-row" style="display: flex; justify-content: center;">
                   <input
-                      v-model="username"
+                      v-model="email"
                       placeholder="郵箱"
                       style="padding-right: 2em;"
                   />
@@ -466,7 +467,7 @@ function showAuthPopup() {
               </div>
               <div class="form-row" style="display: flex; justify-content: center;">
                 <input
-                    v-model="username"
+                    v-model="email"
                     placeholder="郵箱"
                     style="padding-right: 2em;"
                 />
@@ -652,14 +653,35 @@ function showAuthPopup() {
 window.showAuthPopup = showAuthPopup
 
 //登錄請求api
-const getToken = () => sessionStorage.getItem('ACCESS_TOKEN')
+const getToken = () => {
+    // 先從 localStorage 中讀取 Token
+    let token = localStorage.getItem('ACCESS_TOKEN');
+
+    // 如果 localStorage 中沒有 Token，再從 Cookie 中讀取
+    if (!token) {
+        token = getCookie('ACCESS_TOKEN');
+    }
+
+    return token;  // 返回 Token（如果找不到則返回 null）
+}
+
+// 讀取 Cookie 函數
+const getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null; // 如果 Cookie 中找不到該名稱的項目
+};
+
+
 const saveToken = (token) => {
-    sessionStorage.setItem('ACCESS_TOKEN', token)
+    localStorage.setItem('ACCESS_TOKEN', token);
+    document.cookie = `ACCESS_TOKEN=${token}; path=/; secure; samesite=None`;
 }
 
 const clearToken = () => {
-    sessionStorage.removeItem('ACCESS_TOKEN')
-    sessionStorage.removeItem('TOKEN_EXP')
+    localStorage.removeItem('ACCESS_TOKEN')
+    localStorage.removeItem('TOKEN_EXP')
 }
 async function api(path, { method = 'GET', headers = {}, body = null } = {}) {
     const token = getToken()

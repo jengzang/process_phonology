@@ -243,7 +243,7 @@ async function create_map1(){
         url.searchParams.append('iscustom', 'true');
     }
     // ✅ 加上 token
-    const token = sessionStorage.getItem("ACCESS_TOKEN")
+    const token = localStorage.getItem("ACCESS_TOKEN")
     if (token) {
         url.searchParams.append('token', token);
     }
@@ -730,7 +730,7 @@ async function create_dot_all() {
     url.searchParams.append('regions', regions);
     url.searchParams.append('iscustom', 'true');
     url.searchParams.append('flag', 'False');
-    const token = sessionStorage.getItem("ACCESS_TOKEN")
+    const token = localStorage.getItem("ACCESS_TOKEN")
     if (token) {
         url.searchParams.append('token', token);
     }

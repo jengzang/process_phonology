@@ -5,7 +5,7 @@
 
 from fastapi import APIRouter, Request
 from starlette.responses import HTMLResponse
-from app.static_utils import get_resource_path
+from app.statics.static_utils import get_resource_path
 from app.service.api_logger import *
 # from common.config import HTML_PATH
 
@@ -14,7 +14,7 @@ router = APIRouter()
 @router.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     update_count(request.url.path)
-    index_path = get_resource_path("index.html")
+    index_path = get_resource_path("app/statics/index.html")
     with open(index_path, encoding="utf-8") as f:
         content = f.read()
     headers = {"Cache-Control": "no-cache, must-revalidate"}
