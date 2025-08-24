@@ -35,8 +35,8 @@
       </div>
       <!-- 更新按鈕 -->
       <button type="button" @click="updateEmail" class="btn btn-secondary">更新郵箱</button>
-
     </form>
+    <button @click="goToHome">返回首頁</button>
   </div>
 </template>
 
@@ -100,7 +100,10 @@ export default {
           console.error('Error fetching user data', error);
         }
       }
-    }
+    },
+    goToHome(){
+      this.$router.push({name: 'Home'});
+    },
   }
 };
 </script>

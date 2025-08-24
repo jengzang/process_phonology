@@ -11,7 +11,7 @@
       <div><strong>總在線時長:</strong> {{ formatOnlineTime(stats.total_online_seconds) }}</div>
       <div><strong>最近一次登錄:</strong> {{ formatTime(stats.last_login) }}</div>
     </div>
-
+    <button @click="goToHome">返回首頁</button>
     <h2>登錄歷史</h2>
     <table>
       <thead>
@@ -184,6 +184,9 @@ export default {
     hideUserAgent(log) {
       log.showUserAgent = false;
     },
+    goToHome(){
+      this.$router.push({name: 'Home'});
+    },
   }
 };
 </script>
@@ -194,7 +197,22 @@ export default {
   margin: 20px;
   font-family: Arial, sans-serif;
 }
+button {
+  padding: 12px 24px;
+  margin: 0 12px;
+  background-color: #4CAF50; /* 按钮的苹果蓝 */
+  color: white;
+  border: none;
+  border-radius: 20px; /* 圆角效果 */
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
 
+button:hover {
+  background-color: #217825;
+  transform: scale(1.05);
+}
 .user-info {
   margin-bottom: 20px;
 }

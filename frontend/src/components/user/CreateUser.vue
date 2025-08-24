@@ -45,6 +45,7 @@
 
       <button type="submit">創建用戶</button>
     </form>
+    <button @click="goToHome">返回首頁</button>
   </div>
 </template>
 
@@ -78,7 +79,10 @@ export default {
         }
         console.error('Error creating user', error);
       }
-    }
+    },
+    goToHome(){
+      this.$router.push({name: 'Home'});
+    },
   }
 };
 </script>

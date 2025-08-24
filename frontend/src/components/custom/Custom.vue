@@ -3,6 +3,7 @@
     <h1>所有用戶數據</h1>
     <div class="top-controls">
       <p>當前共有 {{ data.length }} 條數據</p>
+      <button @click="goToHome">返回首頁</button>
       <!-- 搜索框 -->
       <div class="search-container">
         <input v-model="searchQuery" @input="searchUser" type="text" placeholder="搜索用戶名、簡稱、音典分區、特徵、值、說明" />
@@ -173,6 +174,9 @@ export default {
           created_at: formattedTime,  // 将创建时间传递给目标页面
         }
       });
+    },
+    goToHome(){
+      this.$router.push({name: 'Home'});
     },
   }
 };

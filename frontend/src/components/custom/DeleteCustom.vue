@@ -151,6 +151,7 @@ export default {
             data: deleteList, // 批量刪除的數據
           });
           this.$message.success("✅ 批量刪除成功！");
+          this.goToCustomPerUser(this.username)
         } catch (error) {
           console.error("刪除失敗", error);
           this.$message.error("❌ 刪除失敗！");
@@ -158,7 +159,11 @@ export default {
       }).catch(() => {
         this.$message.info("取消刪除操作。😌");
       });
-    }
+    },
+    goToCustomPerUser(username) {
+      console.log(username)
+      this.$router.push({ name: 'PerUser' ,query: {username: username}});  // 跳轉到創建用戶頁面
+    },
   }
 };
 </script>

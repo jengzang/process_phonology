@@ -52,6 +52,7 @@
       <span>頁面 {{ currentPage }} / {{ totalPages }}</span>
       <button @click="nextPage" :disabled="currentPage === totalPages">下一頁</button>
     </div>
+    <button @click="goToHome">返回首頁</button>
   </div>
 </template>
 
@@ -218,6 +219,9 @@ export default {
         name: 'EditCustom',
         query: {username: username}
       });
+    },
+    goToHome(){
+      this.$router.push({name: 'Home'});
     },
   }
 };
