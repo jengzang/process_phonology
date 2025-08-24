@@ -6,6 +6,8 @@ import UserStats from '../components/UserStats.vue'
 import Login from '../components/Login.vue';  // 引入 Login 頁面
 import CreateUser from '../components/CreateUser.vue';
 import ApiDetail from "../components/ApiDetail.vue";  // 引入新頁面
+import ApiChart from "../components/ApiChart.vue";  // 引入新頁面
+import Custom from "../components/Custom.vue";  // 引入新頁面
 
 // 根路徑配置
 const routes = [
@@ -38,6 +40,16 @@ const routes = [
         path: '/users/stats',
         name: 'UserStats',
         component: UserStats
+    },
+    {
+        path: '/api-chart',
+        name: 'ApiChart',
+        component: ApiChart
+    },
+    {
+        path: '/custom',
+        name: 'Custom',
+        component: Custom
     },
 ]
 

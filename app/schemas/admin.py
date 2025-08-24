@@ -51,3 +51,15 @@ class AdminCreate(BaseModel):
 
     class Config:
         from_attributes = True
+
+class InformationBase(BaseModel):
+    簡稱: str
+    音典分區: str
+    經緯度: str
+    特徵: str
+    值: str
+    說明: Optional[str]  # 這樣就允許說明為 None
+    username: str
+
+    class Config:
+        from_attributes = True

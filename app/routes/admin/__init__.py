@@ -5,6 +5,7 @@ from .users import router as users_router
 from .user_stats import router as stats_router
 from .api_usage import router as api_usage_router
 from .login_logs import router as login_logs_router
+from .custom import router as custom_router
 from ...auth.dependencies import get_current_admin_user
 
 # 创建一个总的 admin 路由集合
@@ -16,5 +17,7 @@ router.include_router(stats_router, prefix="/stats", tags=["admin stats"],
                       dependencies=[Depends(get_current_admin_user)])
 router.include_router(api_usage_router, prefix="/api-usage", tags=["admin api usage"],
                       dependencies=[Depends(get_current_admin_user)])
-router.include_router(login_logs_router, prefix="/login-logs", tags=["admin login logs"],
+router.include_router(login_logs_router, prefix="/login-logs", tags=["admin stats"],
+                      dependencies=[Depends(get_current_admin_user)])
+router.include_router(custom_router, prefix="/custom-query", tags=["admin custom"],
                       dependencies=[Depends(get_current_admin_user)])

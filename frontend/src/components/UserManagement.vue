@@ -6,6 +6,8 @@
     <!-- 創建用戶按鈕 -->
     <button @click="goToCreateUser">創建新用戶</button>
     <button @click="apidetail">近期API調用</button>
+    <button @click="viewAllCustom">所有用戶數據</button>
+
     <table v-if="users.length">
       <thead>
       <tr>
@@ -109,6 +111,9 @@ export default {
     // 查看用戶統計
     async viewUserStats(user) {
       this.$router.push({name: 'UserStats', query: {username: user.username}});
+    },
+    async viewAllCustom() {
+      this.$router.push({name: 'Custom'});
     },
 
     // 編輯用戶

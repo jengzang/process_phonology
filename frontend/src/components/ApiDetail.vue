@@ -2,6 +2,8 @@
   <div>
     <h2>近期 API 使用詳情</h2>
 
+    <button @click="goToApiStatsPage">查看API統計圖表</button>
+
     <!-- 功能统计部分 -->
     <div class="stats">
       <button @click="showUniqueUsers" class="stat-btn">所有用户: {{ uniqueUsersCount }}</button>
@@ -26,15 +28,14 @@
           <tr
               v-for="userStat in userStats"
               :key="userStat.user"
-              :class="{ 'clickable': userStat.user !== '未登錄用戶' }"
-              @click="userStat.user !== '未登錄用戶' && viewUserStats(userStat.user)"
+              :class="{ 'clickable': userStat.user !== '匿名用戶' }"
+              @click="userStat.user !== '匿名用戶' && viewUserStats(userStat.user)"
           >
             <td>{{ userStat.user }}</td>  <!-- 显示用户名 -->
             <td>{{ userStat.totalDuration.toFixed(3) }}s</td> <!-- 总使用时长 -->
             <td>{{ userStat.occurrenceCount }}</td> <!-- 出现次数 -->
           </tr>
           </tbody>
-
         </table>
       </div>
     </div>
@@ -85,17 +86,16 @@
       </div>
     </div>
 
-
     <table>
       <thead>
       <tr>
-        <th>用戶</th>
-        <th>IP 地址</th>
-        <th>API 路徑</th>
-        <th>持續時長</th>
-        <th>操作系統</th>
-        <th>瀏覽器</th>
-        <th>請求時間</th>
+        <th @click="sortData('user')">用戶 <span :class="getArrowClass('user')"></span></th>
+        <th @click="sortData('ip')">IP 地址 <span :class="getArrowClass('ip')"></span></th>
+        <th @click="sortData('path')">API 路徑 <span :class="getArrowClass('path')"></span></th>
+        <th @click="sortData('duration')">持續時長 <span :class="getArrowClass('duration')"></span></th>
+        <th @click="sortData('os')">操作系統 <span :class="getArrowClass('os')"></span></th>
+        <th @click="sortData('browser')">瀏覽器 <span :class="getArrowClass('browser')"></span></th>
+        <th @click="sortData('called_at')">請求時間 <span :class="getArrowClass('called_at')"></span></th>
       </tr>
       </thead>
       <tbody>
@@ -113,8 +113,15 @@
   </div>
 </template>
 
+
+
 <script>
-import api from '../axios';  // 引入全局 axios 配置
+import { Line } from 'vue-chartjs';
+import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, CategoryScale, LinearScale, PointElement } from 'chart.js';
+import api from '../axios'; // 引入API请求配置
+
+ChartJS.register(Title, Tooltip, Legend, LineElement, CategoryScale, LinearScale, PointElement);
+
 
 export default {
   data() {
@@ -130,6 +137,17 @@ export default {
       showAPICallsModal: false, // 控制API调用统计弹窗
       uniqueUsersCount: 0,  // 独特用户数
       uniqueIPsCount: 0,    // 独特IP地址数
+      sortOrder: {  // 控制排序的对象
+        user: 'asc',
+        totalDuration: 'desc',
+        occurrenceCount: 'desc',
+        ip: 'asc',
+        path: 'asc',
+        duration: 'desc',
+        os: 'asc',
+        browser: 'asc',
+        called_at: 'desc',
+      },
     };
   },
   async mounted() {
@@ -145,7 +163,7 @@ export default {
         const userLogs = this.apiLogs.filter(log => log.user === user);
         const totalDuration = userLogs.reduce((acc, log) => acc + log.duration, 0);
         const occurrenceCount = userLogs.length;
-        return { user: user || '未登錄用戶', totalDuration, occurrenceCount };  // 处理空用户名
+        return { user: user || '匿名用戶', totalDuration, occurrenceCount };  // 处理空用户名
       });
 
       // 排序：按总使用时长从大到小
@@ -176,6 +194,49 @@ export default {
     }
   },
   methods: {
+    // 跳转到图表页面
+    goToApiStatsPage() {
+      this.$router.push({name: 'ApiChart'});
+    },
+    // 获取箭头的 CSS 类
+    getArrowClass(field) {
+      return this.sortOrder[field] === 'asc' ? 'arrow-up' : 'arrow-down';
+    },
+    // 排序方法
+    sortData(field) {
+      const currentOrder = this.sortOrder[field] === 'asc' ? 'desc' : 'asc';
+      this.sortOrder[field] = currentOrder;
+
+      if (field === 'called_at') {
+        // 处理时间字段排序
+        this.apiLogs.sort((a, b) => {
+          const timeA = new Date(a.called_at).getTime();
+          const timeB = new Date(b.called_at).getTime();
+          return currentOrder === 'asc' ? timeA - timeB : timeB - timeA;
+        });
+      } else if (field === 'user' || field === 'ip' || field === 'path' || field === 'os' || field === 'browser') {
+        // 字符串字段排序
+        this.apiLogs.sort((a, b) => {
+          const valueA = a[field] || '';
+          const valueB = b[field] || '';
+          if (currentOrder === 'asc') {
+            return valueA.localeCompare(valueB);
+          } else {
+            return valueB.localeCompare(valueA);
+          }
+        });
+      } else {
+        // 数字字段排序
+        this.apiLogs.sort((a, b) => {
+          if (currentOrder === 'asc') {
+            return a[field] - b[field];
+          } else {
+            return b[field] - a[field];
+          }
+        });
+      }
+    },
+
     // 將 UTC 時間轉換為北京時間（加上 8 小時）
     formatTime(lastLogin) {
       if (!lastLogin) return '未知時間';  // 如果時間無效，顯示"未知時間"
@@ -281,6 +342,27 @@ tr.clickable:hover {
   transition: background-color 0.3s ease; /* 平滑过渡 */
   cursor: pointer;
 }
+/* 添加排序箭头的样式 */
+.arrow-up::after {
+  content: '↑';
+  margin-left: 5px;
+  font-size: 14px;
+}
 
+.arrow-down::after {
+  content: '↓';
+  margin-left: 5px;
+  font-size: 14px;
+}
+
+/* 可以加上一个旋转的样式来优化箭头显示 */
+th {
+  cursor: pointer;
+  user-select: none;
+}
+
+th:hover {
+  color: #4CAF50;
+}
 
 </style>
