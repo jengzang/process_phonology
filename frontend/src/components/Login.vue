@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import api from '../api';  // 根據實際路徑調整
+import api from '../utils';  // 根據實際路徑調整
 
 export default {
   data() {

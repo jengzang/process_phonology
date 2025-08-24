@@ -81,6 +81,7 @@
 
 <script>
 import api from '../axios';  // 引入我們的全局 axios 配置
+import {formatTime} from "../utils.js";
 
 export default {
   data() {
@@ -125,20 +126,12 @@ export default {
     }
   },
   methods: {
+    formatTime,
     // 將秒數轉換為小時和分鐘格式
     formatOnlineTime(seconds) {
       const hours = Math.floor(seconds / 3600);
       const minutes = Math.floor((seconds % 3600) / 60);
       return `${hours}小時 ${minutes}分鐘`;
-    },
-
-    // 將 UTC 時間轉換為北京時間（加上 8 小時）
-    formatTime(lastLogin) {
-      if (!lastLogin) return '未知時間';  // 如果時間無效，顯示"未知時間"
-      const date = new Date(lastLogin);  // 轉換為 Date 對象
-      if (isNaN(date)) return '無效時間';  // 檢查時間是否有效
-      date.setHours(date.getHours() + 8);  // 增加 8 小時以轉換為北京時間
-      return date.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });  // 格式化為北京時間
     },
 
     processIpCounts() {

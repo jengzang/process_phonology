@@ -60,6 +60,7 @@ class InformationBase(BaseModel):
     值: str
     說明: Optional[str]  # 這樣就允許說明為 None
     username: str
+    created_at: Optional[datetime]
 
     class Config:
         from_attributes = True

@@ -13,6 +13,7 @@
       <tr>
         <th>用戶名</th>
         <th>Email</th>
+        <th>數據總數</th> <!-- 新增的列 -->
         <th>管理員操作</th>
       </tr>
       </thead>
@@ -23,7 +24,9 @@
           {{ user.username }}
         </td>
         <td>{{ user.email }}</td>
+        <td>{{ user.data_count }}</td> <!-- 顯示用戶的數據總數 -->
         <td>
+          <button @click="goToCustomPerUser(user)">個人數據</button>
           <button @click="viewUserStats(user)">查看統計信息</button>
           <button @click="editUser(user)">編輯</button>
           <button @click="showDeleteConfirm(user)">刪除</button>
@@ -58,8 +61,20 @@ export default {
     // 獲取用戶列表
     async getUsers() {
       try {
+        // 獲取用戶列表
         const response = await api.get('/users/all');
-        this.users = response.data;
+        const users = response.data;
+
+        // 獲取每個用戶的數據總數
+        const dataCountResponse = await api.get('/custom-query/num');
+        const dataCounts = dataCountResponse.data;
+        // 將數據總數與用戶列表合併
+        users.forEach(user => {
+          const userData = dataCounts.find(item => item.username === user.username);
+          user.data_count = userData ? userData.data_count : 0;  // 如果沒有數據則設為 0
+        });
+
+        this.users = users;
       } catch (error) {
         console.error('Error fetching users', error);
         if (error.response && error.response.status === 401) {
@@ -120,7 +135,10 @@ export default {
     async editUser(user) {
       this.$router.push({name: 'EditUser', query: {username: user.username, email: user.email}});
     },
-
+    // 查看用戶個人界面
+    goToCustomPerUser(user) {
+      this.$router.push({ name: 'PerUser' ,query: {username: user.username}});  // 跳轉到創建用戶頁面
+    },
 
   },
   mounted() {

@@ -1,4 +1,4 @@
-// api.js
+// utils.js
 const getToken = () => {
     // 先從 localStorage 中讀取 Token
     let token = localStorage.getItem('ACCESS_TOKEN');
@@ -34,3 +34,12 @@ function getCookie(name) {
 }
 
 export default api;  // 導出 api 函數
+
+
+export function formatTime(lastLogin) {
+    if (!lastLogin) return '未知時間';  // 如果時間無效，顯示"未知時間"
+    const date = new Date(lastLogin);  // 轉換為 Date 對象
+    if (isNaN(date)) return '無效時間';  // 檢查時間是否有效
+    date.setHours(date.getHours() + 8);  // 增加 8 小時以轉換為北京時間
+    return date.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });  // 格式化為北京時間
+}

@@ -86,6 +86,8 @@
       </div>
     </div>
 
+
+<!--    詳細表格-->
     <table>
       <thead>
       <tr>
@@ -99,7 +101,7 @@
       </tr>
       </thead>
       <tbody>
-      <tr v-for="(log, index) in apiLogs" :key="index">
+      <tr v-for="(log, index) in currentPageData" :key="index">
         <td>{{ log.user || '' }}</td> <!-- 用户 -->
         <td>{{ log.ip }}</td>
         <td>{{ log.path }}</td>
@@ -110,22 +112,28 @@
       </tr>
       </tbody>
     </table>
+
+    <!-- 分頁控制 -->
+    <div class="pagination-controls">
+      <button @click="prevPage" :disabled="currentPage === 1">上一頁</button>
+      <span>頁面 {{ currentPage }} / {{ totalPages }}</span>
+      <button @click="nextPage" :disabled="currentPage === totalPages">下一頁</button>
+    </div>
   </div>
 </template>
 
 
 
 <script>
-import { Line } from 'vue-chartjs';
-import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, CategoryScale, LinearScale, PointElement } from 'chart.js';
 import api from '../axios'; // 引入API请求配置
-
-ChartJS.register(Title, Tooltip, Legend, LineElement, CategoryScale, LinearScale, PointElement);
-
+import {formatTime} from "../utils.js";
 
 export default {
   data() {
     return {
+      currentPage: 1,  // 当前页码
+      pageSize: 50,   // 每页显示的记录数
+      totalPages: 1,  // 总页数
       userName: '',  // 用户名
       apiLogs: [],   // 用于存储用户的 API 使用记录
       uniqueUsers: [],  // 存储独特用户列表
@@ -148,11 +156,14 @@ export default {
         browser: 'asc',
         called_at: 'desc',
       },
+      sortField: '',  // 当前排序字段
     };
   },
   async mounted() {
     try {
-      const response = await api.get(`/api-usage/api-usage`);  // 请求后端接口获取 API 使用情况
+      const response = await api.get(`/api-usage/api-usage`, {
+        params: { page: this.currentPage, limit: this.pageSize } // 添加分頁參數
+      });
       this.apiLogs = response.data;  // 处理返回的 API 使用记录
 
       // 独特用户统计
@@ -189,11 +200,26 @@ export default {
         this.totalAPICalls += 1;
         return acc;
       }, {});
+
+      // 总页数的计算
+      this.totalPages = Math.ceil(this.totalAPICalls / this.pageSize);
+
+      // 排序数据
+      this.sortData();  // 初始化时排序所有数据
+
     } catch (error) {
       console.error('Error fetching API usage data', error);
     }
   },
+  computed: {
+// 当前页面的数据
+    currentPageData() {
+      const startIndex = (this.currentPage - 1) * this.pageSize;
+      return this.apiLogs.slice(startIndex, startIndex + this.pageSize);  // 根据当前页码和每页显示的数据数量筛选
+    },
+  },
   methods: {
+    formatTime,
     // 跳转到图表页面
     goToApiStatsPage() {
       this.$router.push({name: 'ApiChart'});
@@ -207,6 +233,7 @@ export default {
       const currentOrder = this.sortOrder[field] === 'asc' ? 'desc' : 'asc';
       this.sortOrder[field] = currentOrder;
 
+      // 排序字段为时间的特殊处理
       if (field === 'called_at') {
         // 处理时间字段排序
         this.apiLogs.sort((a, b) => {
@@ -235,15 +262,31 @@ export default {
           }
         });
       }
+
+      // 排序之后重新计算分页
+      this.totalPages = Math.ceil(this.apiLogs.length / this.pageSize);
+      this.currentPage = 1;  // 重置当前页为第一页
     },
 
-    // 將 UTC 時間轉換為北京時間（加上 8 小時）
-    formatTime(lastLogin) {
-      if (!lastLogin) return '未知時間';  // 如果時間無效，顯示"未知時間"
-      const date = new Date(lastLogin);  // 轉換為 Date 對象
-      if (isNaN(date)) return '無效時間';  // 檢查時間是否有效
-      date.setHours(date.getHours() + 8);  // 增加 8 小時以轉換為北京時間
-      return date.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });  // 格式化為北京時間
+    // 上一页
+    prevPage() {
+      if (this.currentPage > 1) {
+        this.currentPage--;
+        this.fetchPageData();
+      }
+    },
+
+    // 下一页
+    nextPage() {
+      if (this.currentPage < this.totalPages) {
+        this.currentPage++;
+        this.fetchPageData();
+      }
+    },
+
+    // 更新当前页数据
+    fetchPageData() {
+      this.totalPages = Math.ceil(this.apiLogs.length / this.pageSize);  // 重新计算总页数
     },
     // 弹出独特用户的表格
     showUniqueUsers() {
@@ -363,6 +406,41 @@ th {
 
 th:hover {
   color: #4CAF50;
+}
+
+/* 样式调整分页按钮 */
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.pagination-controls button {
+  padding: 10px 20px;
+  margin: 0 10px;
+  background-color: #4CAF50; /* 按钮的背景颜色 */
+  color: white; /* 按钮文本的颜色 */
+  border: none;
+  border-radius: 5px; /* 圆角效果 */
+  font-size: 16px;
+  cursor: pointer; /* 鼠标悬停时显示为指针 */
+  transition: all 0.3s ease; /* 平滑的过渡效果 */
+}
+
+.pagination-controls button:hover {
+  background-color: #45a049; /* 鼠标悬停时背景颜色变暗 */
+  transform: scale(1.05); /* 鼠标悬停时按钮稍微放大 */
+}
+
+.pagination-controls button:disabled {
+  background-color: #ccc; /* 禁用按钮的背景颜色 */
+  cursor: not-allowed; /* 禁用时的鼠标样式 */
+}
+
+.pagination-controls span {
+  font-size: 16px;
+  align-self: center;
+  color: #333;
 }
 
 </style>
