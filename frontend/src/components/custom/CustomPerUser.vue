@@ -4,16 +4,22 @@
     <div class="top-controls">
       <p>當前共有 {{ users.length }} 條數據</p>
       <button @click="goToCreateCustom(username)" >添加數據</button>
-      <button @click="goToDeleteCustom(username)" style="background: darkred;">刪除數據</button>
-      <button @click="goToEditCustom(username)" style="background: darkblue">編輯數據</button>
+      <button @click="toggleSelectMode" :style="selectMode  ? { background: '#f7a400' } : {background: '#1c8dba'}">選擇數據</button>
+      <button v-if="selectMode" @click="goToDeleteCustom(username)" style="background: darkred;">刪除數據</button>
+      <button v-if="selectMode" @click="goToEditCustom(username)" style="background: darkblue">編輯數據</button>
+      <button v-if="selectMode" @click="reverseSelect" style="background: #777;">反選</button>
       <!-- 搜索框 -->
       <div class="search-container">
         <input v-model="searchQuery" @input="searchUser" type="text" placeholder="搜索用戶名、簡稱、音典分區、特徵、值、說明" />
       </div>
     </div>
+
     <table v-if="users.length" border="1">
       <thead>
       <tr>
+        <th v-if="selectMode">
+          <input type="checkbox" :checked="isAllSelected" @change="toggleSelectAll" />
+        </th>
         <th @click="sortData('簡稱')">簡稱 <span :class="getArrowClass('簡稱')"></span></th>
         <th @click="sortData('音典分區')">音典分區 <span :class="getArrowClass('音典分區')"></span></th>
         <th @click="sortData('經緯度')">經緯度 <span :class="getArrowClass('經緯度')"></span></th>
@@ -25,13 +31,16 @@
       </thead>
       <tbody>
       <tr v-for="user in currentPageData" :key="user.id">
+        <td v-if="selectMode">
+          <input type="checkbox" :checked="isSelected(user.created_at)" @change="toggleSelection(user.created_at)" />
+        </td>
         <td>{{ user.簡稱 }}</td>
         <td>{{ user.音典分區 }}</td>
         <td>{{ user.經緯度 }}</td>
         <td>{{ user.特徵 }}</td>
         <td>{{ user.值 }}</td>
         <td>{{ user.說明 || '無' }}</td> <!-- 如果說明為 null 或 undefined，顯示 '無' -->
-        <td>{{ formatTime(user.created_at)}}</td>
+        <td>{{ formatTime(user.created_at) }}</td>
       </tr>
       </tbody>
     </table>
@@ -69,6 +78,9 @@ export default {
       },
       sortField: '',  // 当前排序字段
       username: '',  // 当前的用户名
+      selectMode: false, // 控制是否处于选择模式
+      selectedUsers: [],  // 存储被选中的用户id
+      selectAll: false, // 用于全选/反选
     };
   },
   async mounted() {
@@ -87,13 +99,10 @@ export default {
     }
   },
   computed: {
-    // 当前页面的数据
     currentPageData() {
       const startIndex = (this.currentPage - 1) * this.pageSize;
       return this.filteredUsers.slice(startIndex, startIndex + this.pageSize);  // 根据当前页码和每页显示的数据数量筛选
     },
-
-    // 过滤后的用户数据
     filteredUsers() {
       if (!this.searchQuery) {
         return this.users;
@@ -106,23 +115,56 @@ export default {
             (user.特徵 && user.特徵.toLowerCase().includes(searchTerm)) ||
             (user.值 && user.值.toLowerCase().includes(searchTerm)) ||
             (user.說明 && user.說明.toLowerCase().includes(searchTerm)) ||
-            formatTime(user.created_at).toLowerCase().includes(searchTerm) // 搜索创建时间
+            formatTime(user.created_at).toLowerCase().includes(searchTerm)
         );
       });
     },
   },
   methods: {
     formatTime,
-    // 获取箭头的 CSS 类
+    toggleSelectMode() {
+      this.selectMode = !this.selectMode;
+      this.selectedUsers = []; // 重置选中的数据
+    },
+    reverseSelect() {
+      const selectedSet = new Set(this.selectedUsers);
+      this.selectedUsers = this.users
+          .map(user => user.created_at)
+          .filter(created_at => !selectedSet.has(created_at)); // 反选未选中的数据
+    },
+
+    isSelected(createdAt) {
+      return this.selectedUsers.includes(createdAt);
+    },
+    // 切换选中状态
+    toggleSelection(createdAt) {
+      const index = this.selectedUsers.indexOf(createdAt);
+      if (index === -1) {
+        this.selectedUsers.push(createdAt);
+      } else {
+        this.selectedUsers.splice(index, 1);
+      }
+    },
+    toggleSelectAll() {
+      if (this.selectedUsers.length === this.users.length) {
+        // 如果当前已全选，则取消全选
+        this.selectedUsers = [];
+      } else {
+        // 否则全选
+        this.selectedUsers = this.users.map(user => user.created_at);
+      }
+    },
+
+    isAllSelected() {
+      return this.selectedUsers.length > 0 && this.selectedUsers.length === this.users.length;
+    },
     getArrowClass(field) {
       return this.sortOrder[field] === 'asc' ? 'arrow-up' : 'arrow-down';
     },
-    // 排序方法
     sortData(field) {
       const currentOrder = this.sortOrder[field] === 'asc' ? 'desc' : 'asc';
       this.sortOrder[field] = currentOrder;
 
-      // 排序字段为时间的特殊处理
       if (field === 'created_at') {
         this.users.sort((a, b) => {
           const timeA = new Date(a.created_at).getTime();
@@ -137,44 +179,47 @@ export default {
         });
       }
 
-      // 排序后重新计算分页
       this.totalPages = Math.ceil(this.users.length / this.pageSize);
-      this.currentPage = 1;  // 重置当前页为第一页
+      this.currentPage = 1;
     },
-
-    // 上一页
     prevPage() {
       if (this.currentPage > 1) {
         this.currentPage--;
       }
     },
-
-    // 下一页
     nextPage() {
       if (this.currentPage < this.totalPages) {
         this.currentPage++;
       }
     },
-
     goToCreateCustom(username) {
       this.$router.push({
         name: 'CreateCustom',
-        query: { username: username }
+        query: {username: username}
       });
     },
     goToDeleteCustom(username) {
+      // 存储选中的数据到 localStorage
+      localStorage.setItem('selectedUsers', JSON.stringify(this.selectedUsers));
+
+      // 跳转到删除页面
       this.$router.push({
         name: 'DeleteCustom',
-        query: { username: username }
+        query: {username: username}
       });
     },
+
     goToEditCustom(username) {
+      // 存储选中的数据到 localStorage
+      localStorage.setItem('selectedUsers', JSON.stringify(this.selectedUsers));
+
+      // 跳转到编辑页面
       this.$router.push({
         name: 'EditCustom',
-        query: { username: username }
+        query: {username: username}
       });
-    }
-  },
+    },
+  }
 };
 </script>
 

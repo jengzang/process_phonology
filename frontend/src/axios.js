@@ -19,12 +19,12 @@ const getAuthToken = () => {
     // 首先從 localStorage 讀取 Token
     // 首先從 localStorage 讀取 Token
     let token = localStorage.getItem('ACCESS_TOKEN');
-    console.log('Token from localStorage:', token);  // 加入這行檢查
+    // console.log('Token from localStorage:', token);  // 加入這行檢查
 
     // 如果 localStorage 沒有 Token，再從 Cookie 讀取 Token
     if (!token) {
         token = getCookie('ACCESS_TOKEN');
-        console.log('Token from Cookie:', token);  // 加入這行檢查
+        // console.log('Token from Cookie:', token);  // 加入這行檢查
     }
 
     return token;

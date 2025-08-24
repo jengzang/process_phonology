@@ -68,4 +68,4 @@ class InformationBase(BaseModel):
 
 class EditRequest(BaseModel):
     username: str
-    created_at: datetime
+    created_at: str

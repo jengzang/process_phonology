@@ -1,7 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List
 
-from fastapi import HTTPException, APIRouter
+from fastapi import HTTPException, APIRouter, Query
 
 from app.auth.models import User
 from app.custom.database import SessionLocal as SessionLocal_info
@@ -24,6 +24,8 @@ async def delete_custom_by_admin(requests: List[EditRequest]):
             user = session_user.query(User).filter(User.username == request.username).first()
             if not user:
                 raise HTTPException(status_code=404, detail=f"用戶 {request.username} 未找到")
+            if user.role == "admin":
+                raise HTTPException(status_code=400, detail="不能刪除管理員的數據！")
 
             # 查找并删除符合条件的记录
             user_data = session_info.query(Information).filter(
@@ -61,8 +63,10 @@ async def create_custom_by_admin(infos: List[InformationBase]):
 
     try:
         created_records = []
+        # 当前时间，用于计算微小的时间差
+        base_time = datetime.utcnow()
 
-        for info in infos:
+        for index, info in enumerate(infos):
             if not info.簡稱 or not info.音典分區 or not info.經緯度 or not info.特徵 or not info.值 :
                 raise HTTPException(status_code=400, detail="有字段為空！")
             # 根据 username 获取对应的 user_id
@@ -71,8 +75,8 @@ async def create_custom_by_admin(infos: List[InformationBase]):
                 raise HTTPException(status_code=404, detail=f"用戶 {info.username} 未找到")
 
             # 自动生成 created_at
-            created_at = datetime.utcnow()
-
+            # created_at = datetime.utcnow()
+            created_at = base_time + timedelta(milliseconds=index * 50)  # 延迟 0.1秒
             # 调用 get_max_value 函数，根据值生成 maxValue
             max_value = get_max_value(info.值)
 
@@ -101,6 +105,35 @@ async def create_custom_by_admin(infos: List[InformationBase]):
 
     except Exception as e:
         session_info.rollback()
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+    finally:
+        session_info.close()
+        session_user.close()
+
+@router.post("/selected", response_model=List[InformationBase])
+async def selected_custom(requests: List[EditRequest]):
+    session_info = SessionLocal_info()
+    session_user = SessionLocal_user()
+
+    try:
+        all_user_data = []
+        for request in requests:
+            # 根据用户名查找用户
+            user = session_user.query(User).filter(User.username == request.username).first()
+            if not user:
+                raise HTTPException(status_code=404, detail=f"用戶 {request.username} 未找到")
+
+            user_data = session_info.query(Information).filter(
+                Information.user_id == user.id,
+                Information.created_at == request.created_at
+            ).all()
+            if user_data:  # 如果有符合条件的数据，则添加到结果列表中
+                all_user_data.extend(user_data)
+
+        # 返回所有符合条件的数据
+        return all_user_data
+
+    except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
     finally:
         session_info.close()
