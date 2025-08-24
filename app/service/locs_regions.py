@@ -1,12 +1,16 @@
+from typing import Union, List
+import sqlite3
 import math
 import re
-import sqlite3
-from typing import Union, List
 
-from common.config import SUPPLE_DB_PATH, QUERY_DB_ADMIN
+from sqlalchemy.orm import Session
+
+from app.custom.models import Information
+from common.config import QUERY_DB_ADMIN
 
 
-def fetch_dialect_region(input_data: Union[str, List[str]], query_db=QUERY_DB_ADMIN) -> dict:
+def fetch_dialect_region(input_data: Union[str, List[str]], query_db=QUERY_DB_ADMIN, user=None,
+                         db: Session = None, ) -> dict:
     if isinstance(input_data, list):
         query_str = input_data[0]  # 取數組的第一個元素
     else:
@@ -28,9 +32,11 @@ def fetch_dialect_region(input_data: Union[str, List[str]], query_db=QUERY_DB_AD
     # 首先查詢主資料庫的表
     result = query_database(query_db, 'dialects')  # 假設主資料庫表名為 'dialects'
 
-    # 如果在主資料庫中找不到結果，則查詢補充資料庫的表
-    if not result:
-        result = query_database(SUPPLE_DB_PATH, 'informations')  # 假設補充資料庫表名為 'informations'
+    # 如果在主資料庫中找不到結果，則查詢補充資料庫的表 informations，並根據 user_id 進行過濾
+    if (not result) and db and user:
+    # if db and user:
+        result = db.query(Information.音典分區).filter(Information.簡稱 == query_str,
+                                                       Information.user_id == user.id).first()
 
     # 如果找到結果，返回音典分區；否則返回錯誤消息
     if result:
@@ -39,13 +45,11 @@ def fetch_dialect_region(input_data: Union[str, List[str]], query_db=QUERY_DB_AD
         return {"error": "未找到對應的音典分區"}
 
 
-import sqlite3
-import math
-import re
-
 def get_coordinates_from_db(abbreviation_list, supplementary_abbreviation_list=None,
-                            db_path=QUERY_DB_ADMIN, use_supplementary_db=False):
+                            db_path=QUERY_DB_ADMIN, use_supplementary_db=False, user=None,
+                            db: Session = None, ):
     # print("即將處理經緯度")
+    print(user)
 
     def haversine(lat1, lon1, lat2, lon2):
         R = 6371
@@ -72,7 +76,8 @@ def get_coordinates_from_db(abbreviation_list, supplementary_abbreviation_list=N
         return 10
 
     if supplementary_abbreviation_list:
-        supplementary_abbreviation_list = [abbr for abbr in supplementary_abbreviation_list if abbr not in abbreviation_list]
+        supplementary_abbreviation_list = [abbr for abbr in supplementary_abbreviation_list if
+                                           abbr not in abbreviation_list]
     abbreviation_list = [abbreviation for abbreviation in abbreviation_list if abbreviation]
 
     conn = sqlite3.connect(db_path)
@@ -107,13 +112,17 @@ def get_coordinates_from_db(abbreviation_list, supplementary_abbreviation_list=N
             print(f"未找到簡稱：{abbreviation}")
 
     # 查補充數據庫（如需）
-    if use_supplementary_db and supplementary_abbreviation_list:
-        conn_supplementary = sqlite3.connect(SUPPLE_DB_PATH)
-        cursor_supplementary = conn_supplementary.cursor()
-
+    # print(use_supplementary_db)
+    # print(supplementary_abbreviation_list)
+    # print(user)
+    # print(db)
+    if use_supplementary_db and supplementary_abbreviation_list and user and db:
         for abbreviation in supplementary_abbreviation_list:
-            cursor_supplementary.execute("SELECT 經緯度, 音典分區 FROM informations WHERE 簡稱=?", (abbreviation,))
-            row = cursor_supplementary.fetchone()
+            # print(abbreviation)
+            # 使用 SQLAlchemy 查詢 informations 表，並根據 user 進行過濾
+            row = db.query(Information.經緯度, Information.音典分區).filter(
+                Information.簡稱 == abbreviation, Information.user_id == user.id).first()
+
             if row:
                 lat_lon_str, region = row
                 try:
@@ -127,7 +136,6 @@ def get_coordinates_from_db(abbreviation_list, supplementary_abbreviation_list=N
                     print(f"無法解析經緯度：{lat_lon_str}")
             else:
                 print(f"未找到簡稱：{abbreviation}")
-        conn_supplementary.close()
 
     valid_latitudes = [lat for lat in latitudes if lat is not None]
     valid_longitudes = [lon for lon in longitudes if lon is not None]
@@ -171,4 +179,3 @@ def get_coordinates_from_db(abbreviation_list, supplementary_abbreviation_list=N
     }
 
     return coordinates
-

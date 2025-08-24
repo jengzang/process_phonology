@@ -1,4 +1,5 @@
 # schemas/form.py
+from datetime import datetime
 
 from pydantic import BaseModel
 from typing import Optional
@@ -20,3 +21,4 @@ class FormData(BaseModel):
     feature: str
     value: str
     description: Optional[str] = None  # 選填
+    created_at: Optional[str] = None  # submit沒有，delete必填

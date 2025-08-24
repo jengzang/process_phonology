@@ -39,6 +39,33 @@
         </table>
       </div>
     </div>
+    <div v-if="showUserModal" class="modal">
+      <div class="modal-content">
+        <span class="close" @click="closeUserModal">&times;</span>
+        <h3>用户列表</h3>
+        <table>
+          <thead>
+          <tr>
+            <th>用戶名</th>
+            <th>總使用時長</th>
+            <th>次數</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr
+              v-for="userStat in userStats"
+              :key="userStat.user"
+              :class="{ 'clickable': userStat.user !== '匿名用戶' }"
+              @click="userStat.user !== '匿名用戶' && viewUserStats(userStat.user)"
+          >
+            <td>{{ userStat.user }}</td>  <!-- 显示用户名 -->
+            <td>{{ userStat.totalDuration.toFixed(3) }}s</td> <!-- 总使用时长 -->
+            <td>{{ userStat.occurrenceCount }}</td> <!-- 出现次数 -->
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
     <!-- 独特IP弹窗 -->
     <div v-if="showIPModal" class="modal">
@@ -73,13 +100,15 @@
           <thead>
           <tr>
             <th>API 路徑</th>
+            <th>總時長</th>  <!-- 新增总持续时间列 -->
             <th>調用次數</th>
           </tr>
           </thead>
           <tbody>
-          <tr v-for="(count, path) in apiCalls" :key="path">
+          <tr v-for="(data, path) in apiCalls" :key="path">
             <td>{{ path }}</td>
-            <td>{{ count }}</td>
+            <td>{{ data.totalDuration.toFixed(3) }}s</td>  <!-- 显示总持续时间 -->
+            <td>{{ data.count }}</td>
           </tr>
           </tbody>
         </table>
@@ -87,7 +116,7 @@
     </div>
 
 
-<!--    詳細表格-->
+    <!--    詳細表格-->
     <table>
       <thead>
       <tr>
@@ -125,8 +154,8 @@
 
 
 <script>
-import api from '../axios'; // 引入API请求配置
-import {formatTime} from "../utils.js";
+import api from '../../axios.js'; // 引入API请求配置
+import {formatTime} from "../../utils.js";
 
 export default {
   data() {
@@ -194,9 +223,13 @@ export default {
       // 排序：按总使用时长从大到小
       this.ipStats.sort((a, b) => b.totalDuration - a.totalDuration);
 
-      // 统计每个 API 调用的次数和总数
+      // 统计每个 API 调用的次数和总的持续时间
       this.apiCalls = this.apiLogs.reduce((acc, log) => {
-        acc[log.path] = (acc[log.path] || 0) + 1;
+        if (!acc[log.path]) {
+          acc[log.path] = { count: 0, totalDuration: 0 };
+        }
+        acc[log.path].count += 1;
+        acc[log.path].totalDuration += log.duration;
         this.totalAPICalls += 1;
         return acc;
       }, {});

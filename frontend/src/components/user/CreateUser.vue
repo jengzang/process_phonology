@@ -49,7 +49,7 @@
 </template>
 
 <script>
-import api from '../axios';  // 引入我們的 axios 配置
+import api from '../../axios.js';  // 引入我們的 axios 配置
 
 export default {
   data() {
@@ -86,27 +86,77 @@ export default {
 <style scoped>
 /* 表單樣式 */
 .form-group {
-  margin-bottom: 15px;
+  width: 100%;
+  max-width: 600px; /* 设置表单最大宽度 */
+  margin: 0 auto; /* 居中显示表单 */
 }
 
 input, select {
   width: 100%;
-  padding: 8px;
+  padding: 12px;
   font-size: 16px;
-  border-radius: 4px;
-  margin-top: 5px;
+  border-radius: 12px; /* 更加圆润的输入框 */
+  margin-top: 10px;
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
+  transition: all 0.3s ease;
+  box-sizing: border-box; /* 确保内边距不会让元素撑开 */
 }
 
+/* 输入框聚焦时的效果 */
+input:focus, select:focus {
+  border-color: #28a745; /* 绿色的聚焦边框 */
+  outline: none;
+  box-shadow: 0 0 8px rgba(40, 167, 69, 0.3); /* 绿色阴影 */
+}
+
+/* 按钮样式 */
 button {
-  padding: 10px 15px;
+  padding: 12px 20px;
   font-size: 16px;
-  border-radius: 4px;
+  border-radius: 12px;
   cursor: pointer;
-  background-color: #007bff;
+  background-color: #28a745; /* 绿色按钮 */
   color: white;
+  border: none;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  width: auto;  /* 按钮宽度自适应 */
+  margin-top: 10px;
+  display: inline-block;
 }
 
+/* 按钮悬停效果 */
 button:hover {
-  background-color: #0056b3;
+  background-color: #218838; /* 深绿色 */
+  transform: scale(1.05); /* 按钮放大 */
 }
+
+/* 按钮点击时的酷炫效果 */
+button:active {
+  transform: scale(0.98); /* 按钮点击时稍微缩小 */
+  background-color: #1e7e34; /* 点击后的深绿色 */
+}
+
+button:disabled {
+  background-color: #d6e9d7; /* 禁用按钮的颜色 */
+  cursor: not-allowed;
+}
+
+/* 表单区域 */
+.form-group label {
+  font-weight: bold;
+  color: #333;
+}
+
+.form-group input, .form-group select {
+  font-family: 'Arial', sans-serif; /* 苹果风格的字体 */
+}
+
+/* 让所有的表单控件都更加现代 */
+input, select {
+  font-family: 'Arial', sans-serif;
+}
+
 </style>
+
+

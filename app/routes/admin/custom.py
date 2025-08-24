@@ -88,7 +88,7 @@ async def get_user_data_count():
 
 # 根據用戶名查詢用戶數據
 @router.get("/user", response_model=List[InformationBase])
-async def get_user_data(query: str = Query(..., description="用戶名")):
+async def get_custom_peruser(query: str = Query(..., description="用戶名")):
     session_info = SessionLocal_info()
     session_user = SessionLocal_user()
 

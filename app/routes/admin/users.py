@@ -83,6 +83,16 @@ def update_user(query: str, user: UserUpdateSchema, db: Session = Depends(get_db
     if db_user.role == "admin":
         raise HTTPException(status_code=400, detail="不能編輯管理員！")
 
+    # 檢查是否已經有相同的用戶名或郵箱
+    if user.username:
+        existing_user_by_username = db.query(models.User).filter(models.User.username == user.username).first()
+        if existing_user_by_username:
+            raise HTTPException(status_code=400, detail="Username already exists")
+
+    if user.email:
+        existing_user_by_email = db.query(models.User).filter(models.User.email == user.email).first()
+        if existing_user_by_email:
+            raise HTTPException(status_code=400, detail="Email already exists")
     # 根據傳遞的字段進行更新
     if user.username:  # 如果傳遞了新的用戶名
         db_user.username = user.username

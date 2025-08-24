@@ -21,6 +21,8 @@
         />
       </div>
 
+      <button type="button" @click="updateUsername" class="btn btn-primary">更新用戶名</button>
+
       <!-- 郵箱輸入框 -->
       <div class="form-group">
         <label for="email">新郵箱:</label>
@@ -31,18 +33,15 @@
             class="form-control"
         />
       </div>
-
       <!-- 更新按鈕 -->
-      <div class="form-buttons">
-        <button type="button" @click="updateUsername" class="btn btn-primary">更新用戶名</button>
-        <button type="button" @click="updateEmail" class="btn btn-secondary">更新郵箱</button>
-      </div>
+      <button type="button" @click="updateEmail" class="btn btn-secondary">更新郵箱</button>
+
     </form>
   </div>
 </template>
 
 <script>
-import api from '../axios';  // 引入我們的全局 axios 配置
+import api from '../../axios.js';  // 引入我們的全局 axios 配置
 
 export default {
   data() {
@@ -122,6 +121,7 @@ export default {
 }
 
 .form-group {
+  font-size: 18px;
   margin-bottom: 15px;
 }
 
@@ -133,42 +133,50 @@ export default {
 
 .form-control {
   width: 100%;
-  padding: 8px;
+  padding: 10px;
   font-size: 16px;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 10px; /* 圓角設計 */
+  transition: all 0.3s ease; /* 平滑過渡 */
 }
 
-.form-buttons {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-start;
+.form-control:focus {
+  border-color: #4CAF50; /* 聚焦時綠色邊框 */
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.5); /* 聚焦時陰影 */
 }
+
 
 button {
-  padding: 10px 15px;
+  padding: 12px 20px;
   font-size: 16px;
-  border-radius: 4px;
+  border-radius: 10px; /* 圓角設計 */
+  margin-bottom: 30px;
   cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  border: none;
 }
 
 .btn-primary {
-  background-color: #007bff;
+  background-color: #4CAF50; /* 綠色按鈕 */
   color: white;
-  border: none;
 }
 
 .btn-primary:hover {
-  background-color: #0056b3;
+  background-color: #45a049; /* 按鈕懸停顏色 */
+  transform: scale(1.05);
 }
 
 .btn-secondary {
-  background-color: #6c757d;
+  background-color: #8bc34a; /* 淺綠色 */
   color: white;
-  border: none;
 }
 
 .btn-secondary:hover {
-  background-color: #5a6268;
+  background-color: #7cb342; /* 按鈕懸停顏色 */
+  transform: scale(1.05);
+}
+
+button:active {
+  transform: scale(0.98);
 }
 </style>

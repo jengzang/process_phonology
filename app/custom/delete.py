@@ -13,7 +13,10 @@ def handle_form_deletion(form_data: dict, user: User, db: Session):
     # coordinates = form_data.get('coordinates', None)
     feature = form_data.get('feature')
     value = form_data.get('value')
-    # description = form_data.get('description', None)  # 保留，但不使用
+    # description = form_data.get('description', None)
+    created_at = form_data.get('created_at')
+    if created_at:
+        created_at = created_at.replace('T', ' ')
 
     if not location or not feature or not value:
         return {"success": False, "message": "⚠️ 程序出錯，地點/特徵/值存在空值"}
@@ -23,7 +26,8 @@ def handle_form_deletion(form_data: dict, user: User, db: Session):
         Information.user_id == user.id,
         Information.簡稱 == location,
         Information.特徵 == feature,
-        Information.值 == value
+        Information.值 == value,
+        Information.created_at == created_at
     ).all()
 
     if not records_to_delete:

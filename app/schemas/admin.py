@@ -60,7 +60,12 @@ class InformationBase(BaseModel):
     值: str
     說明: Optional[str]  # 這樣就允許說明為 None
     username: str
-    created_at: Optional[datetime]
+    user_id: Optional[int] = None  # 后端自动填充，不需要用户传递
+    created_at: Optional[datetime] = None  # 后端自动生成
 
     class Config:
         from_attributes = True
+
+class EditRequest(BaseModel):
+    username: str
+    created_at: datetime

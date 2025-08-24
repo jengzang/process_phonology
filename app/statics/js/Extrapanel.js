@@ -102,10 +102,12 @@ async function locations2regions(){
                         suggestionadd.style.display = "none";  // 关闭建议框
                         // 发送请求到后端获取音典分区
                         try {
+                            const token = localStorage.getItem("ACCESS_TOKEN")
                             // 使用 GET 请求
                             const response = await fetch(`${window.API_BASE}/get_regions?input_data=${encodeURIComponent(item)}`, {
                                 method: "GET",  // 使用 GET 请求
-                                // headers: { "Content-Type": "application/json" }
+                                headers: { "Content-Type": "application/json",
+                                    ...(token ? { Authorization: `Bearer ${token}` } : {})}
                             });
 
                             // 确保返回的是 JSON 格式

@@ -9,7 +9,7 @@
 <script>
 import { Line } from 'vue-chartjs';
 import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, CategoryScale, LinearScale, PointElement, TimeScale } from 'chart.js';
-import api from '../axios'; // 引入API请求配置
+import api from '../../axios.js'; // 引入API请求配置
 import 'chartjs-adapter-date-fns'; // 引入时间适配器
 
 ChartJS.register(Title, Tooltip, Legend, LineElement, CategoryScale, LinearScale, PointElement, TimeScale);

@@ -201,6 +201,7 @@ miniBtn0.addEventListener("click", async () => {
     const feature = window.detailfeature;
     const value = window.detailvalue;
     const location = window.detaillocation;
+    const created_at = window.detaildatatime;
     // 顯示確認刪除的對話框
     const isConfirmed = confirm(
         "⚠️ 你確定要刪除這條信息嗎？\n" +
@@ -227,16 +228,17 @@ miniBtn0.addEventListener("click", async () => {
             // coordinates: null,
             feature: feature,
             value: value,
+            created_at:created_at,
             // description: null // 如果說明為空，設置為 null
         };
         const token = localStorage.getItem("ACCESS_TOKEN")
         fetch(`${window.API_BASE}/delete_form`, {
-            method: "POST",
+            method: "DELETE",  // 改為 DELETE 方法
             headers: {
                 "Content-Type": "application/json",
-                ...(token ? {Authorization: `Bearer ${token}`} : {})
+                ...(token ? { Authorization: `Bearer ${token}` } : {})  // 如果有 token，則添加 Authorization 標頭
             },
-            body: JSON.stringify(formData)
+            body: JSON.stringify(formData)  // 將表單數據作為請求體
         })
             .then(response => response.json())
             .then(data => {
@@ -678,6 +680,7 @@ function mergeBackendData(result, mergedData, defaultZoom, defaultCenter) {
         const newCoordinate = row["經緯度"];
         const newLocation = row["簡稱"];
         const newFeature = row["特徵"];
+        const created_at = row["created_at"] || null;
 
         const locationIndex = mergedData.findIndex(item =>
             item.feature === newFeature &&
@@ -695,7 +698,8 @@ function mergeBackendData(result, mergedData, defaultZoom, defaultCenter) {
                 iscustoms: 1,
                 zoomLevel: defaultZoom,
                 centerCoordinate: defaultCenter,
-                detailContent: []
+                detailContent: [],
+                created_at:created_at,
             });
         } else {
             const existingItem = mergedData[locationIndex];
@@ -715,7 +719,8 @@ function mergeBackendData(result, mergedData, defaultZoom, defaultCenter) {
                     iscustoms: 1,
                     zoomLevel: defaultZoom,
                     centerCoordinate: defaultCenter,
-                    detailContent: []
+                    detailContent: [],
+                    created_at:created_at,
                 });
             }
         }

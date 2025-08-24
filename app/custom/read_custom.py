@@ -5,13 +5,12 @@ from sqlalchemy.orm import Session
 
 from app.auth.models import User
 from app.custom.models import Information
-from common.config import SUPPLE_DB_PATH
-from common.getloc_by_name_region import query_dialect_abbreviations
+from common.getloc_by_name_region import query_dialect_abbreviations_orm
 
 
 def get_from_submission(locations, regions, need_features, user: User, db: Session):
     # 获取 all_locations
-    all_locations = query_dialect_abbreviations(regions, locations, db_path=SUPPLE_DB_PATH, tables="informations")
+    all_locations = query_dialect_abbreviations_orm(db, user, regions, locations)
 
     # 创建一个空的列表来存储结果
     result = []
@@ -36,7 +35,8 @@ def get_from_submission(locations, regions, need_features, user: User, db: Sessi
                     "值": record.值,
                     "maxValue": record.maxValue,
                     "經緯度": latitude_longitude,
-                    "說明": record.說明
+                    "說明": record.說明,
+                    "created_at": record.created_at,
                 })
 
     # 返回所有匹配到的结果

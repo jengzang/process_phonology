@@ -69,6 +69,7 @@ async def get_custom_feature(
     - word-用戶輸入，待匹配特徵
     - 返回匹配到的自定義特徵（例如來、流等）
     """
+    # print(user)
     query_params = FeatureQueryParams(locations=locations, regions=regions, word=word)
     update_count(request.url.path)
     log_all_fields(request.url.path, query_params.dict())

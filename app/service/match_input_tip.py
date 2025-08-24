@@ -10,8 +10,8 @@ from sqlalchemy.orm import Session
 
 from app.auth.models import User
 from app.custom.models import Information
-from common.getloc_by_name_region import query_dialect_abbreviations
-from common.config import SUPPLE_DB_PATH, QUERY_DB_ADMIN
+from common.getloc_by_name_region import query_dialect_abbreviations_orm
+from common.config import QUERY_DB_ADMIN
 from common.s2t import s2t_pro
 
 
@@ -133,8 +133,8 @@ def match_custom_feature(locations, regions, keyword, user: User, db: Session):
     word_pinyin = ''.join(lazy_pinyin(keyword))
 
     # 查詢資料庫位置
-    all_locations = query_dialect_abbreviations(
-        regions, locations, db_path=SUPPLE_DB_PATH, tables="informations"
+    all_locations = query_dialect_abbreviations_orm(
+        db, user, regions, locations,
     )
 
     # 创建结果列表
@@ -309,7 +309,8 @@ def match_locations(user_input, filter_valid_abbrs_only=True, exact_only=True, q
     )
 
 
-def match_locations_batch(input_string: str, filter_valid_abbrs_only=True, exact_only=True,query_db=QUERY_DB_ADMIN):
+def match_locations_batch(input_string: str, filter_valid_abbrs_only=True, exact_only=True, query_db=QUERY_DB_ADMIN
+                          , db: Session = None, user=None):
     input_string = input_string.strip()
     if not input_string:
         # print("⚠️ 輸入為空，無法處理。")
@@ -324,9 +325,27 @@ def match_locations_batch(input_string: str, filter_valid_abbrs_only=True, exact
         if part:
             # print(f"\n🔹 處理第 {idx + 1} 個地名：{part}")
             try:
-                res = match_locations(part, filter_valid_abbrs_only, exact_only,query_db=query_db)
-                # print(f"   ⮡ 結果: {res}")
-                results.append(res)
+                res = match_locations(part, filter_valid_abbrs_only, exact_only, query_db=query_db)
+                if not filter_valid_abbrs_only and not exact_only:
+                    def calculate_similarity(str1, str2):
+                        # 计算两个字符串的最小长度，避免越界
+                        min_len = min(len(str1), len(str2))
+
+                        # 计算两个字符串中相同字符的数量
+                        common_chars = sum(1 for i in range(min_len) if str1[i] == str2[i])
+
+                        # 计算相似度（相同字符占总长度的比例）
+                        similarity = (common_chars / min_len) * 100
+                        return similarity
+                    abbreviations = db.query(Information.簡稱).filter(Information.user_id == user.id).all()
+                    # 濾出相似度大於50%的簡稱
+                    valid_abbrs = [
+                        abbr[0] for abbr in abbreviations if calculate_similarity(part, abbr[0]) > 50
+                    ]
+                    res_with_valid_abbrs = (valid_abbrs + list(res[0]), *res[1:])
+                    results.append(res_with_valid_abbrs)
+                else:
+                    results.append(res)
             except Exception as e:
                 print(f"   ❌ 發生錯誤：{e}")
                 results.append((False, 0, [], [], [], [], [], []))

@@ -80,8 +80,8 @@
 </template>
 
 <script>
-import api from '../axios';  // 引入我們的全局 axios 配置
-import {formatTime} from "../utils.js";
+import api from '../../axios.js';  // 引入我們的全局 axios 配置
+import {formatTime} from "../../utils.js";
 
 export default {
   data() {

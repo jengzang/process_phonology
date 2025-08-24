@@ -1,8 +1,13 @@
 <template>
   <div>
     <h1>所有用戶數據</h1>
-
-    <p>當前共有 {{ data.length }} 條數據</p>
+    <div class="top-controls">
+      <p>當前共有 {{ data.length }} 條數據</p>
+      <!-- 搜索框 -->
+      <div class="search-container">
+        <input v-model="searchQuery" @input="searchUser" type="text" placeholder="搜索用戶名、簡稱、音典分區、特徵、值、說明" />
+      </div>
+    </div>
     <!-- 表格 -->
     <table>
       <thead>
@@ -18,7 +23,7 @@
       </tr>
       </thead>
       <tbody>
-      <tr v-for="item in currentPageData" :key="item.id">
+      <tr v-for="item in currentPageData" :key="item.id" @click="goToPerUser(item)">
         <td>{{ item.username }}</td>
         <td>{{ item.簡稱 }}</td>
         <td>{{ item.音典分區 }}</td>
@@ -43,14 +48,15 @@
 
 <script>
 import { ref, onMounted, computed } from 'vue';
-import api from '../axios'; // 引入API请求配置
-import { formatTime } from "../utils.js";  // 假设你有一个 utils.js 用来处理时间格式化
+import api from '../../axios.js'; // 引入API请求配置
+import { formatTime } from "../../utils.js";  // 假设你有一个 utils.js 用来处理时间格式化
 
 export default {
   name: 'DataTable',
   setup() {
     const data = ref([]);  // 定义所有数据
     const currentPage = ref(1);  // 当前页码
+    const searchQuery = ref('');  // 用于绑定搜索框内容
     const pageSize = 50;  // 每页最多显示 50 行
     const totalPages = computed(() => {
       return Math.ceil(data.value.length / pageSize);
@@ -63,7 +69,7 @@ export default {
     // 获取数据
     const fetchData = async () => {
       try {
-        const result = await api.get('/custom-query/all');  // 使用 await 等待异步请求结果
+        const result = await api.get('/custom/all');  // 使用 await 等待异步请求结果
         data.value = result.data;  // 把结果赋值给反应式变量
       } catch (error) {
         console.error('Error:', error);  // 如果有错误，会在控制台打印
@@ -77,8 +83,26 @@ export default {
 
     // 计算当前页面显示的数据
     const currentPageData = computed(() => {
+      let filteredData = data.value;
+
+      // 过滤数据
+      if (searchQuery.value) {
+        filteredData = filteredData.filter(item => {
+          const formattedTime = formatTime(item.created_at);  // 获取格式化后的时间
+          return (
+              (item.username && item.username.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
+              (item.簡稱 && item.簡稱.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
+              (item.音典分區 && item.音典分區.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
+              (item.特徵 && item.特徵.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
+              (item.值 && item.值.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
+              (item.說明 && item.說明.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
+              formattedTime.includes(searchQuery.value)  // 比较用户输入的日期
+          );
+        });
+      }
+
       // 排序数据
-      let sortedData = [...data.value];
+      let sortedData = [...filteredData];
       if (sortField.value) {
         sortedData.sort((a, b) => {
           const valA = a[sortField.value] || '';
@@ -129,6 +153,7 @@ export default {
     return {
       data,
       currentPage,
+      searchQuery,
       totalPages,
       currentPageData,
       prevPage,
@@ -137,6 +162,18 @@ export default {
       getArrowClass,
       formatTime,
     };
+  },
+  methods:{
+    goToPerUser(user) {
+      const formattedTime = this.formatTime(user.created_at);  // 格式化创建时间
+      this.$router.push({
+        name: 'PerUser',
+        query: {
+          username: user.username,
+          created_at: formattedTime,  // 将创建时间传递给目标页面
+        }
+      });
+    },
   }
 };
 </script>
@@ -149,6 +186,7 @@ h1 {
   font-weight: bold;
   text-align: center;
   margin-bottom: 0;
+  color: #2c6e49;  /* 苹果风格绿色 */
 }
 
 /* 显示数据总数的样式 */
@@ -164,19 +202,23 @@ table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 th,
 td {
   border: 1px solid #ddd;
-  padding: 8px;
+  padding: 12px;
   text-align: center;
+  font-size: 16px;
 }
 
 th {
-  background-color: #f2f2f2;
+  background-color: #e4f4e7;  /* 浅绿色背景 */
+  color: #2c6e49;  /* 绿色字体 */
+  font-weight: bold;
   cursor: pointer;
-  position: relative;
 }
 
 .arrow-up::after {
@@ -193,22 +235,112 @@ th {
 
 /* 增加悬浮效果 */
 th:hover {
-  background-color: #e0e0e0;
+  background-color: #c8e7c2;  /* 鼠标悬浮时的浅绿色 */
 }
 
+td {
+  background-color: #f9f9f9;
+}
+
+
+/* 按钮的苹果绿色风格 */
+button {
+  margin-top: 10px;
+  margin-left: 10px;
+  margin-right: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 25px; /* 圆角按钮 */
+  background-color: #4CAF50;  /* 绿色 */
+  color: white;
+  border: none;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+  background-color: #45a049;  /* 深绿色 */
+  transform: scale(1.05); /* 鼠标悬停时按钮稍微放大 */
+}
+
+button:disabled {
+  background-color: rgba(76, 175, 80, 0.5);  /* 禁用按钮的背景颜色 */
+  cursor: not-allowed; /* 禁用时的鼠标样式 */
+}
+
+/* 搜索框样式 */
+.search-container input {
+  width: 100%;
+  padding: 12px 20px;
+  font-size: 16px;
+  border-radius: 25px;
+  border: 1px solid #ccc;
+  background-color: #f1f1f1;
+  transition: all 0.3s ease-in-out;
+}
+
+.search-container input:focus {
+  outline: none;
+  border-color: #4CAF50;  /* 聚焦时的绿色边框 */
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);  /* 聚焦时的绿色阴影 */
+  background-color: #eafaf0;  /* 聚焦时背景色变化 */
+}
+
+/* 分页控制 */
 .pagination-controls {
   margin-top: 20px;
   text-align: center;
 }
 
 .pagination-controls button {
-  padding: 8px 16px;
+  padding: 12px 24px;
   margin: 0 10px;
+  background-color: #4CAF50; /* 按钮的绿色 */
+  color: white;
+  border: none;
+  border-radius: 20px; /* 圆角效果 */
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.pagination-controls button:hover {
+  background-color: #45a049;
+  transform: scale(1.05);
+}
+
+.pagination-controls button:disabled {
+  background-color: rgba(76, 175, 80, 0.5);
+  cursor: not-allowed;
 }
 
 .pagination-controls span {
   font-size: 16px;
+  color: #333;
+  align-self: center;
 }
+
+/* 控制按钮和搜索框在同一行 */
+.top-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px; /* 给按钮和搜索框之间加个间距 */
+}
+
+/* 表格行悬停效果 */
+tr:hover {
+  background-color: #e1f5e1;  /* 鼠标悬浮时的浅绿色背景 */
+  cursor: pointer;  /* 鼠标悬浮时变为手形 */
+  transition: background-color 0.3s ease;  /* 平滑过渡效果 */
+}
+
+/* 可选：表格头部悬停效果 */
+th:hover {
+  background-color: #c8e7c2;  /* 鼠标悬浮时的背景色变化 */
+}
+
+
 </style>
 
 

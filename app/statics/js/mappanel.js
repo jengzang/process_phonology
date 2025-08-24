@@ -253,9 +253,14 @@ async function create_map1(){
     // debugLog.textContent = "📡 發送請求中...";
 
     try {
-        // 发送 GET 请求
-        const res = await fetch(url, {
-            method: "GET"
+        // 使用 Authorization 標頭來發送 token
+        const headers = {
+            "Content-Type": "application/json",
+            ...(token ? { "Authorization": `Bearer ${token}` } : {})
+        };
+        const res = await fetch(url.toString(), {
+            method: "GET",
+            headers: headers
         });
 
         // 检查请求是否成功
@@ -269,7 +274,7 @@ async function create_map1(){
 
         // 解析返回的数据
         window.locations_data = await res.json();
-        // console.log("✅ 后端返回数据:", locations_data);  // 打印接收到的所有数据
+        // console.log("✅ 后端返回数据:", window.locations_data);  // 打印接收到的所有数据
 // 判断整个数据结构是否为空或不合法
         if (
             !window.locations_data ||
@@ -628,11 +633,6 @@ async function triggerDrawingFunction() {
                                     borderColor: 'black',              // 设置边框颜色
                                     borderStyle: 'solid',              // 设置边框样式
                                 },
-                                extData: {
-                                    locationName,
-                                    feature,
-                                    notes,       // 将 detailContent 数组传递到 extData 中
-                                },
                             });
 
                             // 将文本标记添加到地图上
@@ -664,6 +664,7 @@ async function triggerDrawingFunction() {
                                 window.detaillocation = locationName;
                                 window.detailfeature = feature;
                                 window.detailvalue = value;
+                                window.detaildatatime = dataItem.created_at;
                             });
                         }
                     }
@@ -734,12 +735,18 @@ async function create_dot_all() {
     if (token) {
         url.searchParams.append('token', token);
     }
-
-    // const debugLog = document.getElementById("debug-log");
-    // debugLog.textContent = "📡 發送請求中...";
-
     try {
-        const res = await fetch(url, { method: "GET" });
+        // 使用 Authorization 標頭來發送 token
+        const headers = {
+            "Content-Type": "application/json",
+            ...(token ? { "Authorization": `Bearer ${token}` } : {})
+        };
+
+        const res = await fetch(url.toString(), {
+            method: "GET",
+            headers: headers
+        });
+
         if (!res.ok) {
             // console.error("❌ 请求失败:", res.status);
             const errorData = await res.json();  // 尝试获取返回的JSON错误信息
@@ -748,17 +755,16 @@ async function create_dot_all() {
             return;
         }
 
+        let all_locations_dot = await res.json();
         // 判断整个数据结构是否为空或不合法
         if (
-            !window.locations_data ||
-            !Array.isArray(window.locations_data.coordinates_locations) ||
-            window.locations_data.coordinates_locations.length === 0
+            !all_locations_dot ||
+            !Array.isArray(all_locations_dot.coordinates_locations) ||
+            all_locations_dot.coordinates_locations.length === 0
         ) {
             alert("❌ 輸入的地點未能完全匹配！\n可點擊輸入框下方選框的正確地點")
             return;
         }
-
-        let all_locations_dot = await res.json();
         const mapParams = {
             center_coordinate: all_locations_dot.center_coordinate,
             zoom_level: all_locations_dot.zoom_level,
@@ -851,16 +857,11 @@ async function create_dot_all() {
                         cursor:'pointer',
                         clickable: true,
                         className: 'amap-overlay-text-container',
-                        extData :{
-                          locationName,
-                          regions_detailed,
-                        }
                     })
                     circleMarker.setMap(map)
 
                     circleMarker.on('click', (e) => {
                         const popup = document.getElementById('popup2');  // 确保弹窗的 id 或类名正确
-                        const {locationName, regions_detailed} = circleMarker._opts.extData;
                         // 确保获取到正确的元素
                         const locationName2El = document.getElementById("location-name2");
                         const feature2El = document.getElementById("feature2");

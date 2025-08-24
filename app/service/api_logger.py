@@ -154,6 +154,10 @@ def log_detailed_api_to_db(
     user_id: int = None,  # optional
     clear_old: bool = False  # ✅ 新增參數：是否清理舊資料
 ):
+    # print(f"path{path}")
+    # print(f"duration{duration}")
+    # print(f"status_code{status_code}")
+    # print(f"ip{ip}")
     # ✅ Step 1: 寫入詳細 log（短期）
     if clear_old:
         two_hours_ago = datetime.utcnow() - timedelta(hours=2)

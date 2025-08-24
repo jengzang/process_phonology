@@ -5,6 +5,23 @@ from sqlalchemy.orm import Session
 from app.auth.models import User
 
 
+def get_max_value(value: str):
+    value = value.strip()
+    if '(' not in value and ',' not in value and '/' not in value:
+        return value
+    if '(' not in value and (',' in value or '/' in value):
+        return re.split('[,/]', value)[0]
+    if '(' in value and ',' not in value and '/' not in value:
+        match = re.search(r'\((.*?)\)', value)
+        if match:
+            return match.group(1).replace('*', '')
+    if '(' in value and (',' in value or '/' in value):
+        value = re.sub(r'\(.*?\)', '', value)
+        return re.split('[,/]', value)[0]
+    if '(' in value:
+        value_outside = re.sub(r'\(.*?\)', '', value)
+        return re.split('[,/]', value_outside)[0]
+    return value
 def handle_form_submission(form_data: dict, user: User, db: Session):
     # 取得表單資料
     location = form_data.get('location')
@@ -17,23 +34,6 @@ def handle_form_submission(form_data: dict, user: User, db: Session):
     if not location or not region or not coordinates or not feature or not value:
         return {"success": False, "message": "⚠️ 所有字段（除說明）必須填寫！"}
 
-    def get_max_value(value: str):
-        value = value.strip()
-        if '(' not in value and ',' not in value and '/' not in value:
-            return value
-        if '(' not in value and (',' in value or '/' in value):
-            return re.split('[,/]', value)[0]
-        if '(' in value and ',' not in value and '/' not in value:
-            match = re.search(r'\((.*?)\)', value)
-            if match:
-                return match.group(1).replace('*', '')
-        if '(' in value and (',' in value or '/' in value):
-            value = re.sub(r'\(.*?\)', '', value)
-            return re.split('[,/]', value)[0]
-        if '(' in value:
-            value_outside = re.sub(r'\(.*?\)', '', value)
-            return re.split('[,/]', value_outside)[0]
-        return value
 
     max_value = get_max_value(value)
 
