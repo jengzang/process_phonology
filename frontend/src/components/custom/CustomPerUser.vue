@@ -11,7 +11,7 @@
       <!-- 只有在 selectMode 为 true 时显示 "關閉選擇" 按钮，并显示操作按钮 -->
       <div v-if="selectMode" class="select-mode-buttons">
         <button @click="goToDeleteCustom(username)" style="background: darkred;">刪除數據</button>
-        <button @click="toggleSelectMode" style="background: #f7a400;">
+        <button @click="toggleSelectMode" style="background: darkgoldenrod;">
           關閉選擇
         </button>
         <button @click="goToEditCustom(username)" style="background: darkblue;">編輯數據</button>
@@ -62,7 +62,7 @@
       <span>頁面 {{ currentPage }} / {{ totalPages }}</span>
       <button @click="nextPage" :disabled="currentPage === totalPages">下一頁</button>
     </div>
-    <button @click="goToHome">返回首頁</button>
+    <button @click="goToHome" style="background: darkgoldenrod">返回首頁</button>
   </div>
 </template>
 
@@ -400,6 +400,65 @@ button[v-if="false"] {
   justify-content: center;
   align-items: center;
   gap: 10px; /* 给按钮和搜索框之间加个间距 */
+}
+
+/* 移動端適配 */
+@media (max-width: 768px) {
+  th, td {
+    padding: 8px; /* 減少表格單元格的內邊距 */
+  }
+
+  .stat-btn {
+    font-size: 14px; /* 調整按鈕文字大小 */
+    padding: 12px; /* 增加按鈕的內邊距 */
+  }
+
+  .modal-content {
+    width: 95%; /* 彈窗的寬度更小，適應小屏幕 */
+  }
+
+  .pagination-controls button {
+    font-size: 14px; /* 分頁按鈕文字大小調整 */
+    min-width: 100px; /* 調整分頁按鈕最小寬度 */
+  }
+
+  table {
+    font-size: 14px;  /* 更小的字体 */
+    overflow-x: auto;
+    display: block;  /* 使表格可滚动 */
+  }
+
+  th, td {
+    padding: 8px 12px;
+  }
+}
+
+/* 更小的屏幕適配（如手機） */
+@media (max-width: 480px) {
+  table {
+    font-size: 14px; /* 調整表格字體大小 */
+  }
+
+  .pagination-controls button {
+    font-size: 12px; /* 調整分頁按鈕字體大小 */
+    padding: 8px 16px; /* 調整按鈕的內邊距 */
+  }
+
+  .stat-btn {
+    font-size: 12px; /* 調整按鈕文字大小 */
+    padding: 10px; /* 調整按鈕內邊距 */
+  }
+
+  .close {
+    font-size: 50px; /* 關閉按鈕大小調整 */
+  }
+
+  .modal-content {
+    padding: 15px; /* 彈窗內邊距調整 */
+  }
+  table {
+    font-size: 12px; /* 更小的字体 */
+  }
 }
 </style>
 

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 
 class UserBase(BaseModel):
@@ -10,8 +10,10 @@ class UserBase(BaseModel):
     role: Optional[str] = "user"
     status: Optional[str] = "active"
 
+
 class UserUpdate(UserBase):
     pass
+
 
 class User(UserBase):
     id: int
@@ -20,6 +22,7 @@ class User(UserBase):
 
     class Config:
         from_attributes = True
+
 
 class ApiUsageLog(BaseModel):
     id: int
@@ -43,6 +46,7 @@ class UserUpdateSchema(BaseModel):
     class Config:
         from_attributes = True
 
+
 class AdminCreate(BaseModel):
     username: str
     email: EmailStr
@@ -51,6 +55,7 @@ class AdminCreate(BaseModel):
 
     class Config:
         from_attributes = True
+
 
 class InformationBase(BaseModel):
     簡稱: str
@@ -66,6 +71,23 @@ class InformationBase(BaseModel):
     class Config:
         from_attributes = True
 
+
 class EditRequest(BaseModel):
     username: str
     created_at: str
+
+
+class UpdatePassword(BaseModel):
+    username: str  # 用戶名是可選的
+    password: str
+
+    class Config:
+        from_attributes = True
+
+
+class LetAdmin(BaseModel):
+    username: str
+    role: str = Field(default="")
+
+    class Config:
+        from_attributes = True

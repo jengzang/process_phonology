@@ -45,7 +45,7 @@
 
       <button type="submit">創建用戶</button>
     </form>
-    <button @click="goToHome">返回首頁</button>
+    <button @click="goToHome" style="background: darkgoldenrod">返回首頁</button>
   </div>
 </template>
 
@@ -67,15 +67,15 @@ export default {
     async createUser() {
       try {
         const response = await api.post('/users/create', this.newUser);
-        alert('用戶創建成功!');
+        this.$message.success('用戶創建成功!');
         this.$router.push({ name: 'Home' });  // 成功後跳轉回用戶管理頁面
       } catch (error) {
         // 捕獲錯誤並顯示詳細錯誤信息
         if (error.response && error.response.data && error.response.data.detail) {
-          alert(`創建用戶失敗: ${error.response.data.detail}`);
+          this.$message.error(`創建用戶失敗: ${error.response.data.detail}`);
         } else {
           // 如果沒有詳細錯誤信息，顯示通用錯誤
-          alert('創建用戶失敗，請稍後再試');
+          this.$message.error('創建用戶失敗，請稍後再試');
         }
         console.error('Error creating user', error);
       }

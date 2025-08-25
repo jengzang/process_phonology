@@ -7,7 +7,7 @@ router = APIRouter()
 
 # 获取用户的 API 使用统计，通过 username 或 email 查找
 @router.get("/api-summary")
-def get_user_api_usage(query: str, db: Session = Depends(get_db)):
+def get_api_usage_summary(query: str, db: Session = Depends(get_db)):
     if not query:
         raise HTTPException(status_code=400, detail="Query parameter is required")
 

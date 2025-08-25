@@ -30,4 +30,4 @@ def setup_routes(app: FastAPI):
     app.include_router(index_router)
     app.include_router(locs_router, prefix="/api")
     app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
-    app.include_router(admin_router, prefix="/admin", tags=["admin"])
+    app.include_router(admin_router, prefix="/admin")

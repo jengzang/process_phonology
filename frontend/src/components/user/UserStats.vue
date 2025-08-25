@@ -11,7 +11,7 @@
       <div><strong>總在線時長:</strong> {{ formatOnlineTime(stats.total_online_seconds) }}</div>
       <div><strong>最近一次登錄:</strong> {{ formatTime(stats.last_login) }}</div>
     </div>
-    <button @click="goToHome">返回首頁</button>
+    <button @click="goToHome" style="background: darkgoldenrod">返回首頁</button>
     <h2>登錄歷史</h2>
     <table>
       <thead>
@@ -196,23 +196,32 @@ export default {
 .stats-container {
   margin: 20px;
   font-family: Arial, sans-serif;
+  padding: 10px; /* 增加一些内边距 */
 }
+
 button {
   padding: 12px 24px;
   margin: 0 12px;
-  background-color: #4CAF50; /* 按钮的苹果蓝 */
+  background-color: #4CAF50; /* 按钮的苹果绿色 */
   color: white;
   border: none;
   border-radius: 20px; /* 圆角效果 */
   font-size: 16px;
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
+  min-width: 100px;  /* 设置按钮最小宽度，确保按钮一致 */
+  max-width: 200px;
 }
 
 button:hover {
   background-color: #217825;
   transform: scale(1.05);
 }
+
+button:active {
+  transform: scale(0.98); /* 按钮点击时缩小 */
+}
+
 .user-info {
   margin-bottom: 20px;
 }
@@ -227,6 +236,7 @@ h3 {
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   font-size: 16px;
+  margin-bottom: 20px;
 }
 
 .stats-card div {
@@ -274,4 +284,48 @@ th {
 .browser-cell:hover .user-agent-tooltip {
   display: block;
 }
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .stats-container {
+    margin: 10px;
+    padding: 5px;
+  }
+
+  button {
+    padding: 10px 20px;
+    font-size: 14px;
+    min-width: 100px;  /* 在小屏幕上减少按钮宽度 */
+  }
+
+  .stats-card {
+    padding: 15px;
+  }
+
+  table {
+    font-size: 14px;  /* 更小的字体 */
+    overflow-x: auto;
+    display: block;  /* 使表格可滚动 */
+  }
+
+  th, td {
+    padding: 8px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  button {
+    padding: 8px 16px;
+    font-size: 12px; /* 更小的字体 */
+  }
+
+  .stats-card {
+    padding: 10px;
+  }
+
+  table {
+    font-size: 12px; /* 更小的字体 */
+  }
+}
 </style>
+

@@ -5,8 +5,8 @@
 
     <div class="top-controls">
       <button @click="goToCreateUser">創建新用戶</button>
-      <button @click="apidetail">近期API調用</button>
-      <button @click="viewAllCustom">所有用戶數據</button>
+      <button @click="apidetail">近期api調用</button>
+      <button @click="viewAllCustom">所有數據</button>
       <!-- 搜索框 -->
       <div class="search-container">
         <input v-model="searchQuery"  @input="searchUser" type="text" placeholder="搜索用戶名或郵箱" />
@@ -36,10 +36,9 @@
         <td>{{ user.email }}</td>
         <td>{{ user.data_count }}</td> <!-- 顯示用戶的數據總數 -->
         <td>
-          <button @click="goToCustomPerUser(user)">個人數據</button>
-          <button @click="viewUserStats(user)">統計信息</button>
-          <button @click="editUser(user)">編輯</button>
-          <button @click="showDeleteConfirm(user)">刪除</button>
+          <button @click="goToCustomPerUser(user)">用戶數據</button>
+          <button @click="viewUserStats(user)">api統計</button>
+          <button @click="editUser(user)">編輯賬號</button>
         </td>
       </tr>
       </tbody>
@@ -56,15 +55,6 @@
     <div class="logout-button-container">
       <button @click="logout">返回網站</button>
     </div>
-
-    <!-- 自定義刪除確認彈窗 -->
-    <div v-if="showConfirmDialog" class="overlay">
-      <div class="confirm-dialog">
-        <p>你確定要刪除用戶 {{ confirmUser?.username }} 嗎？</p>
-        <button @click="confirmDelete">確定</button>
-        <button @click="cancelDelete">取消</button>
-      </div>
-    </div>
   </div>
 </template>
 <script>
@@ -74,7 +64,6 @@ export default {
   data() {
     return {
       users: [],
-      showConfirmDialog: false,  // 控制彈窗顯示
       searchQuery: '',  // 用于存储搜索框的内容
       searchResultIndex: -1,  // 存储匹配的行索引
       filteredUsers: [],  // 新增的字段，确保 Vue 可以访问它
@@ -202,35 +191,6 @@ export default {
       this.$router.push({ name: 'CreateUser' });  // 跳轉到創建用戶頁面
     },
 
-    // 顯示刪除確認彈窗
-    showDeleteConfirm(user) {
-      this.showConfirmDialog = true;
-      this.confirmUser = user;  // 存儲需要刪除的用戶
-    },
-
-    // 確認刪除
-    async confirmDelete() {
-      try {
-        await api.delete(`/users/delete?query=${this.confirmUser.username}`);  // 刪除用戶
-        this.users = this.users.filter((u) => u.id !== this.confirmUser.id);
-        this.showConfirmDialog = false;  // 關閉彈窗
-      } catch (error) {
-        this.showConfirmDialog = false;  // 關閉彈窗
-        // 捕獲錯誤並顯示詳細錯誤信息
-        if (error.response && error.response.data && error.response.data.detail) {
-          alert(`刪除用戶失敗: ${error.response.data.detail}`);
-        } else {
-          // 如果沒有詳細錯誤信息，顯示通用錯誤
-          alert('刪除用戶失敗，請稍後再試');
-        }
-      }
-    },
-
-    // 取消刪除
-    cancelDelete() {
-      this.showConfirmDialog = false;  // 關閉彈窗
-    },
-
     // 查看用戶統計
     async viewUserStats(user) {
       this.$router.push({name: 'UserStats', query: {username: user.username}});
@@ -315,34 +275,6 @@ input:focus {
   outline: none;
 }
 
-.overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.confirm-dialog {
-  background: white;
-  padding: 20px;
-  border-radius: 16px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  width: 90%;
-  max-width: 400px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
-}
-
-.confirm-dialog h3 {
-  font-size: 20px;
-  font-weight: 600;
-  color: #333;
-}
-
 table {
   width: 80%;  /* 可根据需要调整宽度 */
   /* 使表格居中 */
@@ -369,7 +301,7 @@ tr:nth-child(even) {
 }
 
 tr:hover {
-  background-color: rgba(187, 209, 234, 0.34);  /* 行悬停时的背景颜色 */
+  background-color: rgba(187, 234, 196, 0.34);  /* 行悬停时的背景颜色 */
 }
 
 .arrow-up::after {
@@ -470,7 +402,7 @@ tr:hover {
 .logout-button-container button {
   padding: 10px 20px;
   font-size: 16px;
-  background-color: #9a2118;  /* 退出按鈕的顏色 */
+  background-color: darkgoldenrod;  /* 退出按鈕的顏色 */
   color: white;
   border: none;
   border-radius: 12px;
@@ -480,12 +412,12 @@ tr:hover {
 }
 
 .logout-button-container button:hover {
-  background-color: #3a0b0b;  /* 鼠標懸停時的顏色 */
+  background-color: #836207;  /* 鼠標懸停時的顏色 */
   transform: scale(1.05);
 }
 
 .logout-button-container button:disabled {
-  background-color: rgba(244, 67, 54, 0.34);
+  background-color: rgba(244, 200, 54, 0.34);
   cursor: not-allowed;
 }
 
@@ -505,7 +437,7 @@ tr:hover {
   button {
     padding: 8px 16px;
     font-size: 14px;  /* 调整按钮大小 */
-    max-width: 100px;
+    max-width: 90px;
   }
 
   .pagination-controls button {
@@ -534,8 +466,10 @@ tr:hover {
   }
 
   button {
-    padding: 6px 12px;  /* 更小的按钮 */
+    padding: 6px 5px;  /* 更小的按钮 */
     font-size: 12px;
+    max-width: 90px;
+    white-space: nowrap;
   }
 
   .pagination-controls button {

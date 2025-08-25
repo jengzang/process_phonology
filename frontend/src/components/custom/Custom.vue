@@ -3,7 +3,7 @@
     <h1>所有用戶數據</h1>
     <div class="top-controls">
       <p>當前共有 {{ data.length }} 條數據</p>
-      <button @click="goToHome">返回首頁</button>
+      <button @click="goToHome" style="background: darkgoldenrod">返回首頁</button>
       <!-- 搜索框 -->
       <div class="search-container">
         <input v-model="searchQuery" @input="searchUser" type="text" placeholder="搜索用戶名、簡稱、音典分區、特徵、值、說明" />
@@ -346,6 +346,64 @@ th:hover {
   background-color: #c8e7c2;  /* 鼠标悬浮时的背景色变化 */
 }
 
+/* 移動端適配 */
+@media (max-width: 768px) {
+  th, td {
+    padding: 8px; /* 減少表格單元格的內邊距 */
+  }
+
+  .stat-btn {
+    font-size: 14px; /* 調整按鈕文字大小 */
+    padding: 12px; /* 增加按鈕的內邊距 */
+  }
+
+  .modal-content {
+    width: 95%; /* 彈窗的寬度更小，適應小屏幕 */
+  }
+
+  .pagination-controls button {
+    font-size: 14px; /* 分頁按鈕文字大小調整 */
+    min-width: 100px; /* 調整分頁按鈕最小寬度 */
+  }
+
+  table {
+    font-size: 14px;  /* 更小的字体 */
+    overflow-x: auto;
+    display: block;  /* 使表格可滚动 */
+  }
+
+  th, td {
+    padding: 8px 12px;
+  }
+}
+
+/* 更小的屏幕適配（如手機） */
+@media (max-width: 480px) {
+  table {
+    font-size: 14px; /* 調整表格字體大小 */
+  }
+
+  .pagination-controls button {
+    font-size: 12px; /* 調整分頁按鈕字體大小 */
+    padding: 8px 16px; /* 調整按鈕的內邊距 */
+  }
+
+  .stat-btn {
+    font-size: 12px; /* 調整按鈕文字大小 */
+    padding: 10px; /* 調整按鈕內邊距 */
+  }
+
+  .close {
+    font-size: 50px; /* 關閉按鈕大小調整 */
+  }
+
+  .modal-content {
+    padding: 15px; /* 彈窗內邊距調整 */
+  }
+  table {
+    font-size: 12px; /* 更小的字体 */
+  }
+}
 
 </style>
 

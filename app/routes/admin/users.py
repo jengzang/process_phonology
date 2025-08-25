@@ -6,10 +6,11 @@ from app.auth.database import get_db
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
 from app.auth.utils import get_password_hash
-from app.schemas.admin import UserUpdateSchema, AdminCreate
+from app.schemas.admin import UserUpdateSchema, AdminCreate, UpdatePassword, LetAdmin
 from app.schemas.auth import UserResponse
 
 router = APIRouter()
+
 
 # 获取所有用户
 @router.get("/all", response_model=List[UserResponse])  # 回應是 UserResponse 的列表
@@ -17,6 +18,7 @@ def get_users(db: Session = Depends(get_db)):
     # 查詢所有的 User 物件，並將它們轉換為 UserResponse
     users = db.query(models.User).all()
     return [UserResponse.from_orm(user) for user in users]  # 使用 from_orm() 轉換 ORM 物件
+
 
 # 获取单个用户，禁用通过 user_id 查找，改为通过 username 或 email 查找
 @router.get("/single", response_model=UserResponse)
@@ -33,6 +35,7 @@ def get_user(query: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
 
     return user
+
 
 # 创建用户
 @router.post("/create", response_model=UserResponse)  # 使用 UserResponse 作为返回模型
@@ -67,6 +70,7 @@ def create_user(user: AdminCreate, db: Session = Depends(get_db)):
     db.refresh(db_user)
 
     return UserResponse.from_orm(db_user)  # 直接使用 from_orm 映射返回
+
 
 # 更新用户，禁用通过 user_id 查找，改为通过 username 或 email 查找
 @router.put("/update", response_model=UserUpdateSchema)
@@ -111,6 +115,7 @@ def update_user(query: str, user: UserUpdateSchema, db: Session = Depends(get_db
 
     return db_user
 
+
 # 删除用户，禁用通过 user_id 查找，改为通过 username 或 email 查找
 @router.delete("/delete", response_model=UserResponse)
 def delete_user(query: str, db: Session = Depends(get_db)):
@@ -130,4 +135,58 @@ def delete_user(query: str, db: Session = Depends(get_db)):
 
     db.delete(db_user)
     db.commit()
+    return db_user
+
+# 更改用戶密碼
+@router.put("/password", response_model=UserUpdateSchema)
+def update_password(user: UpdatePassword, db: Session = Depends(get_db),
+                    current_user: Optional[User] = Depends(get_current_user)):
+    if not user.username:
+        raise HTTPException(status_code=400, detail="Query parameter is required")
+    print(user.username)
+    # 查找用戶名或郵箱
+    db_user = db.query(models.User).filter(
+        models.User.username == user.username
+    ).first()
+
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if db_user.role == "admin":
+        if db_user.username == current_user.username:
+            pass
+        else:
+            # 管理員不能刪除其他管理員的數據
+            raise HTTPException(status_code=400, detail="不能更改管理員的密碼！")
+
+    if user.password:
+        db_user.hashed_password = get_password_hash(user.password)
+
+    db.commit()
+    db.refresh(db_user)
+
+    return db_user
+
+@router.put("/let_admin", response_model=UserUpdateSchema)
+def let_admin(user: LetAdmin, db: Session = Depends(get_db)):
+    if not user.username:
+        raise HTTPException(status_code=400, detail="Query parameter is required")
+    print(user.username)
+    # 查找用戶名或郵箱
+    db_user = db.query(models.User).filter(
+        models.User.username == user.username
+    ).first()
+
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # 確保更新角色為有效值，這裡假設角色只有 'admin' 和 'user'
+    if user.role not in ["admin", "user"]:
+        raise HTTPException(status_code=400, detail="Invalid role value. Allowed values: 'admin', 'user'")
+    if user.role:
+        db_user.role = user.role
+
+    db.commit()
+    db.refresh(db_user)
+
     return db_user
