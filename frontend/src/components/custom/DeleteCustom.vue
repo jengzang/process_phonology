@@ -22,7 +22,7 @@
               v-if="scope.row.created_at"
               v-model="scope.row.created_at"
               size="small"
-              placeholder="請輸入創建時間（格式：YYYY-MM-DD HH:MM:SS.SSSSSS）"
+              placeholder="慎改！（格式：YYYY-MM-DD HH:MM:SS.SSSSSS）"
           />
           <span v-else>{{ scope.row.created_at }}</span>
         </template>

@@ -542,12 +542,14 @@ function showAuthPopup() {
               </ul>
               <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
                 <!-- 退出登录按钮 -->
-                <button class="btn-search" @click="logout" style="margin-top: 10px; display: flex; justify-content: center; gap: 10px;">退出登錄</button>
+                <button class="btn-search" @click="logout" style="margin-top: 10px; display: flex;
+                 justify-content: center; gap: 10px;background: #9a2118">退出登錄</button>
                 <!-- 修改资料按钮 -->
-                <button class="btn-search" @click="mode = 'modifyProfile'" style="margin-top: 10px; display: flex; justify-content: center; gap: 10px;">修改資料</button>
+                <button class="btn-search" @click="mode = 'modifyProfile'" style="margin-top: 10px; display: flex;
+                 justify-content: center; gap: 10px;">修改資料</button>
                 <!-- 后台管理按钮 -->
-                <div v-if="user?.role === 'admin'" style="margin-top: 10px; display: flex; justify-content: center; gap: 10px;">
-                  <button class="btn-search" @click="goToAdminPanel">後台管理</button>
+                <div v-if="user?.role === 'admin'" style="margin-top: 10px; display: flex;justify-content: center; gap: 10px; ">
+                  <button class="btn-search" @click="goToAdminPanel" style="background: #4CAF50">後台管理</button>
                 </div>
 
               </div>
@@ -627,7 +629,7 @@ function showAuthPopup() {
               <p v-if="error" class="err" v-html="error"></p>
               <!-- 返回按钮 -->
               <div class="form-row" style="justify-content: center; margin-top: 10px;">
-                <button class="btn-search" @click="mode = 'profile'">返回</button>
+                <button class="btn-search" @click="mode = 'profile'" style="background: darkgoldenrod">返回</button>
               </div>
             </div>
 

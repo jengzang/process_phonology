@@ -52,8 +52,20 @@
       <!-- 勾選框，用戶選擇是否複製上一行數據 -->
       <el-checkbox v-model="copyPreviousRow">默認複製上一行的數據</el-checkbox>
     </div>
+    <!-- 新增的粘貼數據區域 -->
+    <div style="margin-bottom: 20px;">
+      <el-input
+          type="textarea"
+          rows="6"
+          v-model="pastedData"
+          placeholder="請粘貼從 Excel 複製的數據，每行代表一條記錄，每列用制表符或空格分隔。"
+      ></el-input>
+      <el-button type="primary" @click="parseAndAddRows">確認粘貼數據</el-button>
+    </div>
+
     <div style="justify-content: center;display: flex">
-      <el-button type="primary" @click="submitData" style="display: flex;justify-content: center" >批量提交</el-button>
+      <el-button type="success" @click="submitData" size="large" round="round"
+                 style="display: flex;justify-content: center" >批量提交</el-button>
     </div>
 
 
@@ -81,6 +93,7 @@ export default {
           username: '' // 用戶名將在 mounted 中填充
         }
       ],
+      pastedData: '',  // 用於存放用戶粘貼的數據
       submissionMessage: '', // 存放提交后提示消息
       copyPreviousRow: false, // 是否勾選"默認複製上一行的數據"
     };
@@ -110,7 +123,7 @@ export default {
       // 如果勾選了"默認複製上一行的數據"，複製上一行的數據
       if (this.copyPreviousRow && this.formData.length > 0) {
         const lastRow = this.formData[this.formData.length - 1];
-        newRow = { ...lastRow };  // 複製上一行的數據
+        newRow = {...lastRow};  // 複製上一行的數據
       }
 
       // 添加新行
@@ -144,6 +157,46 @@ export default {
         console.error("提交失敗", error);
         this.$message.error("❌ 提交失敗！");
       }
+    },
+    // 解析用戶粘貼的數據並添加到表格
+    parseAndAddRows() {
+      const lines = this.pastedData.trim().split('\n');
+
+      // 合併列名並去掉空格，形成一個字符串
+      const columnNames = ['簡稱', '音典分區', '經緯度', '特徵', '值', '說明'];
+      const columnNamesString = columnNames.join('').replace(/\s+/g, ''); // 去掉空格
+
+      const newRows = [];
+
+      // 遍歷每一行數據
+      lines.forEach((line, index) => {
+        // 去掉每列的空格和制表符
+        const columns = line.split('\t').map(col => col.replace(/\s+/g, '').trim());
+
+        // 合併粘貼的數據行並去掉空格，形成一個字符串
+        const lineString = columns.join('').replace(/\s+/g, '');
+
+        // 檢查是否為列名行
+        if (index === 0 && lineString === columnNamesString) {
+          // 如果該行與列名匹配，則跳過這一行
+          return;
+        }
+
+        // 如果這一行不是列名行，則處理並添加到新行數據中
+        newRows.push({
+          簡稱: columns[0] || '',
+          音典分區: columns[1] || '',
+          經緯度: columns[2] || '',
+          特徵: columns[3] || '',
+          值: columns[4] || '',
+          說明: columns[5] || '',
+          username: this.username
+        });
+      });
+
+      // 將解析出來的行數據添加到表格中
+      this.formData.push(...newRows);
+      this.pastedData = '';  // 清空粘貼框
     }
   }
 };

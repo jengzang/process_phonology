@@ -9,7 +9,7 @@
       <button @click="showUniqueUsers" class="stat-btn">所有用户: {{ uniqueUsersCount }}</button>
       <button @click="showUniqueIPs" class="stat-btn">所有IP: {{ uniqueIPsCount }}</button>
       <button @click="showAPICalls" class="stat-btn" style="max-width: 180px">API調用數: {{ totalAPICalls }}</button>
-      <button @click="goToHome" class="stat-btn" style="background: peru;">返回首頁</button>
+      <button @click="goToHome" class="stat-btn" style="background: darkgoldenrod;">返回首頁</button>
     </div>
 
     <!-- 独特用户弹窗 -->
