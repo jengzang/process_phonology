@@ -1,8 +1,10 @@
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from app.auth import models
 from app.auth.database import get_db
+from app.auth.dependencies import get_current_user
+from app.auth.models import User
 from app.auth.utils import get_password_hash
 from app.schemas.admin import UserUpdateSchema, AdminCreate
 from app.schemas.auth import UserResponse
@@ -68,7 +70,8 @@ def create_user(user: AdminCreate, db: Session = Depends(get_db)):
 
 # 更新用户，禁用通过 user_id 查找，改为通过 username 或 email 查找
 @router.put("/update", response_model=UserUpdateSchema)
-def update_user(query: str, user: UserUpdateSchema, db: Session = Depends(get_db)):
+def update_user(query: str, user: UserUpdateSchema, db: Session = Depends(get_db),
+                current_user: Optional[User] = Depends(get_current_user)):
     if not query:
         raise HTTPException(status_code=400, detail="Query parameter is required")
 
@@ -81,7 +84,11 @@ def update_user(query: str, user: UserUpdateSchema, db: Session = Depends(get_db
         raise HTTPException(status_code=404, detail="User not found")
 
     if db_user.role == "admin":
-        raise HTTPException(status_code=400, detail="不能編輯管理員！")
+        if db_user.username == current_user.username:
+            pass
+        else:
+            # 管理員不能刪除其他管理員的數據
+            raise HTTPException(status_code=400, detail="不能編輯管理員！")
 
     # 檢查是否已經有相同的用戶名或郵箱
     if user.username:

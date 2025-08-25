@@ -314,6 +314,11 @@ function showAuthPopup() {
                 return `${hours} 小時 ${minutes} 分鐘`
             }
 
+            const goToAdminPanel = () => {
+                window.location.href = window.WEB_BASE + '/admin';  // 跳转到后台管理页面
+            };
+
+
             watch(mode, () => {
                 error.value = ''
             })
@@ -322,7 +327,7 @@ function showAuthPopup() {
             return {
                 username, password, email, error, loading,savePassword,saveUsername,modeType,
                 user, mode, login, register, logout, close, fmt,loginMode,newPassword,newUsername,currentPassword,
-                formatOnlineTime,showPassword,queryStats // 👈 新增這行
+                formatOnlineTime,showPassword,queryStats,goToAdminPanel // 👈 新增這行
             }
 
         },
@@ -537,10 +542,14 @@ function showAuthPopup() {
               </ul>
               <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
                 <!-- 退出登录按钮 -->
-                <button class="btn-search" @click="logout">退出登錄</button>
-
+                <button class="btn-search" @click="logout" style="margin-top: 10px; display: flex; justify-content: center; gap: 10px;">退出登錄</button>
                 <!-- 修改资料按钮 -->
-                <button class="btn-search" @click="mode = 'modifyProfile'">修改資料</button>
+                <button class="btn-search" @click="mode = 'modifyProfile'" style="margin-top: 10px; display: flex; justify-content: center; gap: 10px;">修改資料</button>
+                <!-- 后台管理按钮 -->
+                <div v-if="user?.role === 'admin'" style="margin-top: 10px; display: flex; justify-content: center; gap: 10px;">
+                  <button class="btn-search" @click="goToAdminPanel">後台管理</button>
+                </div>
+
               </div>
 
             </div>

@@ -157,13 +157,13 @@ function updateStickyContext(displayRow,rowCount,changeDiaplayRows) {
         }
         const contentRect = content.getBoundingClientRect();
 
-        // 获取所有的 locations-vue 元素
-        const locations = [...document.querySelectorAll('.locations-vue')];
+        // 获取所有的 locations-assets 元素
+        const locations = [...document.querySelectorAll('.locations-assets')];
         let lastVisibleLocation = null;
         let lastVisibleLocationHeight = null; // 存储最近可见地点的滚动高度
         let visibleLocations = window.visibleLocations;
 
-        // 查找最下面的可见 locations-vue 元素
+        // 查找最下面的可见 locations-assets 元素
         for (let i = 0; i < locations.length; i++) {
             const rect = locations[i].getBoundingClientRect();
             // 如果这个元素的顶部已经进入了可视区域
@@ -412,13 +412,13 @@ async function initVue(mountTarget = '#resultPanelContent',
                     if (multiCharDetails[ch]) {
                         characters.push(
                             h('span', {
-                                class: 'char-vue multi-vue',
+                                class: 'char-assets multi-assets',
                                 datatitle: multiCharDetails[ch]
                             }, ch)
                         );
                     } else {
                         characters.push(
-                            h('span', { class: 'char-vue' }, ch)
+                            h('span', { class: 'char-assets' }, ch)
                         );
                     }
                 });
@@ -448,7 +448,7 @@ async function initVue(mountTarget = '#resultPanelContent',
 
             onMounted(() => {
                 const resultPanelContent = document.getElementById('resultPanelContent');
-                const firstRow = document.querySelector('.data-row-vue');
+                const firstRow = document.querySelector('.data-row-assets');
                 if (firstRow) {
                     const rowHeight = firstRow.offsetHeight;
                     const totalHeight = tableData.value.length * rowHeight;
@@ -470,22 +470,22 @@ async function initVue(mountTarget = '#resultPanelContent',
                     let locationContent = null;
                     // 只显示第一次出现的地点
                     if (!displayedLocations.has(item.地點)) {
-                        locationContent = h('p', { class: 'locations-vue' }, `${item.地點}`);
+                        locationContent = h('p', { class: 'locations-assets' }, `${item.地點}`);
                         displayedLocations.add(item.地點);  // 记录该地点已显示过
                     }
 
 
-                    // 当处于隐藏模式时，修改 .characters-vue 的显示方式
+                    // 当处于隐藏模式时，修改 .characters-assets 的显示方式
                     let charactersContent;
                     if (isCondensedMode.value) {
                         // 在隐藏模式下，仅显示第一个字符或者一些简化的字符
-                        charactersContent = h('p', { class: 'characters-vue-condensed' }, getCorrespondingCharacters(item));
+                        charactersContent = h('p', { class: 'characters-assets-condensed' }, getCorrespondingCharacters(item));
                     } else {
                         // 正常显示所有字符
-                        charactersContent = h('p', { class: 'characters-vue' }, getCorrespondingCharacters(item));
+                        charactersContent = h('p', { class: 'characters-assets' }, getCorrespondingCharacters(item));
                     }
 
-                    return h('div', { class: 'data-row-vue' }, [
+                    return h('div', { class: 'data-row-assets' }, [
                         locationContent,
                         h('div', { class: 'feature-row' }, [
                             h('p', {}, getFeatureValue(item)), // ✅ 直接用数组作为子节点
@@ -558,7 +558,7 @@ async function initVue(mountTarget = '#resultPanelContent',
             };
             const parseResult = ctx.parseFeatureString?.(ctx.popupData.feature);
 
-            return h('div', { class: 'result-panel-vue' }, [
+            return h('div', { class: 'result-panel-assets' }, [
                 ctx.renderData(),
 
                 ctx.showPopup  // 點擊值的浮窗
@@ -568,7 +568,7 @@ async function initVue(mountTarget = '#resultPanelContent',
                         [
                             h('div', {
                                 ref: el => { ctx.popupRef = el },
-                                class: ['popup-vue', 'popup-animated'],
+                                class: ['popup-assets', 'popup-animated'],
                                 style: {
                                     position: 'fixed',
                                     top: `${ctx.popupPosition.top}px`,
@@ -656,7 +656,7 @@ async function initVue(mountTarget = '#resultPanelContent',
                         [
                             h('div', {
                                 ref: el => { ctx.popupRef2 = el },
-                                class: ['popup-vue', 'popup-animated'],
+                                class: ['popup-assets', 'popup-animated'],
                                 style: {
                                     position: 'fixed',
                                     top: `${ctx.popupPosition.top}px`,

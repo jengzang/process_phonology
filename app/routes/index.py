@@ -11,6 +11,15 @@ from app.service.api_logger import *
 
 router = APIRouter()
 
+@router.get("/admin", response_class=HTMLResponse)
+async def index(request: Request):
+    update_count(request.url.path)
+    index_path = get_resource_path("app/statics/admin/index.html")
+    with open(index_path, encoding="utf-8") as f:
+        content = f.read()
+    headers = {"Cache-Control": "no-cache, must-revalidate"}
+    return HTMLResponse(content=content, headers=headers)
+
 @router.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     update_count(request.url.path)

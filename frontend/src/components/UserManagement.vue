@@ -1,7 +1,7 @@
 
 <template>
   <div>
-    <h2>用戶列表</h2>
+    <h2>用戶管理系統</h2>
 
     <div class="top-controls">
       <button @click="goToCreateUser">創建新用戶</button>
@@ -37,7 +37,7 @@
         <td>{{ user.data_count }}</td> <!-- 顯示用戶的數據總數 -->
         <td>
           <button @click="goToCustomPerUser(user)">個人數據</button>
-          <button @click="viewUserStats(user)">查看統計信息</button>
+          <button @click="viewUserStats(user)">統計信息</button>
           <button @click="editUser(user)">編輯</button>
           <button @click="showDeleteConfirm(user)">刪除</button>
         </td>
@@ -51,6 +51,10 @@
       <button @click="prevPage" :disabled="currentPage === 1">上一頁</button>
       <span>頁面 {{ currentPage }} / {{ totalPages }}</span>
       <button @click="nextPage" :disabled="currentPage === totalPages">下一頁</button>
+    </div>
+
+    <div class="logout-button-container">
+      <button @click="logout">返回網站</button>
     </div>
 
     <!-- 自定義刪除確認彈窗 -->
@@ -93,7 +97,7 @@ export default {
         // 调用获取用户数据的函数
         await this.fetchUserData();
       } catch (error) {
-        console.error('Error fetching users', error);
+        // console.error('Error fetching users', error);
         if (error.response && error.response.status === 401) {
           alert('Token 无效或已过期，请重新登录');
 
@@ -243,6 +247,10 @@ export default {
     goToCustomPerUser(user) {
       this.$router.push({ name: 'PerUser' ,query: {username: user.username}});  // 跳轉到創建用戶頁面
     },
+    logout() {
+      // 退出後跳轉到 WEB_BASE
+      window.location.href = window.WEB_BASE;
+    },
 
   },
   computed: {
@@ -278,6 +286,7 @@ button {
   color: white;
   border: none;
   transition: background-color 0.3s ease, transform 0.2s ease;
+  max-width: 150px;
 }
 
 button:hover {
@@ -392,6 +401,7 @@ tr:hover {
   font-size: 16px;
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
+  max-width: 120px;
 }
 
 .pagination-controls button:hover {
@@ -450,6 +460,34 @@ tr:hover {
   opacity: 1;  /* 确保占位符始终显示 */
 }
 
+/* 退出按鈕容器 */
+.logout-button-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;  /* 給退出按鈕上方加點間距 */
+}
+
+.logout-button-container button {
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #9a2118;  /* 退出按鈕的顏色 */
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  max-width: 120px;
+}
+
+.logout-button-container button:hover {
+  background-color: #3a0b0b;  /* 鼠標懸停時的顏色 */
+  transform: scale(1.05);
+}
+
+.logout-button-container button:disabled {
+  background-color: rgba(244, 67, 54, 0.34);
+  cursor: not-allowed;
+}
 
 /* 在移动端时调整 */
 @media (max-width: 768px) {
@@ -467,6 +505,7 @@ tr:hover {
   button {
     padding: 8px 16px;
     font-size: 14px;  /* 调整按钮大小 */
+    max-width: 100px;
   }
 
   .pagination-controls button {
@@ -477,6 +516,15 @@ tr:hover {
   /* 对话框调整 */
   .confirm-dialog {
     width: 90%;  /* 弹窗在小屏幕上占宽度的90% */
+  }
+
+  .top-controls {
+    flex-wrap: wrap; /* 让控件在移动端可以换行 */
+    justify-content: flex-start;  /* 左对齐 */
+  }
+
+  .search-container {
+    max-width: 100%; /* 确保搜索框在小屏幕上占满 */
   }
 }
 
@@ -494,6 +542,7 @@ tr:hover {
     font-size: 12px;  /* 调整分页按钮大小 */
   }
 }
+
 
 </style>
 

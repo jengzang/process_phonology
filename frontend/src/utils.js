@@ -14,7 +14,8 @@ const getToken = () => {
 // 這是你封裝的 api 函數
 async function api(path, { method = 'GET', headers = {}, body = null } = {}) {
     const token = getToken();
-    const WEB_BASE = "http://10.250.101.238:5000"
+    // const WEB_BASE = "http://10.250.101.238:5000"
+    const WEB_BASE = window.WEB_BASE
     if (token) headers['Authorization'] = `Bearer ${token}`;  // 如果有 Token，就加上 Authorization 標頭
     const res = await fetch(WEB_BASE + path, { method, headers, body });
     if (!res.ok) {

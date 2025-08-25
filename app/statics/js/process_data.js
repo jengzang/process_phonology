@@ -167,7 +167,7 @@ async function get_detail(location,feature_value,bool=false,vue = false,
             window.latestdetailResults = [];
         }
         else{
-            // console.log("vue")
+            // console.log("assets")
             await initVue(mountTarget,window.latestdetailResults,false);
         }
     } catch (error) {

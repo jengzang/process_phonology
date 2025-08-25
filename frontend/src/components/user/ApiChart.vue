@@ -1,4 +1,4 @@
-<!-- src/components/ApiStatsChart.vue -->
+<!-- src/components/ApiStatsChart.assets -->
 <template>
   <div>
     <h3>API 调用统计</h3>

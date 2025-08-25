@@ -151,11 +151,19 @@ export default {
             data: deleteList, // 批量刪除的數據
           });
           this.$message.success("✅ 批量刪除成功！");
-          this.goToCustomPerUser(this.username)
+          this.goToCustomPerUser(this.username);
         } catch (error) {
           console.error("刪除失敗", error);
-          this.$message.error("❌ 刪除失敗！");
+
+          // 如果后端返回了详细错误信息，显示具体的错误信息
+          if (error.response && error.response.data && error.response.data.detail) {
+            this.$message.error(`❌ 刪除失敗: ${error.response.data.detail}`);
+          } else {
+            // 如果没有返回详细的错误信息，显示通用的错误信息
+            this.$message.error("❌ 刪除失敗，請稍後再試！");
+          }
         }
+
       }).catch(() => {
         this.$message.info("取消刪除操作。😌");
       });

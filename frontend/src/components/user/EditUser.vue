@@ -46,7 +46,7 @@ import api from '../../axios.js';  // 引入我們的全局 axios 配置
 export default {
   data() {
     return {
-      updatedUser: { username: '', email: '' },  // 用來存放用戶更新的數據
+      updatedUser: { username: '', email: '', password: '' },  // 用來存放用戶更新的數據
       oldname: this.$route.query.username,       // 從路由中獲取原始用戶名
       oldemail: this.$route.query.email,         // 從路由中獲取原始郵箱
     };
@@ -57,35 +57,49 @@ export default {
       if (this.updatedUser.username && this.updatedUser.username !== this.oldname) {
         try {
           await api.put(`/users/update?query=${this.oldname}`, { username: this.updatedUser.username });
-          alert('用戶名更新成功!');
+          this.$message.success('用戶名更新成功!');
           this.oldname = this.updatedUser.username; // 更新顯示的用戶名
         } catch (error) {
           // 捕獲錯誤並顯示詳細錯誤信息
           if (error.response && error.response.data && error.response.data.detail) {
-            alert(`編輯用戶失敗: ${error.response.data.detail}`);
+            this.$message.error(`編輯用戶名失敗: ${error.response.data.detail}`);
           } else {
-            // 如果沒有詳細錯誤信息，顯示通用錯誤
-            alert('編輯用戶失敗，請稍後再試');
+            this.$message.error('編輯用戶名失敗，請稍後再試');
           }
         }
       } else {
-        alert('請輸入有效的用戶名');
+        this.$message.warning('請輸入有效的用戶名');
       }
     },
 
     // 更新郵箱
     async updateEmail() {
+      const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/; // 郵箱格式正則表達式
+      if (!this.updatedUser.email || !emailPattern.test(this.updatedUser.email)) {
+        this.$message.warning('請輸入有效的郵箱地址');
+        return;
+      }
       if (this.updatedUser.email && this.updatedUser.email !== this.oldemail) {
         try {
           await api.put(`/users/update?query=${this.oldemail}`, { email: this.updatedUser.email });
-          alert('郵箱更新成功!');
+          this.$message.success('郵箱更新成功!');
           this.oldemail = this.updatedUser.email; // 更新顯示的郵箱
         } catch (error) {
-          console.error('Error updating email', error);
+          // 捕獲錯誤並顯示詳細錯誤信息
+          if (error.response && error.response.data && error.response.data.detail) {
+            this.$message.error(`編輯郵箱失敗: ${error.response.data.detail}`);
+          } else {
+            this.$message.error('編輯郵箱失敗，請稍後再試');
+          }
         }
       } else {
-        alert('請輸入有效的郵箱');
+        this.$message.warning('請輸入有效的郵箱');
       }
+    },
+
+    // 密碼檢查
+    checkPasswordLength(password) {
+      return password.length >= 6;  // 密碼長度檢查：至少6個字符
     },
 
     // 初始化頁面時，根據路由參數獲取用戶數據
@@ -101,12 +115,14 @@ export default {
         }
       }
     },
-    goToHome(){
-      this.$router.push({name: 'Home'});
+
+    goToHome() {
+      this.$router.push({ name: 'Home' });
     },
   }
 };
 </script>
+
 
 <style scoped>
 /* 優化排版樣式 */

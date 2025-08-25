@@ -1,8 +1,9 @@
 from datetime import datetime, timedelta
-from typing import List
+from typing import List, Optional
 
-from fastapi import HTTPException, APIRouter, Query
+from fastapi import HTTPException, APIRouter, Query, Depends
 
+from app.auth.dependencies import get_current_user
 from app.auth.models import User
 from app.custom.database import SessionLocal as SessionLocal_info
 from app.auth.database import SessionLocal as SessionLocal_user
@@ -12,7 +13,8 @@ from app.schemas.admin import EditRequest, InformationBase
 
 router = APIRouter()
 @router.delete("/delete", response_model=List[InformationBase])
-async def delete_custom_by_admin(requests: List[EditRequest]):
+async def delete_custom_by_admin(requests: List[EditRequest],
+                                 current_user: Optional[User] = Depends(get_current_user),):
     session_info = SessionLocal_info()
     session_user = SessionLocal_user()
 
@@ -25,7 +27,12 @@ async def delete_custom_by_admin(requests: List[EditRequest]):
             if not user:
                 raise HTTPException(status_code=404, detail=f"用戶 {request.username} 未找到")
             if user.role == "admin":
-                raise HTTPException(status_code=400, detail="不能刪除管理員的數據！")
+                if user.username == current_user.username:
+                    # 管理員可以刪除自己的數據
+                    pass
+                else:
+                    # 管理員不能刪除其他管理員的數據
+                    raise HTTPException(status_code=400, detail="不能刪除管理員的數據！")
 
             # 查找并删除符合条件的记录
             user_data = session_info.query(Information).filter(
@@ -46,9 +53,10 @@ async def delete_custom_by_admin(requests: List[EditRequest]):
         session_info.commit()
 
         return deleted_records
-
+    except HTTPException:
+        raise   # ✅ 让 HTTPException 保持原样传递
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
     finally:
         session_info.close()

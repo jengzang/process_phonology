@@ -80,9 +80,9 @@
 
     <el-button type="danger" @click="editNewData">提交修改</el-button>
 
-<!--    <p v-if="EditData.length === 0" style="color: red; margin-top: 20px;">-->
-<!--      ⚠️ 目前沒有要編輯的數據！請先填充要編輯的行。-->
-<!--    </p>-->
+    <p v-if="EditData.length === 0" style="color: red; margin-top: 20px;">
+      ⚠️ 目前沒有要編輯的數據！請先填充要編輯的行。
+    </p>
   </div>
 </template>
 

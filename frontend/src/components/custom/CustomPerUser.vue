@@ -1,13 +1,23 @@
 <template>
   <div>
-    <h1>{{username}}的個人數據</h1>
+    <h1>{{username}}的個人數據--共 {{ users.length }} 條</h1>
     <div class="top-controls">
-      <p>當前共有 {{ users.length }} 條數據</p>
-      <button @click="goToCreateCustom(username)" >添加數據</button>
-      <button @click="toggleSelectMode" :style="selectMode  ? { background: '#f7a400' } : {background: '#1c8dba'}">選擇數據</button>
-      <button v-if="selectMode" @click="goToDeleteCustom(username)" style="background: darkred;">刪除數據</button>
-      <button v-if="selectMode" @click="goToEditCustom(username)" style="background: darkblue">編輯數據</button>
-      <button v-if="selectMode" @click="reverseSelect" style="background: #777;">反選</button>
+      <button @click="goToCreateCustom(username)" >添加數據</button><!-- 需要排布為 2x2 的按鈕 -->
+      <!-- 只有在 selectMode 为 false 时显示 "選擇數據" 按钮 -->
+      <button v-if="!selectMode" @click="toggleSelectMode" style="background: #1c8dba;">
+        選擇數據
+      </button>
+
+      <!-- 只有在 selectMode 为 true 时显示 "關閉選擇" 按钮，并显示操作按钮 -->
+      <div v-if="selectMode" class="select-mode-buttons">
+        <button @click="goToDeleteCustom(username)" style="background: darkred;">刪除數據</button>
+        <button @click="toggleSelectMode" style="background: #f7a400;">
+          關閉選擇
+        </button>
+        <button @click="goToEditCustom(username)" style="background: darkblue;">編輯數據</button>
+        <button @click="reverseSelect" style="background: #777;">反選</button>
+      </div>
+
       <!-- 搜索框 -->
       <div class="search-container">
         <input v-model="searchQuery" @input="searchUser" type="text" placeholder="搜索用戶名、簡稱、音典分區、特徵、值、說明" />
@@ -295,6 +305,14 @@ tr:hover {
   background-color: #e1f5e1;  /* 鼠标悬浮时的浅绿色 */
 }
 
+/* 設置 2x2 排布，對所有需要的按鈕進行排列 */
+.select-mode-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 10px;
+  margin-top: 10px;
+}
+
 /* 按钮的苹果绿色风格 */
 button {
   margin-top: 10px;
@@ -308,6 +326,7 @@ button {
   color: white;
   border: none;
   transition: background-color 0.3s ease, transform 0.2s ease;
+  max-width: 110px;
 }
 
 button:hover {
@@ -318,6 +337,10 @@ button:hover {
 button:disabled {
   background-color: rgba(76, 175, 80, 0.5);  /* 禁用按钮的背景颜色 */
   cursor: not-allowed; /* 禁用时的鼠标样式 */
+}
+
+button[v-if="false"] {
+  display: none;
 }
 
 /* 搜索框样式 */

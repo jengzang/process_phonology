@@ -7,6 +7,7 @@ import ElementPlus from 'element-plus';  // 引入 Element Plus
 import 'element-plus/dist/index.css';  // 引入 Element Plus 样式
 
 const app = createApp(App);
+// 设置 API 基础路径
 
 // 全局挂载 axios 配置
 app.config.globalProperties.$api = api;
@@ -20,8 +21,3 @@ app.use(router);
 // 挂载应用
 app.mount('#app');
 
-
-// 设置 API 基础路径
-window.WEB_BASE = "http://10.250.101.238:5000";
-window.API_BASE = window.WEB_BASE + "/api";
-window.LOG_BASE = window.WEB_BASE + "/auth";

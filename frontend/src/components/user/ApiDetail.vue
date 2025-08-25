@@ -356,6 +356,9 @@ export default {
 </script>
 
 <style scoped>
+button{
+  max-width: 120px;
+}
 table {
   width: 100%;
   border-collapse: collapse;
@@ -376,6 +379,7 @@ th, td {
   border: none;
   border-radius: 5px;
   font-size: 17px;
+  max-width: 120px;
 }
 
 .stat-btn:hover {

@@ -260,6 +260,7 @@ button {
   color: white;
   border: none;
   transition: background-color 0.3s ease, transform 0.2s ease;
+  max-width: 120px;
 }
 
 button:hover {
@@ -306,6 +307,7 @@ button:disabled {
   font-size: 16px;
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
+  max-width: 120px;
 }
 
 .pagination-controls button:hover {
