@@ -19,7 +19,7 @@ from app.schemas import AnalysisPayload
 from app.service.phonology2status import pho2sta
 from app.service.status_arrange_pho import sta2pho
 from app.service.api_logger import update_count, log_all_fields, log_detailed_api, log_detailed_api_to_db
-from common.config import CLEAR_2HOUR, REQUIRE_LOGIN, DIALECTS_DB_USER
+from common.config import CLEAR_WEEK, REQUIRE_LOGIN, DIALECTS_DB_USER
 from common.config import DIALECTS_DB_USER, DIALECTS_DB_ADMIN
 
 router = APIRouter()
@@ -32,6 +32,25 @@ async def api_run_phonology_analysis(
         db: Session = Depends(get_db),
         user: Optional[User] = Depends(get_current_user),  # ✅ user 可為 None
 ):
+    """
+     - 用于 /api/phonology 路由的輸入特徵，分析聲韻。
+    :param request: 傳token
+    :param payload: - mode: p2s-查詢音位查詢的中古來源 s2p-按中古地位查詢音值
+    - locations: 輸入地點（可多個）
+    - regions: 輸入音典分區（某一級分區，例如嶺南，可多個）
+    - features: 要查詢的特徵（聲母/韻母/聲調）必須完全匹配，用繁體字
+    - status_inputs: 要查詢的中古地位，可帶類名（例如莊組），也可不帶（例如來）；
+                   並且支持-全匹配（例如宕-等，會自動匹配宕一、宕三）；後端會進行簡繁轉換，可輸入簡體
+                   s2p模式需要的輸入，若留空，則韻母查所有攝，聲母查三十六母，聲調查清濁+調
+    - group_inputs: 分組特徵，輸入中古的類名（例如攝，則按韻攝整理某個音位）
+                  可輸入簡體，支持簡體轉繁體
+                   p2s模式需要的輸入，若不填，則韻母按攝分類，聲母按聲分類，聲調按清濁+調分類。
+    - pho_values: 要查詢的具體音值，p2s模式下的輸入，若留空，則查所有音值
+    :param db: 後端連orm
+    :param user: 後端校驗得到的用戶身份
+    :return: - 若為s2p,返回一個帶有地點、特徵（聲韻調）、分類值（中古地位）、值（具體音值）、對應字（所有查到的字）、
+            字數、佔比（在所有查得的值中佔比）、多音字 的數組。p2s也是類似
+    """
     ip_address = request.client.host  # 默认是请求的客户端 IP 地址
     check_api_usage_limit(db, user, REQUIRE_LOGIN, ip_address=ip_address)  # 限制訪問
     update_count(request.url.path)
@@ -63,13 +82,13 @@ async def api_run_phonology_analysis(
         ip = request.client.host
         agent = request.headers.get("user-agent", "")
         referer = request.headers.get("referer", "")
-        user_id = user.id if user else None
+        # user_id = user.id if user else None
 
         # 原有寫入 JSON 日誌
         log_detailed_api(path, duration, status, ip, agent, referer)
 
         # 新增寫入資料庫
-        log_detailed_api_to_db(db, path, duration, status, ip, agent, referer, user_id, CLEAR_2HOUR)
+        # log_detailed_api_to_db(db, path, duration, status, ip, agent, referer, user_id, CLEAR_2HOUR)
 
 
 def run_phonology_analysis(

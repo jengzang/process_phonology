@@ -70,7 +70,9 @@ def get_all_api_usage(db: Session = Depends(get_db)):
             "duration": log.duration,
             "os": os,
             "browser": browser,
-            "called_at": log.called_at.strftime("%Y-%m-%d %H:%M:%S")
+            "called_at": log.called_at.strftime("%Y-%m-%d %H:%M:%S"),
+            "request_size":log.request_size,
+            "response_size":log.response_size,
         })
 
     return result

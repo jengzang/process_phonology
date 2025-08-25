@@ -39,6 +39,27 @@ def get_current_user(
 
     return user
 
+def get_current_user_sync(request: Request, db: Session) -> User:
+    # 处理用户认证（例如从请求头获取 JWT token）
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return None  # 匿名用户
+
+    token = auth_header.split(" ")[1]
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username = payload.get("sub")
+        if not username:
+            raise HTTPException(status_code=401, detail="Token 无效")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Token 解码失败")
+
+    user = db.query(models.User).filter(models.User.username == username).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="用户不存在")
+
+    return user
+
 
 def get_current_admin_user(current_user: models.User = Depends(get_current_user)) -> models.User:
     if current_user is None:
@@ -65,7 +86,7 @@ def check_api_usage_limit(
     # 1) 可选登录场景处理
     if user is None:
         if require_login:  # 匿名用户：无法按用户做配额，这里选择放行（如需限制可改为 raise 或基于 IP 做限流）
-            print("1111")
+            # print("1111")
             raise HTTPException(status_code=401, detail="💡 請先登錄")
         # 未登录用户，按 IP 进行限制
         if ip_address is None:

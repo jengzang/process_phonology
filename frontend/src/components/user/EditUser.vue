@@ -58,7 +58,7 @@
     <div v-if="showAdminConfirmDialog" class="overlay">
       <div class="confirm-dialog">
         <p>你確定要將用戶 {{ oldname }} 設置為管理員嗎？</p>
-        <button @click="confirmSetAdmin" class="btn-primary" style="background: #9a2118;">確定</button>
+        <button @click="confirmSetAdmin" class="btn-primary" style="background: #4CAF50;">確定</button>
         <button @click="cancelSetAdmin" class="btn-secondary" style="background: darkgoldenrod">取消</button>
       </div>
     </div>
@@ -67,7 +67,7 @@
     <div v-if="showConfirmDialog" class="overlay">
       <div class="confirm-dialog">
         <p>你確定要刪除用戶 {{ confirmUser?.username }} 嗎？</p>
-        <button @click="confirmDelete" class="btn-primary" style="background: #9a2118;">確定</button>
+        <button @click="confirmDelete" class="btn-primary" style="background: #9a2118;">删除</button>
         <button @click="cancelDelete" class="btn-secondary" style="background: darkgoldenrod">取消</button>
       </div>
     </div>

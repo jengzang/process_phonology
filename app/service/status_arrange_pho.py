@@ -53,7 +53,7 @@ def query_characters_by_path(path_string, db_path=CHARACTERS_DB_PATH, table="cha
         print("❌ 無法解析輸入語法。請使用 [值]{欄位} 的格式")
         return [], []
 
-    print(f"🔍 解析出的條件：{matches}")
+    # print(f"🔍 解析出的條件：{matches}")
 
     filter_columns = [col for _, col in matches]
     for col in filter_columns:
@@ -90,7 +90,7 @@ def query_characters_by_path(path_string, db_path=CHARACTERS_DB_PATH, table="cha
         return [], []
 
     characters = filtered_df["漢字"].dropna().tolist()
-    print(f"\n🎯 符合條件的漢字共 {len(characters)} 個")
+    # print(f"\n🎯 符合條件的漢字共 {len(characters)} 個")
 
     # 多地位過濾（優化判斷）
     multi_chars = []
@@ -99,7 +99,7 @@ def query_characters_by_path(path_string, db_path=CHARACTERS_DB_PATH, table="cha
             filtered_df["多地位標記"] == "1"
             ]["漢字"].dropna().unique().tolist()
 
-        print(f"🟡 初步多地位標記候選：{len(candidates)} 字")
+        # print(f"🟡 初步多地位標記候選：{len(candidates)} 字")
 
         for word in candidates:
             all_rows = df[df["漢字"] == word]
@@ -107,7 +107,7 @@ def query_characters_by_path(path_string, db_path=CHARACTERS_DB_PATH, table="cha
             if len(sub) > 1:
                 multi_chars.append(word)
 
-        print(f"🟠 經過比對後確定有多地位的漢字：{len(multi_chars)} 字")
+        # print(f"🟠 經過比對後確定有多地位的漢字：{len(multi_chars)} 字")
     else:
         print("⚠️ 無「多地位標記」欄")
 
@@ -176,12 +176,12 @@ def query_by_status(char_list, locations, features, user_input, db_path=DIALECTS
     # print("🔍 開始處理地點和特徵...")
 
     for loc in locations:
-        print(f"\n🔍 處理地點：{loc}")
+        # print(f"\n🔍 處理地點：{loc}")
         loc_df = df[df["簡稱"] == loc]
         # print(f"   - 該地資料筆數：{len(loc_df)}")
 
         loc_chars_df = loc_df[loc_df["漢字"].isin(char_list)]
-        print(f"   - 匹配輸入漢字筆數：{len(loc_chars_df)} / {len(char_list)}")
+        # print(f"   - 匹配輸入漢字筆數：{len(loc_chars_df)} / {len(char_list)}")
 
         if loc_chars_df.empty:
             print("   ⚠️ 無符合漢字，略過此地點")
@@ -198,7 +198,7 @@ def query_by_status(char_list, locations, features, user_input, db_path=DIALECTS
             continue
 
         total_chars = len(loc_chars_df["漢字"].unique())
-        print(f"   - 總共字數：{total_chars}")
+        # print(f"   - 總共字數：{total_chars}")
 
         for feature in features:
             # print(f"   🔎 處理特徵：{feature}")
@@ -229,7 +229,7 @@ def query_by_status(char_list, locations, features, user_input, db_path=DIALECTS
                     "多音字詳情": "; ".join(poly_details) if poly_details else ""
                 })
 
-    print("\n✅ 分析完成！")
+    # print("\n✅ 分析完成！")
 
     # 返回結果
     return pd.DataFrame(results)
@@ -500,7 +500,7 @@ def sta2pho(
                     if not path_chars:
                         continue
 
-                    print(f"\n🔧 開始分析『{path_str}』的特徵分布 ({features[0]})...\n")
+                    # print(f"\n🔧 開始分析『{path_str}』的特徵分布 ({features[0]})...\n")
                     # simplified_input = ''.join(re.findall(r'\[(.*?)\]', path_str))
                     df = query_by_status(path_chars, unique_abbrs, [features[0]], path_str,
                                          db_path=db_path_dialect)
@@ -509,7 +509,7 @@ def sta2pho(
 
     else:
         for user_input, feature in zip(test_inputs, features):
-            print(f"\n📘 分析輸入：{user_input} 對應特徵：{feature}")
+            # print(f"\n📘 分析輸入：{user_input} 對應特徵：{feature}")
 
             summary = run_status([user_input], db_path=db_path_char)
             # if not summary[1]:  # 这里检查 summary 中第二个元素
@@ -527,7 +527,7 @@ def sta2pho(
                     if not path_chars:
                         continue
 
-                    print(f"\n🔧 開始分析『{path_str}』的特徵分布 ({feature})...\n")
+                    # print(f"\n🔧 開始分析『{path_str}』的特徵分布 ({feature})...\n")
                     # simplified_input = ''.join(re.findall(r'\[(.*?)\]', path_str))
                     df = query_by_status(path_chars, unique_abbrs, [feature], path_str, db_path=db_path_dialect)
 

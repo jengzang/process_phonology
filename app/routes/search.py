@@ -10,7 +10,7 @@ from app.auth.dependencies import check_api_usage_limit, get_current_user
 from app.auth.models import User
 from app.service.match_input_tip import match_locations_batch
 from app.service.search_chars import search_characters
-from common.config import CLEAR_2HOUR, REQUIRE_LOGIN, DIALECTS_DB_ADMIN, DIALECTS_DB_USER, QUERY_DB_ADMIN, QUERY_DB_USER
+from common.config import CLEAR_WEEK, REQUIRE_LOGIN, DIALECTS_DB_ADMIN, DIALECTS_DB_USER, QUERY_DB_ADMIN, QUERY_DB_USER
 from common.search_tones import search_tones
 import time
 from app.service.api_logger import *
@@ -53,12 +53,12 @@ async def search_chars(
                          request.client.host,
                          request.headers.get("user-agent", ""),
                          request.headers.get("referer", ""))
-        path = request.url.path
-        ip = request.client.host
-        agent = request.headers.get("user-agent", "")
-        referer = request.headers.get("referer", "")
-        user_id = user.id if user else None
-        log_detailed_api_to_db(db, path, duration, 200, ip, agent, referer, user_id, CLEAR_2HOUR)
+        # path = request.url.path
+        # ip = request.client.host
+        # agent = request.headers.get("user-agent", "")
+        # referer = request.headers.get("referer", "")
+        # user_id = user.id if user else None
+        # log_detailed_api_to_db(db, path, duration, 200, ip, agent, referer, user_id, CLEAR_2HOUR)
 
 
 @router.get("/search_tones/")
@@ -83,20 +83,31 @@ async def search_tones_o(
         query_db = QUERY_DB_ADMIN if user and user.role == "admin" else QUERY_DB_USER
         locations_processed = []
         for location in locations or []:
-            matched = match_locations_batch(location,False, query_db=query_db)
+            matched = match_locations_batch(location, False, query_db=query_db)
             extracted = [res[0][0] for res in matched if res[0]]
             locations_processed.extend(extracted)
         result = search_tones(locations=locations_processed, regions=regions,db_path=query_db)
         return {"tones_result": result}
     finally:
-        duration = time.time() - start
+        duration = time.time() - start  # 计算持续时间
+
+        # 记录详细的 API 流量日志
         log_detailed_api(request.url.path, duration, 200,
                          request.client.host,
                          request.headers.get("user-agent", ""),
                          request.headers.get("referer", ""))
-        path = request.url.path
-        ip = request.client.host
-        agent = request.headers.get("user-agent", "")
-        referer = request.headers.get("referer", "")
-        user_id = user.id if user else None
-        log_detailed_api_to_db(db, path, duration, 200, ip, agent, referer, user_id, CLEAR_2HOUR)
+
+        # 记录到数据库
+        # log_detailed_api_to_db(
+        #     db,
+        #     request.url.path,
+        #     duration,
+        #     200,
+        #     request.client.host,
+        #     request.headers.get("user-agent", ""),
+        #     request.headers.get("referer", ""),
+        #     user.id if user else None,
+        #     request_size=request_size,
+        #     response_size=response_size,
+        #     clear_old=CLEAR_2HOUR
+        # )

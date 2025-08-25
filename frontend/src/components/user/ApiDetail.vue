@@ -2,7 +2,7 @@
   <div>
     <h2>近期 API 使用詳情</h2>
 
-    <button @click="goToApiStatsPage" style="max-width: 100px;padding:0;">查看API統計圖表</button>
+    <button @click="goToApiStatsPage" style="max-width: 100px;padding:0;">API統計圖表</button>
 
     <!-- 功能统计部分 -->
     <div class="stats">
@@ -50,6 +50,8 @@
             <th>用戶名</th>
             <th>總使用時長</th>
             <th>次數</th>
+            <th>上行流量</th>  <!-- 新增列 -->
+            <th>下行流量</th>  <!-- 新增列 -->
           </tr>
           </thead>
           <tbody>
@@ -62,6 +64,8 @@
             <td>{{ userStat.user }}</td>  <!-- 显示用户名 -->
             <td>{{ userStat.totalDuration.toFixed(3) }}s</td> <!-- 总使用时长 -->
             <td>{{ userStat.occurrenceCount }}</td> <!-- 出现次数 -->
+            <td>{{ userStat.totalUploadTraffic }}MB</td>  <!-- 上行流量 -->
+            <td>{{ userStat.totalDownloadTraffic }}MB</td>  <!-- 下行流量 -->
           </tr>
           </tbody>
         </table>
@@ -79,6 +83,8 @@
             <th>IP 地址</th>
             <th>總使用時長</th>
             <th>次數</th>
+            <th>上行流量</th>  <!-- 新增列 -->
+            <th>下行流量</th>  <!-- 新增列 -->
           </tr>
           </thead>
           <tbody>
@@ -86,6 +92,8 @@
             <td>{{ ipStat.ip }}</td>
             <td>{{ ipStat.totalDuration.toFixed(3) }}s</td> <!-- 总使用时长 -->
             <td>{{ ipStat.occurrenceCount }}</td> <!-- 出现次数 -->
+            <td>{{ ipStat.totalUploadTraffic }}MB</td>  <!-- 上行流量 -->
+            <td>{{ ipStat.totalDownloadTraffic }}MB</td>  <!-- 下行流量 -->
           </tr>
           </tbody>
         </table>
@@ -103,6 +111,8 @@
             <th>API 路徑</th>
             <th>總時長</th>  <!-- 新增总持续时间列 -->
             <th>調用次數</th>
+            <th>上行流量</th>  <!-- 新增列 -->
+            <th>下行流量</th>  <!-- 新增列 -->
           </tr>
           </thead>
           <tbody>
@@ -110,6 +120,8 @@
             <td>{{ path }}</td>
             <td>{{ data.totalDuration.toFixed(3) }}s</td>  <!-- 显示总持续时间 -->
             <td>{{ data.count }}</td>
+            <td>{{ data.totalUploadTraffic.toFixed(2) }}MB</td>  <!-- 上行流量 -->
+            <td>{{ data.totalDownloadTraffic.toFixed(2) }}MB</td>  <!-- 下行流量 -->
           </tr>
           </tbody>
         </table>
@@ -128,6 +140,8 @@
         <th @click="sortData('os')">操作系統 <span :class="getArrowClass('os')"></span></th>
         <th @click="sortData('browser')">瀏覽器 <span :class="getArrowClass('browser')"></span></th>
         <th @click="sortData('called_at')">請求時間 <span :class="getArrowClass('called_at')"></span></th>
+        <th @click="sortData('uploadTraffic')">上行流量 <span :class="getArrowClass('uploadTraffic')"></span></th>
+        <th @click="sortData('downloadTraffic')">下行流量 <span :class="getArrowClass('downloadTraffic')"></span></th>
       </tr>
       </thead>
       <tbody>
@@ -139,6 +153,8 @@
         <td>{{ log.os }}</td> <!-- 操作系统 -->
         <td>{{ log.browser }}</td> <!-- 浏览器 -->
         <td>{{ formatTime(log.called_at) }}</td> <!-- 使用时间 -->
+        <td>{{ log.uploadTraffic }}KB</td>  <!-- 上行流量 -->
+        <td>{{ log.downloadTraffic }}KB</td>  <!-- 下行流量 -->
       </tr>
       </tbody>
     </table>
@@ -192,9 +208,16 @@ export default {
   async mounted() {
     try {
       const response = await api.get(`/api-usage/api-usage`, {
-        params: { page: this.currentPage, limit: this.pageSize } // 添加分頁參數
+        params: { page: this.currentPage, limit: this.pageSize } // 添加分页参数
       });
       this.apiLogs = response.data;  // 处理返回的 API 使用记录
+      console.log(this.apiLogs)
+      // 为每个日志添加上行流量和下行流量，假设 log.request_size 和 log.response_size 存在
+      this.apiLogs = this.apiLogs.map(log => ({
+        ...log,
+        uploadTraffic: (log.request_size / 1024).toFixed(2),  // 转换为 KB，保留两位小数
+        downloadTraffic: (log.response_size / 1024).toFixed(2) // 转换为 KB，保留两位小数
+      }));
 
       // 独特用户统计
       this.uniqueUsers = [...new Set(this.apiLogs.map(log => log.user || ''))];
@@ -204,7 +227,15 @@ export default {
         const userLogs = this.apiLogs.filter(log => log.user === user);
         const totalDuration = userLogs.reduce((acc, log) => acc + log.duration, 0);
         const occurrenceCount = userLogs.length;
-        return { user: user || '匿名用戶', totalDuration, occurrenceCount };  // 处理空用户名
+        const totalUploadTraffic = userLogs.reduce((acc, log) => acc + (log.request_size || 0), 0);  // 上行流量
+        const totalDownloadTraffic = userLogs.reduce((acc, log) => acc + (log.response_size || 0), 0);  // 下行流量
+        return {
+          user: user || '匿名用户',
+          totalDuration,
+          occurrenceCount,
+          totalUploadTraffic: (totalUploadTraffic / (1024 * 1024)).toFixed(2),  // 转换为 MB
+          totalDownloadTraffic: (totalDownloadTraffic / (1024 * 1024)).toFixed(2)  // 转换为 MB
+        };
       });
 
       // 排序：按总使用时长从大到小
@@ -218,19 +249,35 @@ export default {
         const ipLogs = this.apiLogs.filter(log => log.ip === ip);
         const totalDuration = ipLogs.reduce((acc, log) => acc + log.duration, 0);
         const occurrenceCount = ipLogs.length;
-        return { ip, totalDuration, occurrenceCount };
+        const totalUploadTraffic = ipLogs.reduce((acc, log) => acc + (log.request_size || 0), 0);  // 上行流量
+        const totalDownloadTraffic = ipLogs.reduce((acc, log) => acc + (log.response_size || 0), 0);  // 下行流量
+        return {
+          ip,
+          totalDuration,
+          occurrenceCount,
+          totalUploadTraffic: (totalUploadTraffic / (1024 * 1024)).toFixed(2),  // 转换为 MB
+          totalDownloadTraffic: (totalDownloadTraffic / (1024 * 1024)).toFixed(2)  // 转换为 MB
+
+        };
       });
 
       // 排序：按总使用时长从大到小
       this.ipStats.sort((a, b) => b.totalDuration - a.totalDuration);
 
-      // 统计每个 API 调用的次数和总的持续时间
       this.apiCalls = this.apiLogs.reduce((acc, log) => {
         if (!acc[log.path]) {
-          acc[log.path] = { count: 0, totalDuration: 0 };
+          acc[log.path] = { count: 0, totalDuration: 0, totalUploadTraffic: 0, totalDownloadTraffic: 0 };
         }
         acc[log.path].count += 1;
         acc[log.path].totalDuration += log.duration;
+
+        // 转换上行流量和下行流量为 MB，计算时保持数字类型，最后格式化为两位小数
+        acc[log.path].totalUploadTraffic += ((log.request_size / (1024 * 1024))) || 0;  // 转换为 MB，保持数字
+        acc[log.path].totalDownloadTraffic += ((log.response_size / (1024 * 1024))) || 0;  // 转换为 MB，保持数字
+
+
+
+
         this.totalAPICalls += 1;
         return acc;
       }, {});
@@ -245,6 +292,7 @@ export default {
       console.error('Error fetching API usage data', error);
     }
   },
+
   computed: {
 // 当前页面的数据
     currentPageData() {

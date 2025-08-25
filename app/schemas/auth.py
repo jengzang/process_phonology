@@ -24,8 +24,8 @@ class UserResponse(BaseModel):
     id: int
     username: str
     email: EmailStr
-    full_name: Optional[str] = None
-    phone: Optional[str] = None
+    # full_name: Optional[str] = None
+    # phone: Optional[str] = None
     role: str
     status: str
     is_verified: bool

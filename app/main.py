@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.routes import setup_routes
-from app.service.api_logger import start_api_logger_workers, stop_api_logger_workers
+from app.service.api_logger import start_api_logger_workers, stop_api_logger_workers, TrafficLoggingMiddleware
 from app.statics.static_utils import get_resource_path, ensure_user_data  # 如果你要用它挂载静态资源
 from common.config import _RUN_TYPE
 from starlette.staticfiles import StaticFiles
@@ -37,26 +37,29 @@ if _RUN_TYPE == 'EXE':
                     print(f"[{now}] Backend alive ✅ — 開發者: 不羈")
 
 
-    @asynccontextmanager
-    async def lifespan(app: FastAPI):
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    if _RUN_TYPE == 'EXE':
         global _printer_started
         if not _printer_started:
             _printer_started = True
             t = threading.Thread(target=_periodic_printer, daemon=True)
             t.start()
 
-        # ✅ 新增：在应用真正启动时再开日志相关线程
-        start_api_logger_workers()
-        try:
-            yield  # 應用運行中
-        finally:
-            # ✅ 新增：优雅停止（发哨兵），避免 reload 时残留线程
-            stop_api_logger_workers()
+    # ✅ 新增：在应用真正启动时再开日志相关线程
+    start_api_logger_workers()
+    try:
+        yield  # 應用運行中
+    finally:
+        # ✅ 新增：优雅停止（发哨兵），避免 reload 时残留线程
+        stop_api_logger_workers()
 
 
-    app = FastAPI(lifespan=lifespan)
-    app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+app = FastAPI(lifespan=lifespan)
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(TrafficLoggingMiddleware)
 
+if _RUN_TYPE == 'EXE':
     # === 活動請求統計中介層 ===
     @app.middleware("http")
     async def pause_print_while_request(request: Request, call_next):
@@ -69,9 +72,7 @@ if _RUN_TYPE == 'EXE':
         finally:
             with print_lock:
                 active_requests -= 1
-else:
-    app = FastAPI()
-    app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+
 
 # === 掛載子路由與靜態資源 ===
 setup_routes(app)

@@ -245,9 +245,9 @@ def pho2sta(locations, regions, features, status_inputs,
     dialect_output = query_dialect_features(unique_abbrs, features, db_path=dialect_db_path)
 
     for loc in unique_abbrs:
-        print(f"\n🔷 開始處理地點：{loc}")
+        # print(f"\n🔷 開始處理地點：{loc}")
         for feature in features:
-            print(f"  ├── 特徵：{feature}")
+            # print(f"  ├── 特徵：{feature}")
             group_fields = grouping_columns_map.get(feature)
 
             feature_items = dialect_output[feature].items()

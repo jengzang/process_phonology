@@ -262,7 +262,7 @@ def auto_convert_batch(input_string: str) -> List[Union[Tuple[str, int], Tuple[b
     results = []
     for idx, part in enumerate(parts):
         if part:
-            print(f"🔹 處理第 {idx + 1} 段：{part}")
+            # print(f"🔹 處理第 {idx + 1} 段：{part}")
             res = auto_convert_single(part)
             if isinstance(res, list):
                 results.extend(res)

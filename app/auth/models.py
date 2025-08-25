@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, func, ForeignKey, Float, Text
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, func, ForeignKey, Float, Text, DECIMAL
 from sqlalchemy.orm import relationship
 
 from sqlalchemy.orm import declarative_base
@@ -55,6 +55,8 @@ class ApiUsageLog(Base):
     user_agent = Column(String(255), nullable=True)
     referer = Column(String(255), nullable=True)
     called_at = Column(DateTime, server_default=func.now())
+    request_size = Column(Integer, nullable=False, default=0)  # 新增：请求大小
+    response_size = Column(Integer, nullable=False, default=0)  # 新增：响应大小
 
     user = relationship("User", backref="api_logs")
 
@@ -67,6 +69,11 @@ class ApiUsageSummary(Base):
     path = Column(String(255), nullable=False)
     count = Column(Integer, default=0)
     last_updated = Column(DateTime, default=func.now(), onupdate=func.now())
+
+    total_duration = Column(DECIMAL(10, 2), default=0.00)
+    # 修改字段类型为 DECIMAL，保留两位小数
+    total_upload = Column(DECIMAL(10, 2), default=0.00)  # 上行流量，单位 KB
+    total_download = Column(DECIMAL(10, 2), default=0.00)  # 下行流量，单位 KB
 
     user = relationship("User", back_populates="usage_summary")
 

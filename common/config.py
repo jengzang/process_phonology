@@ -58,11 +58,20 @@ WRITE_INFO_LOG = os.path.join(BASE_DIR, "logs", "write.txt")
 WRITE_ERROR_LOG = os.path.join(BASE_DIR, "logs", "write_error.txt")
 
 # 是否刪除兩個小時前的api記錄
-CLEAR_2HOUR = False
+CLEAR_WEEK = False
+# 只记录路径中包含以下词的 API
+RECORD_API = [
+    "phonology",  # 可以匹配 "/api/phonology"
+    "get_coordinates",  # 可以匹配 "/api/get_coordinates"
+    "search_tones",  # 可以匹配 "/api/search_tones/"
+    "search_chars",  # 可以匹配 "/api/search_chars/"
+    "submit_form",
+    "delete_form"
+]
 
 # ========== 登錄系統 =============
-db_path = os.path.join(BASE_DIR, "data", "auth.db")
-USER_DATABASE_URL = f"sqlite:///{db_path}"
+USER_DATABASE_PATH = os.path.join(BASE_DIR, "data", "auth.db")
+USER_DATABASE_URL = f"sqlite:///{USER_DATABASE_PATH}"
 
 SECRET_KEY = "super-secret-key"
 ALGORITHM = "HS256"

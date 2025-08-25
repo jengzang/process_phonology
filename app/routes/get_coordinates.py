@@ -14,7 +14,7 @@ from app.schemas import CoordinatesQuery
 from app.service.locs_regions import get_coordinates_from_db
 from common.getloc_by_name_region import query_dialect_abbreviations, query_dialect_abbreviations_orm
 from app.service.match_input_tip import match_locations_batch
-from common.config import QUERY_DB_ADMIN, QUERY_DB_USER, CLEAR_2HOUR
+from common.config import QUERY_DB_ADMIN, QUERY_DB_USER, CLEAR_WEEK
 import time
 from app.service.api_logger import *
 
@@ -98,4 +98,4 @@ async def get_coordinates(
 
         log_detailed_api(request.url.path, duration, 200, request.client.host, request.headers.get("user-agent", ""),
                          request.headers.get("referer", ""))
-        log_detailed_api_to_db(db_user, path, duration, 200, ip, agent, referer, user_id, CLEAR_2HOUR)
+        log_detailed_api_to_db(db_user, path, duration, 200, ip, agent, referer, user_id, CLEAR_WEEK)
