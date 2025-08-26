@@ -1,22 +1,94 @@
 /* global.css */
+button {
+  margin-top: 10px;
+  /*margin-left: 10px;*/
+  /*margin-right: 10px;*/
+  padding: 8px 16px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 12px;
+  background-color: #4CAF50;  /* 苹果风格的绿色 */
+  color: white;
+  border: none;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  max-width: 150px;
+  min-width: 70px; /* 设置按钮最小宽度，确保按钮一致 */
+  white-space: nowrap; /* 确保按钮文本不换行 */
+  overflow: hidden;   /* 超出部分隐藏 */
+  justify-content: center;
+  /*display: flex;*/
+  align-items: center;        /* 垂直居中 */
+}
+
+button:hover {
+  background-color: #217825; /* 鼠标悬停时的深绿色 */
+  transform: scale(1.05); /* 按钮放大 */
+}
+
+button:disabled {
+  background-color: rgba(42, 175, 53, 0.34); /* 禁用按钮的背景颜色 */
+  cursor: not-allowed; /* 禁用时的鼠标样式 */
+}
+
+button:active {
+  transform: scale(0.98); /* 按钮点击时缩小 */
+}
+
+/* 退出按钮容器 */
+.logout-button-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;  /* 给退出按钮上方加点间距 */
+}
+
+.logout-button-container button {
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #9e9d24;  /* 退出按钮的颜色 */
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  max-width: 120px;
+}
+
+.logout-button-container button:hover {
+  background-color: #836207;  /* 鼠标悬停时的颜色 */
+  transform: scale(1.05);
+}
+
+.logout-button-container button:disabled {
+  background-color: rgba(244, 200, 54, 0.34);
+  cursor: not-allowed;
+}
 
 /* 設置viewport以確保響應式 */
 @media (max-width: 768px) {
   body {
     font-size: 16px;
   }
+  button {
+    padding: 8px 16px;
+    font-size: 14px;  /* 调整按钮大小 */
+    max-width: 90px;
+  }
 }
 
 /* 針對不同設備的媒體查詢 */
-@media (max-width: 600px) {
+@media (max-width: 480px) {
   #app {
     font-size: 14px;
     margin-top: 40px;
   }
 
   button {
-    width: 100%;
-    padding: 15px 0;
+    padding: 6px 5px;  /* 更小的按钮 */
+    font-size: 12px;
+    max-width: 90px;
+    white-space: nowrap;
   }
+
 }
+
 

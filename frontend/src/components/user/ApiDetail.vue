@@ -2,14 +2,14 @@
   <div>
     <h2>近期 API 使用詳情</h2>
 
-    <button @click="goToApiStatsPage" style="max-width: 100px;padding:0;">API統計圖表</button>
+    <button @click="goToApiStatsPage" style="max-width: 100px;padding:3px;display: flex;justify-self: center">API統計表</button>
 
     <!-- 功能统计部分 -->
     <div class="stats">
       <button @click="showUniqueUsers" class="stat-btn">所有用户: {{ uniqueUsersCount }}</button>
       <button @click="showUniqueIPs" class="stat-btn">所有IP: {{ uniqueIPsCount }}</button>
       <button @click="showAPICalls" class="stat-btn" style="max-width: 180px">API調用數: {{ totalAPICalls }}</button>
-      <button @click="goToHome" class="stat-btn" style="background: darkgoldenrod;">返回首頁</button>
+      <button @click="goToHome" class="stat-btn" style="background: #9e9d24;">返回首頁</button>
     </div>
 
     <!-- 独特用户弹窗 -->
@@ -211,7 +211,7 @@ export default {
         params: { page: this.currentPage, limit: this.pageSize } // 添加分页参数
       });
       this.apiLogs = response.data;  // 处理返回的 API 使用记录
-      console.log(this.apiLogs)
+      // console.log(this.apiLogs)
       // 为每个日志添加上行流量和下行流量，假设 log.request_size 和 log.response_size 存在
       this.apiLogs = this.apiLogs.map(log => ({
         ...log,
@@ -404,20 +404,22 @@ export default {
 </script>
 
 <style scoped>
-/* 按鈕樣式調整 */
-button {
-  max-width: 100%; /* 使按鈕適應屏幕寬度 */
-  box-sizing: border-box; /* 讓按鈕寬度包含內邊距 */
+.stats {
+  display: flex;
+  flex-wrap: wrap;            /* 允许按钮在空间不足时换行 */
+  justify-content: center;    /* 水平居中 */
+  align-items: center;        /* 垂直居中 */
+  gap: 5px;                  /* 按钮之间的间距 */
+  margin-top: 10px;
 }
-
 .stat-btn {
   padding: 10px;
-  margin: 10px;
+  margin: 5px;
   cursor: pointer;
   background-color: #4CAF50;
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 15px;
   font-size: 17px;
   max-width: 120px;
   width: 100%; /* 在移動端讓按鈕寬度適應 */
@@ -435,59 +437,6 @@ h1 {
   text-align: center;
   margin-bottom: 0;
   color: #2c6e49;  /* 苹果风格绿色 */
-}
-
-/* 显示数据总数的样式 */
-p {
-  font-size: 18px;
-  text-align: center;
-  margin-bottom: 20px;
-  color: #333;
-  font-weight: normal;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-th,
-td {
-  border: 1px solid #ddd;
-  padding: 12px;
-  text-align: left;
-  font-size: 16px;
-}
-
-th {
-  background-color: #e4f4e7;  /* 浅绿色背景 */
-  color: #2c6e49;  /* 绿色字体 */
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.arrow-up::after {
-  content: '↑';
-  margin-left: 5px;
-  font-size: 14px;
-}
-
-.arrow-down::after {
-  content: '↓';
-  margin-left: 5px;
-  font-size: 14px;
-}
-
-/* 增加悬浮效果 */
-th:hover {
-  background-color: #c8e7c2;  /* 鼠标悬浮时的浅绿色 */
-}
-
-td {
-  background-color: #f9f9f9;
 }
 
 
@@ -564,25 +513,78 @@ td {
   align-self: center;
   color: #333;
 }
+/* 显示数据总数的样式 */
+p {
+  font-size: 18px;
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
+  font-weight: normal;
+}
 
-/* 移動端適配 */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+th,
+td {
+  border: 1px solid #81c784; /* 设置为苹果绿色的边框 */
+  padding: 12px;
+  text-align: left;
+  font-size: 16px;
+}
+
+th {
+  background-color: #a5d6a7;  /* 浅绿色背景 */
+  color: #2c6e49;  /* 绿色字体 */
+  font-weight: bold;
+  cursor: pointer;
+  white-space: nowrap; /* 防止表头文字换行 */
+}
+
+.arrow-up::after {
+  content: '↑';
+  margin-left: 5px;
+  font-size: 14px;
+}
+
+.arrow-down::after {
+  content: '↓';
+  margin-left: 5px;
+  font-size: 14px;
+}
+
+/* 增加悬浮效果 */
+th:hover {
+  background-color: #81c784;  /* 鼠标悬浮时的苹果绿色 */
+}
+
+td {
+  background-color: #f1f8e9;
+}
+
+/* 移动端适配 */
 @media (max-width: 768px) {
   th, td {
-    padding: 8px; /* 減少表格單元格的內邊距 */
+    padding: 8px; /* 减少表格单元格的内边距 */
   }
 
   .stat-btn {
-    font-size: 14px; /* 調整按鈕文字大小 */
-    padding: 12px; /* 增加按鈕的內邊距 */
+    font-size: 14px; /* 调整按钮文字大小 */
+    padding: 12px; /* 增加按钮的内边距 */
   }
 
   .modal-content {
-    width: 95%; /* 彈窗的寬度更小，適應小屏幕 */
+    width: 95%; /* 弹窗的宽度更小，适应小屏幕 */
   }
 
   .pagination-controls button {
-    font-size: 14px; /* 分頁按鈕文字大小調整 */
-    min-width: 100px; /* 調整分頁按鈕最小寬度 */
+    font-size: 14px; /* 分页按钮文字大小调整 */
+    min-width: 100px; /* 调整分页按钮最小宽度 */
   }
 
   table {
@@ -596,28 +598,28 @@ td {
   }
 }
 
-/* 更小的屏幕適配（如手機） */
+/* 更小的屏幕适配（如手机） */
 @media (max-width: 480px) {
   table {
-    font-size: 14px; /* 調整表格字體大小 */
+    font-size: 12px; /* 调整表格字体大小 */
   }
 
   .pagination-controls button {
-    font-size: 12px; /* 調整分頁按鈕字體大小 */
-    padding: 8px 16px; /* 調整按鈕的內邊距 */
+    font-size: 13px; /* 调整分页按钮字体大小 */
+    padding: 6px 14px; /* 调整按钮的内边距 */
   }
 
   .stat-btn {
-    font-size: 12px; /* 調整按鈕文字大小 */
-    padding: 10px; /* 調整按鈕內邊距 */
+    font-size: 15px; /* 调整按钮文字大小 */
+    padding: 6px; /* 调整按钮内边距 */
   }
 
   .close {
-    font-size: 50px; /* 關閉按鈕大小調整 */
+    font-size: 50px; /* 关闭按钮大小调整 */
   }
 
   .modal-content {
-    padding: 15px; /* 彈窗內邊距調整 */
+    padding: 15px; /* 弹窗内边距调整 */
   }
   table {
     font-size: 12px; /* 更小的字体 */

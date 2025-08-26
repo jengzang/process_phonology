@@ -248,6 +248,7 @@ export default {
   margin-bottom: 20px;
 }
 
+
 .user-info p {
   margin: 5px 0;
 }

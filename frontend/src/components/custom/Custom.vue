@@ -3,7 +3,10 @@
     <h1>所有用戶數據</h1>
     <div class="top-controls">
       <p>當前共有 {{ data.length }} 條數據</p>
-      <button @click="goToHome" style="background: darkgoldenrod">返回首頁</button>
+      <div class="logout-button-container" style="margin-top: 0">
+        <button @click="goToHome" style="background:#9e9d24">返回首頁</button>
+      </div>
+
       <!-- 搜索框 -->
       <div class="search-container">
         <input v-model="searchQuery" @input="searchUser" type="text" placeholder="搜索用戶名、簡稱、音典分區、特徵、值、說明" />
@@ -14,12 +17,12 @@
       <thead>
       <tr>
         <th @click="sortData('username')">用戶名 <span :class="getArrowClass('username')"></span></th>
-        <th @click="sortData('簡稱')">簡稱 <span :class="getArrowClass('簡稱')"></span></th>
+        <th @click="sortData('簡稱')" style="min-width: 70px">簡稱 <span :class="getArrowClass('簡稱')"></span></th>
         <th @click="sortData('音典分區')">音典分區 <span :class="getArrowClass('音典分區')"></span></th>
         <th @click="sortData('經緯度')">經緯度 <span :class="getArrowClass('經緯度')"></span></th>
         <th @click="sortData('特徵')">特徵 <span :class="getArrowClass('特徵')"></span></th>
         <th @click="sortData('值')">值 <span :class="getArrowClass('值')"></span></th>
-        <th @click="sortData('說明')">說明 <span :class="getArrowClass('說明')"></span></th>
+        <th @click="sortData('說明')" style="min-width: 120px">說明 <span :class="getArrowClass('說明')"></span></th>
         <th @click="sortData('time')">創建時間 <span :class="getArrowClass('time')"></span></th>
       </tr>
       </thead>
@@ -223,6 +226,7 @@ th {
   color: #2c6e49;  /* 绿色字体 */
   font-weight: bold;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .arrow-up::after {
@@ -247,31 +251,7 @@ td {
 }
 
 
-/* 按钮的苹果绿色风格 */
-button {
-  margin-top: 10px;
-  margin-left: 10px;
-  margin-right: 10px;
-  padding: 10px 20px;
-  font-size: 16px;
-  cursor: pointer;
-  border-radius: 25px; /* 圆角按钮 */
-  background-color: #4CAF50;  /* 绿色 */
-  color: white;
-  border: none;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  max-width: 120px;
-}
 
-button:hover {
-  background-color: #45a049;  /* 深绿色 */
-  transform: scale(1.05); /* 鼠标悬停时按钮稍微放大 */
-}
-
-button:disabled {
-  background-color: rgba(76, 175, 80, 0.5);  /* 禁用按钮的背景颜色 */
-  cursor: not-allowed; /* 禁用时的鼠标样式 */
-}
 
 /* 搜索框样式 */
 .search-container input {

@@ -11,22 +11,27 @@
       <div><strong>總在線時長:</strong> {{ formatOnlineTime(stats.total_online_seconds) }}</div>
       <div><strong>最近一次登錄:</strong> {{ formatTime(stats.last_login) }}</div>
     </div>
-    <button @click="goToHome" style="background: darkgoldenrod">返回首頁</button>
+    <div class="logout-button-container">
+      <button @click="goToHome" >返回首頁</button>
+    </div>
+
     <h2>近期登錄</h2>
-    <table>
-      <thead>
-      <tr>
-        <th>IP地址</th>
-        <th>次數</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr v-for="(count, ip) in ipCounts" :key="ip">
-        <td>{{ ip }}</td>
-        <td>{{ count }}</td>
-      </tr>
-      </tbody>
-    </table>
+    <div class="table-wrapper">
+      <table class="dynamic-table">
+        <thead>
+        <tr>
+          <th>IP地址</th>
+          <th>次數</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="(count, ip) in ipCounts" :key="ip">
+          <td>{{ ip }}</td>
+          <td>{{ count }}</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
 
     <h2>API 使用統計</h2>
     <table>
@@ -260,31 +265,9 @@ export default {
 .stats-container {
   margin: 20px;
   font-family: Arial, sans-serif;
-  padding: 10px; /* 增加一些内边距 */
+  padding: 10px;
 }
 
-button {
-  padding: 12px 24px;
-  margin: 0 12px;
-  background-color: #4CAF50; /* 按钮的苹果绿色 */
-  color: white;
-  border: none;
-  border-radius: 20px; /* 圆角效果 */
-  font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  min-width: 100px;  /* 设置按钮最小宽度，确保按钮一致 */
-  max-width: 200px;
-}
-
-button:hover {
-  background-color: #217825;
-  transform: scale(1.05);
-}
-
-button:active {
-  transform: scale(0.98); /* 按钮点击时缩小 */
-}
 
 .user-info {
   margin-bottom: 20px;
@@ -295,7 +278,7 @@ h3 {
 }
 
 .stats-card {
-  background: #f9f9f9;
+  background: #f5f8f1;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -311,20 +294,31 @@ strong {
   color: #007bff;
 }
 
+/* 表格样式 */
 table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
+  background-color: #f1f8e9; /* 苹果绿色背景 */
+  border: 1px solid #81c784; /* 苹果绿色边框 */
+  border-radius: 8px;
+  overflow: hidden; /* 避免圆角被覆盖 */
 }
 
 th, td {
   padding: 10px;
-  text-align: left;
-  border-top: 1px solid #e0e0e0;
+  text-align: center; /* 表格内容居中 */
+  border-top: 1px solid #81c784; /* 苹果绿色边框 */
+  word-wrap: break-word; /* 自动换行 */
+  max-width: 200px; /* 设置最大宽度 */
+  overflow: hidden; /* 超出内容隐藏 */
+  text-overflow: ellipsis; /* 文字溢出时显示省略号 */
 }
 
 th {
-  background-color: #f4f4f4;
+  background-color: #a5d6a7; /* 更深的绿色作为表头背景 */
+  color: #fff;
+  white-space: nowrap; /* 防止标题文字换行 */
 }
 
 .browser-cell {
@@ -349,6 +343,41 @@ th {
   display: block;
 }
 
+.table-wrapper {
+  width: 100%;
+  text-align: center;     /* 子元素居中 */
+  overflow-x: auto;       /* 超宽时横向滚动 */
+  border-radius: 8px;
+}
+
+.dynamic-table {
+  display: inline-table;  /* 🔥 重点：用 inline-table 而不是 width: 100% */
+  border-collapse: collapse;
+  margin: 0 auto;         /* 保险起见，也居中处理 */
+  background-color: #f1f8e9;
+  border: 1px solid #81c784;
+  border-radius: 8px;
+  text-align: center;
+}
+
+/* 其他原有样式保持 */
+.dynamic-table th, .dynamic-table td {
+  padding: 10px;
+  text-align: center;
+  border-top: 1px solid #81c784;
+  word-wrap: break-word;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dynamic-table th {
+  background-color: #a5d6a7;
+  color: #fff;
+}
+
+
 /* 移动端适配 */
 @media (max-width: 768px) {
   .stats-container {
@@ -359,7 +388,7 @@ th {
   button {
     padding: 10px 20px;
     font-size: 14px;
-    min-width: 100px;  /* 在小屏幕上减少按钮宽度 */
+    min-width: 100px; /* 在小屏幕上减少按钮宽度 */
   }
 
   .stats-card {
@@ -391,5 +420,8 @@ th {
     font-size: 12px; /* 更小的字体 */
   }
 }
+
+
 </style>
+
 

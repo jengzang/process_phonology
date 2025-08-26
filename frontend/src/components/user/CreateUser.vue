@@ -45,7 +45,10 @@
 
       <button type="submit">創建用戶</button>
     </form>
-    <button @click="goToHome" style="background: darkgoldenrod">返回首頁</button>
+    <div class="logout-button-container">
+      <button @click="goToHome">返回首頁</button>
+    </div>
+
   </div>
 </template>
 
@@ -126,7 +129,8 @@ button {
   transition: background-color 0.3s ease, transform 0.2s ease;
   width: auto;  /* 按钮宽度自适应 */
   margin-top: 10px;
-  display: inline-block;
+  display: flex;
+  justify-self: center;
 }
 
 /* 按钮悬停效果 */

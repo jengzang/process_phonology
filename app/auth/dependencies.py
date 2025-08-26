@@ -19,25 +19,28 @@ def get_current_user(
 ) -> models.User:
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
-        return None  # 匿名使用者
+        if not require_admin:
+            return None  # 匿名使用者
+        else:
+            raise HTTPException(status_code=403, detail="未登錄用戶沒有訪問此資源的權限")
+    else:
+        token = auth_header.split(" ")[1]
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            username = payload.get("sub")
+            if not username:
+                raise HTTPException(status_code=401, detail="Token 無效")
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Token 解碼失敗")
+        user = db.query(models.User).filter(models.User.username == username).first()
+        if not user:
+            raise HTTPException(status_code=401, detail="用戶不存在")
 
-    token = auth_header.split(" ")[1]
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username = payload.get("sub")
-        if not username:
-            raise HTTPException(status_code=401, detail="Token 無效")
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Token 解碼失敗")
+        if require_admin and user.role != "admin":
+            raise HTTPException(status_code=403, detail="你沒有訪問此資源的權限")
 
-    user = db.query(models.User).filter(models.User.username == username).first()
-    if not user:
-        raise HTTPException(status_code=401, detail="用戶不存在")
+        return user
 
-    if require_admin and user.role != "admin":
-        raise HTTPException(status_code=403, detail="需要管理員權限")
-
-    return user
 
 def get_current_user_sync(request: Request, db: Session) -> User:
     # 处理用户认证（例如从请求头获取 JWT token）

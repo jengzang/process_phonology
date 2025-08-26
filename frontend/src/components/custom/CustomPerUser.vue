@@ -1,8 +1,8 @@
 <template>
   <div>
-    <h1>{{username}}的個人數據--共 {{ users.length }} 條</h1>
+    <h1>{{username}}的數據--共 {{ users.length }} 條</h1>
     <div class="top-controls">
-      <button @click="goToCreateCustom(username)" >添加數據</button><!-- 需要排布為 2x2 的按鈕 -->
+      <button @click="goToCreateCustom(username)" style="margin:10px 10px 0 0">添加數據</button><!-- 需要排布為 2x2 的按鈕 -->
       <!-- 只有在 selectMode 为 false 时显示 "選擇數據" 按钮 -->
       <button v-if="!selectMode" @click="toggleSelectMode" style="background: #1c8dba;">
         選擇數據
@@ -11,7 +11,7 @@
       <!-- 只有在 selectMode 为 true 时显示 "關閉選擇" 按钮，并显示操作按钮 -->
       <div v-if="selectMode" class="select-mode-buttons">
         <button @click="goToDeleteCustom(username)" style="background: darkred;">刪除數據</button>
-        <button @click="toggleSelectMode" style="background: darkgoldenrod;">
+        <button @click="toggleSelectMode" style="background: #9e9d24;">
           關閉選擇
         </button>
         <button @click="goToEditCustom(username)" style="background: darkblue;">編輯數據</button>
@@ -30,12 +30,12 @@
         <th v-if="selectMode">
           <input type="checkbox" :checked="isAllSelected" @change="toggleSelectAll" />
         </th>
-        <th @click="sortData('簡稱')">簡稱 <span :class="getArrowClass('簡稱')"></span></th>
+        <th @click="sortData('簡稱')">簡稱 🌏<span :class="getArrowClass('簡稱')"></span></th>
         <th @click="sortData('音典分區')">音典分區 <span :class="getArrowClass('音典分區')"></span></th>
         <th @click="sortData('經緯度')">經緯度 <span :class="getArrowClass('經緯度')"></span></th>
         <th @click="sortData('特徵')">特徵 <span :class="getArrowClass('特徵')"></span></th>
-        <th @click="sortData('值')">值 <span :class="getArrowClass('值')"></span></th>
-        <th @click="sortData('說明')">說明 <span :class="getArrowClass('說明')"></span></th>
+        <th @click="sortData('值')"> 值 ✔️<span :class="getArrowClass('值')"></span></th>
+        <th @click="sortData('說明')" style="min-width: 120px">說明 🔔<span :class="getArrowClass('說明')"></span></th>
         <th @click="sortData('created_at')">創建時間 <span :class="getArrowClass('created_at')"></span></th>
       </tr>
       </thead>
@@ -62,7 +62,9 @@
       <span>頁面 {{ currentPage }} / {{ totalPages }}</span>
       <button @click="nextPage" :disabled="currentPage === totalPages">下一頁</button>
     </div>
-    <button @click="goToHome" style="background: darkgoldenrod">返回首頁</button>
+    <div class="logout-button-container">
+      <button @click="goToHome" >返回首頁</button>
+    </div>
   </div>
 </template>
 
@@ -91,10 +93,11 @@ export default {
       username: '',  // 当前的用户名
       selectMode: false, // 控制是否处于选择模式
       selectedUsers: [],  // 存储被选中的用户id
-      selectAll: false, // 用于全选/反选
+      // selectAll: false, // 用于全选/反选
     };
   },
   async mounted() {
+    // console.log(this.selectedUsers.length > 0 && this.selectedUsers.length === this.users.length)
     const { username } = this.$route.query;  // 从路由参数中获取用户名
     const { created_at } = this.$route.query;  // 从路由查询参数中获取创建时间
     if (created_at) {
@@ -130,6 +133,10 @@ export default {
         );
       });
     },
+    isAllSelected() {
+      // console.log(this.selectedUsers.length > 0 && this.selectedUsers.length === this.users.length)
+      return this.selectedUsers.length > 0 && this.selectedUsers.length === this.users.length;
+    },
   },
   methods: {
     formatTime,
@@ -157,18 +164,18 @@ export default {
       }
     },
     toggleSelectAll() {
+
       if (this.selectedUsers.length === this.users.length) {
         // 如果当前已全选，则取消全选
         this.selectedUsers = [];
+        // console.log(this.selectedUsers.length > 0 && this.selectedUsers.length === this.users.length)
       } else {
         // 否则全选
         this.selectedUsers = this.users.map(user => user.created_at);
+        // console.log(this.selectedUsers.length > 0 && this.selectedUsers.length === this.users.length)
       }
     },
 
-    isAllSelected() {
-      return this.selectedUsers.length > 0 && this.selectedUsers.length === this.users.length;
-    },
     getArrowClass(field) {
       return this.sortOrder[field] === 'asc' ? 'arrow-up' : 'arrow-down';
     },
@@ -277,6 +284,7 @@ th {
   color: #2c6e49;  /* 绿色字体 */
   font-weight: bold;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .arrow-up::after {
@@ -309,15 +317,12 @@ tr:hover {
 .select-mode-buttons {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  grid-gap: 10px;
+  grid-gap: 5px;
   margin-top: 10px;
 }
 
 /* 按钮的苹果绿色风格 */
-button {
-  margin-top: 10px;
-  margin-left: 10px;
-  margin-right: 10px;
+.select-mode-buttons button,.top-controls button {
   padding: 10px 20px;
   font-size: 16px;
   cursor: pointer;
@@ -327,17 +332,13 @@ button {
   border: none;
   transition: background-color 0.3s ease, transform 0.2s ease;
   max-width: 110px;
+  min-width: 80px;
+  display: flex;
+}
+.select-mode-buttons button button{
+  margin:0;
 }
 
-button:hover {
-  background-color: #45a049;  /* 深绿色 */
-  transform: scale(1.05); /* 鼠标悬停时按钮稍微放大 */
-}
-
-button:disabled {
-  background-color: rgba(76, 175, 80, 0.5);  /* 禁用按钮的背景颜色 */
-  cursor: not-allowed; /* 禁用时的鼠标样式 */
-}
 
 button[v-if="false"] {
   display: none;
@@ -408,14 +409,6 @@ button[v-if="false"] {
     padding: 8px; /* 減少表格單元格的內邊距 */
   }
 
-  .stat-btn {
-    font-size: 14px; /* 調整按鈕文字大小 */
-    padding: 12px; /* 增加按鈕的內邊距 */
-  }
-
-  .modal-content {
-    width: 95%; /* 彈窗的寬度更小，適應小屏幕 */
-  }
 
   .pagination-controls button {
     font-size: 14px; /* 分頁按鈕文字大小調整 */
@@ -444,18 +437,6 @@ button[v-if="false"] {
     padding: 8px 16px; /* 調整按鈕的內邊距 */
   }
 
-  .stat-btn {
-    font-size: 12px; /* 調整按鈕文字大小 */
-    padding: 10px; /* 調整按鈕內邊距 */
-  }
-
-  .close {
-    font-size: 50px; /* 關閉按鈕大小調整 */
-  }
-
-  .modal-content {
-    padding: 15px; /* 彈窗內邊距調整 */
-  }
   table {
     font-size: 12px; /* 更小的字体 */
   }

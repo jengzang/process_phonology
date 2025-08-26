@@ -4,9 +4,11 @@
     <h2>用戶管理系統</h2>
 
     <div class="top-controls">
-      <button @click="goToCreateUser">創建新用戶</button>
-      <button @click="apidetail">近期api調用</button>
-      <button @click="viewAllCustom">所有數據</button>
+      <div class="button-container0">
+        <button @click="goToCreateUser">創建新用戶</button>
+        <button @click="apidetail">近期api調用</button>
+        <button @click="viewAllCustom">所有數據</button>
+      </div>
       <!-- 搜索框 -->
       <div class="search-container">
         <input v-model="searchQuery"  @input="searchUser" type="text" placeholder="搜索用戶名或郵箱" />
@@ -18,8 +20,8 @@
       <tr>
         <th @click="sortData('username')">用戶名 <span :class="getArrowClass('username')"></span></th>
         <th @click="sortData('email')">Email <span :class="getArrowClass('email')"></span></th>
-        <th @click="sortData('data_count')">數據總數 <span :class="getArrowClass('data_count')"></span></th>
-        <th>管理員操作</th>
+        <th @click="sortData('data_count')" style="font-size:12px;padding:0">數據總數 <span :class="getArrowClass('data_count')" ></span></th>
+        <th style="justify-items: center">管理員操作</th>
       </tr>
       </thead>
       <tbody>
@@ -34,11 +36,13 @@
 
 
         <td>{{ user.email }}</td>
-        <td>{{ user.data_count }}</td> <!-- 顯示用戶的數據總數 -->
+        <td>{{ user.data_count }}條</td> <!-- 顯示用戶的數據總數 -->
         <td>
-          <button @click="goToCustomPerUser(user)">用戶數據</button>
-          <button @click="viewUserStats(user)">api統計</button>
-          <button @click="editUser(user)">編輯賬號</button>
+          <div class="button-container">
+            <button @click="goToCustomPerUser(user)">用戶數據</button>
+            <button @click="viewUserStats(user)">api統計</button>
+            <button @click="editUser(user)">編輯賬號</button>
+          </div>
         </td>
       </tr>
       </tbody>
@@ -234,30 +238,16 @@ form div {
   margin-bottom: 15px;
 }
 
-button {
-  margin-top: 10px;
-  margin-left: 10px;
-  margin-right: 10px;
-  padding: 8px 16px;
-  font-size: 16px;
-  cursor: pointer;
-  border-radius: 12px;
-  background-color: #4CAF50;  /* 苹果风格的蓝色 */
-  color: white;
-  border: none;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  max-width: 150px;
+.button-container {
+  display: flex;
+  justify-content: flex-start;  /* 按钮从左侧开始 */
+  gap: 5px;                    /* 按钮间距 */
+  flex-wrap: nowrap;            /* 强制按钮不换行 */
+  overflow: hidden;             /* 超出部分隐藏 */
+  width: 100%;                  /* 容器宽度为100% */
+  white-space: nowrap;          /* 保证按钮文本不换行 */
 }
 
-button:hover {
-  background-color: #217825; /* 鼠标悬停时的深蓝色 */
-  transform: scale(1.05); /* 按钮放大 */
-}
-
-button:disabled {
-  background-color: rgba(42, 175, 53, 0.34); /* 禁用按钮的背景颜色 */
-  cursor: not-allowed; /* 禁用时的鼠标样式 */
-}
 
 input {
   padding: 10px;
@@ -271,17 +261,18 @@ input {
 }
 
 input:focus {
-  border-color: #217825;  /* 聚焦时输入框的蓝色边框 */
+  border-color: #217825;  /* 聚焦时输入框的绿色边框 */
   outline: none;
 }
 
 table {
   width: 80%;  /* 可根据需要调整宽度 */
-  /* 使表格居中 */
   border-collapse: collapse;
   margin: 20px auto 0;
   border-radius: 12px;
   overflow: hidden;
+  background-color: #f1f8e9;  /* 苹果绿色背景 */
+  border: 1px solid #81c784; /* 苹果绿色边框 */
 }
 
 th, td {
@@ -291,9 +282,10 @@ th, td {
 }
 
 th {
-  background-color: #f2f2f2;
+  background-color: #a5d6a7;  /* 更深的绿色作为表头背景 */
   color: #333;
   font-weight: 600;
+  white-space: nowrap;  /* 防止表头文字换行 */
 }
 
 tr:nth-child(even) {
@@ -316,7 +308,6 @@ tr:hover {
   font-size: 14px;
 }
 
-
 .pagination-controls {
   display: flex;
   justify-content: center;
@@ -326,7 +317,7 @@ tr:hover {
 .pagination-controls button {
   padding: 12px 24px;
   margin: 0 12px;
-  background-color: #4CAF50; /* 按钮的苹果蓝 */
+  background-color: #4CAF50; /* 按钮的苹果绿色 */
   color: white;
   border: none;
   border-radius: 20px; /* 圆角效果 */
@@ -352,25 +343,44 @@ tr:hover {
   align-self: center;
 }
 
-/* 控制按钮和搜索框在同一行 */
 .top-controls {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px; /* 给按钮和搜索框之间加个间距 */
+  justify-content: center;  /* 居中按钮和搜索框 */
+  align-items: center;      /* 垂直居中 */
+  gap: 10px;                /* 按钮和搜索框之间的间距 */
+  flex-wrap: wrap;          /* 如果空间不足，允许换行 */
+  width: 100%;              /* 确保容器宽度为100% */
 }
 
-/* 搜索框的样式 */
-.search-container {
-  flex-grow: 1;  /* 让搜索框占据剩余的空间 */
-  max-width: 400px;  /* 限制搜索框的最大宽度 */
-  flex-shrink: 0;  /* 确保搜索框不会缩小 */
+.button-container0 button {
+  padding: 10px 20px;
+  min-width: 100px;  /* 按钮最小宽度，防止按钮过小 */
+}
+
+/* 按钮容器，确保按钮水平居中 */
+.button-container0 {
   display: flex;
-  justify-content: center;
+  justify-content: center;  /* 水平居中按钮 */
+  gap: 10px;                /* 按钮之间的间距 */
+  flex-wrap: wrap;          /* 如果空间不足，允许换行 */
+  max-width: 500px;         /* 最大宽度控制 */
+  width: 100%;              /* 确保按钮容器宽度为100% */
 }
 
+/* 搜索框容器 */
+.search-container {
+  display: flex;
+  justify-content: center;  /* 让搜索框居中 */
+  align-items: center;      /* 垂直居中 */
+  flex-grow: 1;             /* 让搜索框占据剩余空间 */
+  max-width: 400px;         /* 限制搜索框的最大宽度 */
+  flex-shrink: 0;           /* 确保搜索框不会缩小 */
+  justify-self: center;
+}
+
+/* 搜索框样式 */
 .search-container input {
-  width: 100%;  /* 让输入框填充父容器的宽度 */
+  width: 100%;  /* 搜索框占据父容器的宽度 */
   padding: 12px 20px;
   font-size: 16px;
   border-radius: 25px;
@@ -378,12 +388,13 @@ tr:hover {
   background: linear-gradient(145deg, #f0f0f0, #e0e0e0);  /* 渐变背景色 */
   box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1), -4px -4px 10px rgba(255, 255, 255, 0.1);  /* 立体阴影 */
   transition: all 0.3s ease-in-out;  /* 添加平滑过渡 */
+  margin-left: 20px;
 }
 
 .search-container input:focus {
   outline: none;
-  border-color: #4CAF50;  /* 聚焦时的蓝色边框 */
-  box-shadow: 0 0 10px #217825;  /* 聚焦时的蓝色阴影 */
+  border-color: #4CAF50;  /* 聚焦时的绿色边框 */
+  box-shadow: 0 0 10px #217825;  /* 聚焦时的绿色阴影 */
   background: linear-gradient(145deg, #e0e0e0, #f0f0f0);  /* 聚焦时背景色变化 */
 }
 
@@ -392,34 +403,6 @@ tr:hover {
   opacity: 1;  /* 确保占位符始终显示 */
 }
 
-/* 退出按鈕容器 */
-.logout-button-container {
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;  /* 給退出按鈕上方加點間距 */
-}
-
-.logout-button-container button {
-  padding: 10px 20px;
-  font-size: 16px;
-  background-color: darkgoldenrod;  /* 退出按鈕的顏色 */
-  color: white;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  max-width: 120px;
-}
-
-.logout-button-container button:hover {
-  background-color: #836207;  /* 鼠標懸停時的顏色 */
-  transform: scale(1.05);
-}
-
-.logout-button-container button:disabled {
-  background-color: rgba(244, 200, 54, 0.34);
-  cursor: not-allowed;
-}
 
 /* 在移动端时调整 */
 @media (max-width: 768px) {
@@ -432,12 +415,6 @@ tr:hover {
   th, td {
     padding: 8px 12px; /* 调整内边距，使内容适应屏幕 */
     font-size: 14px;  /* 调整字体大小 */
-  }
-
-  button {
-    padding: 8px 16px;
-    font-size: 14px;  /* 调整按钮大小 */
-    max-width: 90px;
   }
 
   .pagination-controls button {
@@ -464,19 +441,11 @@ tr:hover {
   table {
     font-size: 12px;  /* 在更小的设备上，进一步缩小字体 */
   }
-
-  button {
-    padding: 6px 5px;  /* 更小的按钮 */
-    font-size: 12px;
-    max-width: 90px;
-    white-space: nowrap;
-  }
-
   .pagination-controls button {
     font-size: 12px;  /* 调整分页按钮大小 */
   }
 }
 
-
 </style>
+
 
