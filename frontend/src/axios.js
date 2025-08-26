@@ -1,13 +1,13 @@
 import axios from 'axios';
 // window.WEB_BASE = location.origin
-window.WEB_BASE = "http://10.250.101.238:5000";
+window.WEB_BASE = "http://10.250.101.238:5000"; // 要把这里换成实fastapi实际跑的地址
 window.API_BASE = window.WEB_BASE + "/api";
 window.LOG_BASE = window.WEB_BASE + "/auth";
 window.ADMIN_BASE = window.WEB_BASE + "/admin";
 // 創建 Axios 實例
 const api = axios.create({
-    // baseURL: 'http://10.250.101.238:5000/admin',  // 你的後端服務地址
-    baseURL: window.ADMIN_BASE,  // 你的後端服務地址
+    // baseURL: 'http://10.250.101.238:5000/admin',  // 後端服務地址
+    baseURL: window.ADMIN_BASE,  // 後端服務地址
     timeout: 1000,  // 設置請求超時時間
 });
 
@@ -21,7 +21,6 @@ const getCookie = (name) => {
 
 // 獲取 Token 的方法
 const getAuthToken = () => {
-    // 首先從 localStorage 讀取 Token
     // 首先從 localStorage 讀取 Token
     let token = localStorage.getItem('ACCESS_TOKEN');
     // console.log('Token from localStorage:', token);  // 加入這行檢查
