@@ -105,8 +105,8 @@ document.addEventListener("DOMContentLoaded", () => {
 // 面板大小切换
 function v_togglePanel(panel, height, top, zIndex) {
     // 设置panel元素的高度和top值
-    panel.style.height = height + 'vh';  // 使用传入的height值，单位为vh
-    panel.style.top = top + 'vh';        // 使用传入的top值，单位为vh
+    panel.style.height = height + 'dvh';  // 使用传入的height值，单位为dvh
+    panel.style.top = top + 'dvh';        // 使用传入的top值，单位为dvh
 
     // 如果传入了zIndex，则设置z-index
     if (zIndex !== undefined) {
@@ -152,17 +152,17 @@ function resetPanelsToMediumLayout() {
         inputpanel.style.top = "0";
         inputpanel.style.left = "0";
         inputpanel.style.width = "100%";
-        inputpanel.style.height = "60vh";
+        inputpanel.style.height = "60dvh";
 
-        resultpanel.style.top = "60vh";
-        resultpanel.style.left = "0";
-        resultpanel.style.width = "100%";
-        resultpanel.style.height = "15vh";
-
-        mappanel.style.top = "75vh";
+        mappanel.style.top = "60dvh";
         mappanel.style.left = "0";
         mappanel.style.width = "100%";
-        mappanel.style.height = "25vh";
+        mappanel.style.height = "20dvh";
+
+        resultpanel.style.top = "80dvh";
+        resultpanel.style.left = "0";
+        resultpanel.style.width = "100%";
+        resultpanel.style.height = "20dvh";
     }
 }
 
@@ -207,30 +207,33 @@ function switchBindingLogic() {
 
 
     if (window.innerHeight >= window.innerWidth) {
+        const _inputRestoreBtn = document.getElementById("panelRestoreBtn");
+        _inputRestoreBtn.style.display = "none";
         const _resultRestoreBtn = document.getElementById("resultRestoreBtn");
         _resultRestoreBtn.style.display = "block";  // 显示恢复按钮
         _resultRestoreBtn.style.width = "30px";
         _resultRestoreBtn.style.height = "30px";
-        _resultRestoreBtn.style.right = "75px";
+        _resultRestoreBtn.style.right = "10px";
+        _resultRestoreBtn.style.top = "80px";
         const _mapRestoreBtn = document.getElementById("mapPanelRestoreBtn");
         _mapRestoreBtn.style.display = "block";  // 显示恢复按钮
         _mapRestoreBtn.style.width = "30px";
         _mapRestoreBtn.style.height = "30px";
-        _mapRestoreBtn.style.right = "110px";
-        _mapRestoreBtn.style.top = "43px";
+        _mapRestoreBtn.style.right = "45px";
+        _mapRestoreBtn.style.top = "80px";
         let resultRestoreToggled = false;
         let mapRestoreToggled = false;
         _resultRestoreBtn.addEventListener("click", () => {
             if (!resultRestoreToggled) {
                 // 状态 A
                 v_togglePanel(inputpanel, 70, 0, 1);
-                v_togglePanel(resultpanel, 15, 70, 1);
-                v_togglePanel(mappanel, 15, 85, 1);
+                v_togglePanel(mappanel, 15, 70, 1);
+                v_togglePanel(resultpanel, 15, 85, 1);
             } else {
                 // 状态 B
                 v_togglePanel(inputpanel, 15, 0, 1);
-                v_togglePanel(resultpanel, 45, 5, 1);
-                v_togglePanel(mappanel, 50, 50, 1);
+                v_togglePanel(mappanel, 40, 15, 1);
+                v_togglePanel(resultpanel, 45, 55, 1);
             }
             resultRestoreToggled = !resultRestoreToggled;
         });
@@ -238,13 +241,13 @@ function switchBindingLogic() {
             if (!mapRestoreToggled) {
                 // 状态 A
                 v_togglePanel(inputpanel, 15, 0, 1);
-                v_togglePanel(resultpanel, 25, 5, 1);
-                v_togglePanel(mappanel, 70, 30, 1);
+                v_togglePanel(mappanel, 25, 5, 1);
+                v_togglePanel(resultpanel, 70, 30, 1);
             } else {
                 // 状态 B
                 v_togglePanel(inputpanel, 15, 0, 1);
-                v_togglePanel(resultpanel, 60, 15, 1);
-                v_togglePanel(mappanel, 25, 75, 1);
+                v_togglePanel(mappanel, 70, 5, 1);
+                v_togglePanel(resultpanel, 25, 75, 1);
             }
             mapRestoreToggled = !mapRestoreToggled;
         });
@@ -252,33 +255,33 @@ function switchBindingLogic() {
         // 手动绑定逻辑
         _inputmin.addEventListener("click", () => {
             const h = inputpanel.style.height;
-            v_togglePanel(inputpanel, h !== "15vh" ? 15 : 60, 0);
+            v_togglePanel(inputpanel, h !== "15dvh" ? 15 : 60, 0);
         });
         _inputmax.addEventListener("click", () => {
             const h = inputpanel.style.height;
             const z = inputpanel.style.zIndex;
-            v_togglePanel(inputpanel, (h !== "100vh" || z !== "11111") ? 100 : 60, 0, (h !== "100vh" || z !== "11111") ? 11111 : 1);
-        });
-
-        _resultmin.addEventListener("click", () => {
-            const h = resultpanel.style.height;
-            v_togglePanel(resultpanel, h !== "25vh" ? 25 : 45, h !== "25vh" ? 5 : 15);
-        });
-        _resultmax.addEventListener("click", () => {
-            const h = resultpanel.style.height;
-            const z = resultpanel.style.zIndex;
-            v_togglePanel(resultpanel, (h !== "100vh" || z !== "11111") ? 100 : 75, (h !== "100vh" || z !== "11111") ? 0 : 15, (h !== "100vh" || z !== "11111") ? 11111 : 1);
+            v_togglePanel(inputpanel, (h !== "100dvh" || z !== "11111") ? 100 : 60, 0, (h !== "100dvh" || z !== "11111") ? 11111 : 1);
         });
 
         _mapmin.addEventListener("click", () => {
             const h = mappanel.style.height;
-            v_togglePanel(mappanel, h !== "25vh" ? 25 : 45, h !== "25vh" ? 75 : 55);
+            v_togglePanel(mappanel, h !== "25dvh" ? 25 : 45, h !== "25dvh" ? 5 : 15);
         });
         _mapmax.addEventListener("click", () => {
             const h = mappanel.style.height;
             const z = mappanel.style.zIndex;
-            v_togglePanel(mappanel, (h !== "100vh" || z !== "11111") ? 100 : 70,
-                (h !== "100vh" || z !== "11111") ? 0 : 30, (h !== "100vh" || z !== "11111") ? 11111 : 1);
+            v_togglePanel(mappanel, (h !== "100dvh" || z !== "11111") ? 100 : 75, (h !== "100dvh" || z !== "11111") ? 0 : 15, (h !== "100dvh" || z !== "11111") ? 11111 : 2);
+        });
+
+        _resultmin.addEventListener("click", () => {
+            const h = resultpanel.style.height;
+            v_togglePanel(resultpanel, h !== "25dvh" ? 25 : 45, h !== "25dvh" ? 75 : 55);
+        });
+        _resultmax.addEventListener("click", () => {
+            const h = resultpanel.style.height;
+            const z = resultpanel.style.zIndex;
+            v_togglePanel(resultpanel, (h !== "100dvh" || z !== "11111") ? 100 : 70,
+                (h !== "100dvh" || z !== "11111") ? 0 : 30, (h !== "100dvh" || z !== "11111") ? 11111 : 3);
         });
 
     }
@@ -293,6 +296,7 @@ function switchBindingLogic() {
         _resultRestoreBtn.style.width = "40px";
         _resultRestoreBtn.style.height = "40px";
         _resultRestoreBtn.style.right = "10px";
+        _resultRestoreBtn.style.top = "43px";
         _mapRestoreBtn.style.width = "40px";
         _mapRestoreBtn.style.height = "40px";
         _mapRestoreBtn.style.right = "10px";
@@ -557,8 +561,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const resultpanel = document.getElementById("resultPanel");
             const mappanel = document.getElementById("mapPanel");
             v_togglePanel(inputpanel, 15, 0, 1);
-            v_togglePanel(resultpanel, 40, 15, 1);
-            v_togglePanel(mappanel, 45, 55, 1);
+            v_togglePanel(mappanel, 40, 15, 1);
+            v_togglePanel(resultpanel, 45, 55, 1);
         }
         await analysis_from_db();
         if (!Array.isArray(window.latestResults) || window.latestResults.length === 0) {

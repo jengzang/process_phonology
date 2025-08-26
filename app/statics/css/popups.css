@@ -88,7 +88,7 @@
 @media (max-aspect-ratio: 1/1) {
     .query-detail-panel {
         transform: translateY(-10%);
-        top: 10%;
+        top: 20%;
         left: 10%;
         width: 70%;
         height: 50vh;
