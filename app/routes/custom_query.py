@@ -8,7 +8,7 @@ from typing import List, Optional
 
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
-from app.custom.database import get_db
+from app.custom.database import get_db as get_db_custom
 from app.schemas import QueryParams, FeatureQueryParams
 from app.custom.read_custom import get_from_submission
 from app.service.match_input_tip import match_custom_feature
@@ -24,7 +24,7 @@ async def query_location_data(
         locations: List[str] = Query(..., description="要查的地點，可多個"),
         regions: List[str] = Query(..., description="要查的音典分區，可多個"),
         need_features: List[str] = Query(..., description="要查的特徵"),
-        db: Session = Depends(get_db),
+        db: Session = Depends(get_db_custom),
         user: Optional[User] = Depends(get_current_user)  # ✅ user 可為 None
 ):
     """
@@ -59,7 +59,7 @@ async def get_custom_feature(
         locations: List[str] = Query(..., description="要查的地點，可多個"),
         regions: List[str] = Query(..., description="要查的音典分區，可多個"),
         word: str = Query(..., description="用戶輸入，待匹配特徵"),
-        db: Session = Depends(get_db),
+        db: Session = Depends(get_db_custom),
         user: Optional[User] = Depends(get_current_user)  # ✅ user 可為 None
 ):
     """

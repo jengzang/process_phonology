@@ -8,7 +8,7 @@ from fastapi import APIRouter, Request, Query, HTTPException, Depends
 
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
-from app.custom.database import get_db
+from app.custom.database import get_db as get_db_custom
 from app.auth.database import get_db as get_db_user
 from app.schemas import CoordinatesQuery
 from app.service.locs_regions import get_coordinates_from_db
@@ -24,7 +24,7 @@ router = APIRouter()
 async def get_coordinates(
         request: Request,
         query: CoordinatesQuery = Depends(),
-        db: Session = Depends(get_db),
+        db: Session = Depends(get_db_custom),
         db_user: Session = Depends(get_db_user),
         user: Optional[User] = Depends(get_current_user)
 ):

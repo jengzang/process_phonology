@@ -12,7 +12,7 @@
       <div><strong>最近一次登錄:</strong> {{ formatTime(stats.last_login) }}</div>
     </div>
     <button @click="goToHome" style="background: darkgoldenrod">返回首頁</button>
-    <h2>登錄歷史</h2>
+    <h2>近期登錄</h2>
     <table>
       <thead>
       <tr>
@@ -47,7 +47,7 @@
         <td>{{ formatTime(log.last_updated) }}</td>
         <td>{{ (log.total_duration || 0).toFixed(2) }} 秒</td>
         <td>{{ (log.total_upload || 0).toFixed(2) }} KB</td>
-        <td>{{ (log.total_download || 0).toFixed(2) }} KB</td>
+        <td>{{ ((log.total_download || 0) / 1024).toFixed(2) }} MB</td>
       </tr>
       </tbody>
     </table>
@@ -85,7 +85,7 @@
         <!-- 新增的上行流量 -->
         <td>{{ log.uploadTraffic }}KB</td>
         <!-- 新增的下行流量 -->
-        <td>{{ log.downloadTraffic }}MB</td>
+        <td>{{ log.downloadTraffic }}KB</td>
       </tr>
       </tbody>
     </table>
@@ -136,36 +136,36 @@ export default {
         showUserAgent: false,  // 初始时不显示 User Agent
         // 假设 log.request_size 是上行流量，log.response_size 是下行流量
         uploadTraffic: log.request_size ? (log.request_size / 1024).toFixed(2) : '0.00',  // 转换为 KB
-        downloadTraffic: log.response_size ? (log.response_size / (1024 * 1024)).toFixed(2) : '0.00',  // 转换为 KB
+        downloadTraffic: log.response_size ? (log.response_size /  1024).toFixed(2) : '0.00',  // 转换为 KB
       }));
+
       // 初始化按 API 路径分组的对象
-      const apiStats = {};
-
+      // const apiStats = {};
       // 按 path 分组并累加每个 API 的统计数据
-      response2.data.api_logs.forEach(log => {
-        const duration = log.duration ? parseFloat(log.duration) : 0;
-        const uploadTraffic = log.request_size ? (log.request_size / 1024) : 0;  // 转换为 KB
-        const downloadTraffic = log.response_size ? (log.response_size / 1024) : 0;  // 转换为 KB
-
-        const path = log.path;
-
-        // 如果该 API 路径没有记录，就初始化它
-        if (!apiStats[path]) {
-          apiStats[path] = {
-            path: path,
-            totalDuration: 0,
-            totalUploadTraffic: 0,
-            totalDownloadTraffic: 0,
-            count: 0,
-          };
-        }
-
-        // 累加该 API 的数据
-        apiStats[path].totalDuration += duration;
-        apiStats[path].totalUploadTraffic += uploadTraffic;
-        apiStats[path].totalDownloadTraffic += downloadTraffic;
-        apiStats[path].count += 1;
-      });
+      // response2.data.api_logs.forEach(log => {
+      //   const duration = log.duration ? parseFloat(log.duration) : 0;
+      //   const uploadTraffic = log.request_size ? (log.request_size / 1024) : 0;  // 转换为 KB
+      //   const downloadTraffic = log.response_size ? (log.response_size / 1024) : 0;  // 转换为 KB
+      //
+      //   const path = log.path;
+      //
+      //   // 如果该 API 路径没有记录，就初始化它
+      //   if (!apiStats[path]) {
+      //     apiStats[path] = {
+      //       path: path,
+      //       totalDuration: 0,
+      //       totalUploadTraffic: 0,
+      //       totalDownloadTraffic: 0,
+      //       count: 0,
+      //     };
+      //   }
+      //
+      //   // 累加该 API 的数据
+      //   apiStats[path].totalDuration += duration;
+      //   apiStats[path].totalUploadTraffic += uploadTraffic;
+      //   apiStats[path].totalDownloadTraffic += downloadTraffic;
+      //   apiStats[path].count += 1;
+      // });
 
       // // 将累加后的数据添加到 filteredApiUsage 中
       // this.filteredApiUsage.forEach(api => {

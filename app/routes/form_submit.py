@@ -8,7 +8,7 @@ from fastapi import APIRouter, Request, HTTPException, Depends
 
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
-from app.custom.database import get_db
+from app.custom.database import get_db as get_db_custom
 from app.auth.database import get_db as get_db_user
 from app.custom.delete import handle_form_deletion
 from app.schemas import FormData
@@ -23,7 +23,7 @@ router = APIRouter()
 async def submit_form(
     request: Request,
     payload: FormData,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db_custom),
     # db_user: Session = Depends(get_db_user),
     user: User = Depends(get_current_user)
 ):
@@ -77,7 +77,7 @@ async def submit_form(
 async def delete_form(
     request: Request,
     payload: FormData,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db_custom),
     # db_user: Session = Depends(get_db_user),
     user: User = Depends(get_current_user)
 ):

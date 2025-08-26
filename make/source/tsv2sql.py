@@ -588,27 +588,30 @@ def write_to_sql(yindian=None, write_chars_db=None, append=False):
 
     #  寫總數據表
     if yindian:
-        tsv_paths_yindian, *_ = get_tsvs(output_dir=YINDIAN_DATA_DIR)
-        tsv_paths_mine, *_ = get_tsvs()
-        # 用字典来保存最终的路径，并按文件名进行合并
-        merged_paths = {}
-        # 将 tsv_paths_yindian 中的文件路径添加到字典中，使用文件名作为键
-        for path in tsv_paths_yindian:
-            filename = os.path.basename(path)
-            merged_paths[filename] = path
-        # 遍历 tsv_paths_mine，如果文件名已存在，更新为 mine 中的路径
-        for path in tsv_paths_mine:
-            filename = os.path.basename(path)
-            merged_paths[filename] = path  # 直接覆盖已有路径
-        # print(merged_paths)
-        # 合并完成后的路径列表
-        # tsv_paths = list(merged_paths.values())
-        tsv_paths = [
-            path for file, path in merged_paths.items()
-            if os.path.splitext(file)[0] not in exclude_files
-        ]
-        # print(tsv_paths)
-        # tsv_paths = tsv_paths_yindian + tsv_paths_mine
+        if yindian == 'only':
+            tsv_paths_yindian, *_ = get_tsvs(output_dir=YINDIAN_DATA_DIR)
+        else:
+            tsv_paths_yindian, *_ = get_tsvs(output_dir=YINDIAN_DATA_DIR)
+            tsv_paths_mine, *_ = get_tsvs()
+            # 用字典来保存最终的路径，并按文件名进行合并
+            merged_paths = {}
+            # 将 tsv_paths_yindian 中的文件路径添加到字典中，使用文件名作为键
+            for path in tsv_paths_yindian:
+                filename = os.path.basename(path)
+                merged_paths[filename] = path
+            # 遍历 tsv_paths_mine，如果文件名已存在，更新为 mine 中的路径
+            for path in tsv_paths_mine:
+                filename = os.path.basename(path)
+                merged_paths[filename] = path  # 直接覆盖已有路径
+            # print(merged_paths)
+            # 合并完成后的路径列表
+            # tsv_paths = list(merged_paths.values())
+            tsv_paths = [
+                path for file, path in merged_paths.items()
+                if os.path.splitext(file)[0] not in exclude_files
+            ]
+            # print(tsv_paths)
+            # tsv_paths = tsv_paths_yindian + tsv_paths_mine
     else:
         tsv_paths, *_ = get_tsvs()
     db_path = os.path.join(os.getcwd(), DIALECTS_DB_PATH)

@@ -10,7 +10,7 @@ from fastapi import APIRouter, Request, Query, Depends
 
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
-from app.custom.database import get_db
+from app.custom.database import get_db as get_db_custom
 from app.service.api_logger import *
 from app.service.match_input_tip import match_locations_batch
 from common.config import QUERY_DB_ADMIN, QUERY_DB_USER
@@ -23,7 +23,7 @@ async def batch_match(
         request: Request,
         input_string: str = Query(..., description="用戶輸入的字符串，用於後端匹配正確的地點"),
         filter_valid_abbrs_only: bool = Query(True, description="是否過濾沒有字表的簡稱（若為真則過濾）"),
-        db: Session = Depends(get_db),
+        db: Session = Depends(get_db_custom),
         user: Optional[User] = Depends(get_current_user),
 ):
     """
@@ -46,7 +46,8 @@ async def batch_match(
         input_string = input_string.strip()
         if not input_string:
             return []
-        results = match_locations_batch(input_string, filter_valid_abbrs_only, False, query_db=query_db,db=db,user=user)
+        results = match_locations_batch(input_string, filter_valid_abbrs_only, False,
+                                        query_db=query_db, db=db, user=user)
         responses = []
         for idx, res in enumerate(results):
             part = re.split(r"[ ,;/，；、]+", input_string)[idx].strip()

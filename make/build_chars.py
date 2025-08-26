@@ -17,7 +17,12 @@ def main():
     # convert_all_to_tsv()
 
     # tsv寫入數據庫
-    # write_to_sql(yindian=YIN_DIAN, write_chars_db=WRITE_CHARS_DB, append=APPEND)
+    if TYPE == 'admin':
+        # 先寫一遍admin數據庫
+        write_to_sql(yindian=True, write_chars_db=WRITE_CHARS_DB, append=APPEND)
+    elif TYPE == 'user':
+        # 再寫一遍user數據庫
+        write_to_sql(yindian='only', write_chars_db=WRITE_CHARS_DB, append=APPEND)
 
     # 這些操作都包含在write_to_sql裡面。完整運行就註釋掉
     # 寫入檔案表
@@ -28,7 +33,7 @@ def main():
     process_phonology_excel()
 
 if __name__ == "__main__":
-    YIN_DIAN = True
+    TYPE = 'admin'
     WRITE_CHARS_DB = False
     APPEND = False
     main()
