@@ -39,6 +39,13 @@
     align-items: center;
     white-space: nowrap; /* 禁止文本换行 */
 }
+@media (max-width: 768px) {
+    #openUsageModalBtn {
+        max-width: 70px;
+        padding: 1px;
+        font-size: 12px;
+    }
+}
 
 #openUsageModalBtn:hover {
     background: rgba(0, 122, 255, 0.2);
@@ -509,10 +516,11 @@ button[type="submit"]:active {
 
 @media (max-aspect-ratio: 1/1) {
     .center-btn {
-        flex-direction: column; /* 元素垂直排列 */
-        align-items: center;    /* 垂直方向置中 */
-        gap: 10px;              /* 垂直間距可稍微加大 */
-        max-width: 100px;
+        /*flex-direction: column; !* 元素垂直排列 *!*/
+        /*align-items: center;    !* 垂直方向置中 *!*/
+        /*gap: 10px;              !* 垂直間距可稍微加大 *!*/
+        /*max-width: 100px;*/
+        margin-top: 20px;
     }
     .center-btn > * {
         width: auto;         /* 自適應寬度 */

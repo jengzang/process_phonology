@@ -91,27 +91,30 @@ window.showPartitionSelector = function (textarea) {
     ];
 
     const container = document.createElement('div');
+    container.className = 'partition-container';
     const panelRect = document.getElementById('panelContent').getBoundingClientRect();
     // 获取窗口的宽度和高度
     const isPortrait = window.innerWidth < window.innerHeight;  // 判断是否为竖屏
     container.style.position = 'fixed';
     if (isPortrait) {
-        container.style.top = `${panelRect.bottom*4/5}px`;
-        container.style.left = `${panelRect.right*3/7}px`;
+        // container.style.top = `${panelRect.bottom*4/5}px`;
+        // container.style.left = `${panelRect.right*3/7}px`;
+        container.style.top = `10px`;
+        container.style.left = `10px`;
     }
     else {
         container.style.top = `${panelRect.top}px`;
         container.style.left = `${panelRect.right}px`;
     }
-    container.style.zIndex = '9999';
-    container.style.background = '#fff';
-    container.style.border = '1px solid #ccc';
-    container.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
-    container.style.display = 'flex';
-    container.style.gap = '0px';
-    container.style.padding = '0px';
-    container.style.pointerEvents = 'auto';
-    container.style.borderRadius =' 50px';
+    // container.style.zIndex = '9999';
+    // container.style.background = '#fff';
+    // container.style.border = '1px solid #ccc';
+    // container.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
+    // container.style.display = 'flex';
+    // container.style.gap = '0px';
+    // container.style.padding = '0px';
+    // container.style.pointerEvents = 'auto';
+    // container.style.borderRadius =' 50px';
     // container.style.display='none'
     const lvl1 = document.createElement('div');
     const lvl2 = document.createElement('div');
@@ -157,19 +160,17 @@ window.showPartitionSelector = function (textarea) {
 function renderList(items, container, parentLabel, textarea, onClose, lvl2 = null, lvl3 = null) {
     container.innerHTML = "";
     let hoverTimeout;
+    let activeItem = null; // 追踪当前高亮的元素
 
     // ✅ 加入過濾器：只保留第一個 key 的資料若有值
     if (items && typeof items === "object" && !Array.isArray(items)) {
         const firstKey = Object.keys(items)[0];
         const firstVal = items[firstKey];
-
-        // 🧼 濾除空陣列或空內容
         if (!firstVal || !Array.isArray(firstVal) || firstVal.length === 0) {
             container.style.display = "none";
             return;
         }
-
-        items = firstVal; // ✅ 完整保留你原本設計
+        items = firstVal;
     }
 
     if (!Array.isArray(items) || items.length === 0) {
@@ -183,45 +184,101 @@ function renderList(items, container, parentLabel, textarea, onClose, lvl2 = nul
         item.style.padding = '4px 8px';
         item.style.cursor = 'pointer';
 
-        let touchStartTime = 0;
-        const LONG_PRESS_THRESHOLD = 400;  // 设定长按阈值为500毫秒
+        const LONG_PRESS_THRESHOLD = 500;
+        let touchTimer = null;
         let isLongPress = false;
 
+        // 🖱️ 桌面端 hover 逻辑
         item.addEventListener('mouseenter', () => {
-            clearTimeout(hoverTimeout);
             hoverTimeout = setTimeout(async () => {
-                if (!isLongPress) {  // 如果不是长按才继续执行
+                if (!isLongPress) {
                     await popup_box(label, item, parentLabel, textarea, onClose, lvl2, lvl3);
                 }
             }, 300);
-            // 处理长按事件
-            touchStartTime = Date.now();  // 记录触摸开始时间
-            isLongPress = false;  // 重置长按标志
-        });
-        // 长按的判别逻辑
-        item.addEventListener('mouseleave', async () => {
-            clearTimeout(hoverTimeout); // 离开时清除所有悬停相关的事件
-            if (Date.now() - touchStartTime >= LONG_PRESS_THRESHOLD) {
-                isLongPress = true;  // 如果超过500ms，标记为长按
-                await popup_box(label, item, parentLabel, textarea, onClose, lvl2, lvl3);
+
+            // 高亮当前悬停的元素
+            if (activeItem && activeItem !== item) {
+                activeItem.classList.remove('active'); // 移除先前高亮的元素
             }
+            item.classList.add('active');  // 高亮当前元素
+            activeItem = item; // 更新当前高亮的元素
         });
 
-        item.addEventListener('mouseleave', () => clearTimeout(hoverTimeout));
+        item.addEventListener('mouseleave', () => {
+            clearTimeout(hoverTimeout);
+            // 不立即移除高亮，框消失后再移除
+            // activeItem 只在框消失时才会移除高亮
+        });
 
+        // 📱 移动端触摸逻辑
+        item.addEventListener('touchstart', (e) => {
+            isLongPress = false;
+            e.preventDefault(); // ⛔ 阻止默认行为：复制/菜单等
+            touchTimer = setTimeout(async () => {
+                isLongPress = true;
+                await popup_box(label, item, parentLabel, textarea, onClose, lvl2, lvl3);
+
+                // 高亮当前长按的元素
+                if (activeItem && activeItem !== item) {
+                    activeItem.classList.remove('active');
+                }
+                item.classList.add('active');
+                activeItem = item;
+            }, LONG_PRESS_THRESHOLD);
+        });
+
+        item.addEventListener('touchend', () => {
+            clearTimeout(touchTimer);
+            // 不立即移除高亮，框消失后再移除
+        });
+
+        item.addEventListener('touchcancel', () => {
+            clearTimeout(touchTimer);
+            // 不立即移除高亮，框消失后再移除
+        });
+
+        // 🖱️/📱 Click 选择标签添加到 textarea
         item.addEventListener('click', () => {
+            if (isLongPress) return; // 长按已触发，避免重复 click
+
             const existing = textarea.value.trim();
             const parts = existing ? existing.split(/\s+/) : [];
             if (!parts.includes(label)) {
                 parts.push(label);
                 textarea.value = parts.join(' ');
             }
+
             onClose();
         });
 
         container.appendChild(item);
     });
+
+    // 清除框并移除高亮
+    const clearAll = () => {
+        if (activeItem) {
+            activeItem.classList.remove('active'); // 框消失时移除高亮
+        }
+        container.remove();
+        document.removeEventListener('keydown', escHandler);
+        document.removeEventListener('mousedown', outsideClickHandler); // ✅ 清除點擊事件
+    };
+
+    // 监听框消失事件
+    const escHandler = e => {
+        if (e.key === 'Escape') clearAll();
+    };
+
+    const outsideClickHandler = e => {
+        if (!container.contains(e.target)) {
+            clearAll(); // ✅ 點擊外部元素就收起
+        }
+    };
+
+    document.addEventListener('keydown', escHandler);
+    document.addEventListener('mousedown', outsideClickHandler); // ✅ 加上點擊監聽
 }
+
 
 // 總的渲染分區提示框函數
 async function popup_box(label, item, parentLabel, textarea, onClose, lvl2, lvl3) {

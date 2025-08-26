@@ -2,7 +2,7 @@
   <div>
     <h2>近期 API 使用詳情</h2>
 
-    <button @click="goToApiStatsPage" style="max-width: 100px;padding:3px;display: flex;justify-self: center">API統計表</button>
+<!--    <button @click="goToApiStatsPage" style="max-width: 100px;padding:3px;display: flex;justify-self: center">API統計表</button>-->
 
     <!-- 功能统计部分 -->
     <div class="stats">
@@ -286,7 +286,7 @@ export default {
       this.totalPages = Math.ceil(this.totalAPICalls / this.pageSize);
 
       // 排序数据
-      this.sortData();  // 初始化时排序所有数据
+      this.sortData('called_at');  // ➕ 添加这一行，确保按请求时间倒序初始化
 
     } catch (error) {
       console.error('Error fetching API usage data', error);
@@ -321,7 +321,7 @@ export default {
         this.apiLogs.sort((a, b) => {
           const timeA = new Date(a.called_at).getTime();
           const timeB = new Date(b.called_at).getTime();
-          return currentOrder === 'asc' ? timeA - timeB : timeB - timeA;
+          return currentOrder === 'asc' ? timeB - timeA : timeA - timeB ;
         });
       } else if (field === 'user' || field === 'ip' || field === 'path' || field === 'os' || field === 'browser') {
         // 字符串字段排序

@@ -20,6 +20,7 @@ html, body {
     display: flex;
     flex-direction: column;
     transition: all 0.3s ease;
+    z-index: 1;
 }
 
 .panel-header {
@@ -122,66 +123,79 @@ html, body {
     /* 面板上下叠加，1/5, 2/5, 2/5 */
     #inputpanel.panel-medium {
         width: 100%;    /* 占满屏幕宽度 */
-        height: 36vh;   /* 1/5 的高度 */
+        height:60vh;   /* 1/5 的高度 */
         top: 0;
         left: 0;
     }
     #resultPanel.panel-medium {
         width: 100%;
-        height: 30vh;   /* 2/5 的高度 */
-        top: 36vh;
+        height: 15vh;   /* 2/5 的高度 */
+        top: 60vh;
         left: 0;
     }
     #mapPanel.panel-medium {
         width: 100%;
-        height: 34vh;   /* 2/5 的高度 */
-        top: 66vh;
+        height: 25vh;   /* 2/5 的高度 */
+        top: 75vh;
         left: 0;
         overflow-x: hidden; /* 禁止水平滚动 */
     }
-    #inputpanel .panel-content {
-        flex-direction: row !important;   /* 横向布局 */
-        justify-content: flex-start !important;  /* 从左到右排列 */
-        align-items: center !important;  /* 垂直居中 */
-        gap: 15px !important;  /* 保持行间距 */
+    .panel-content{
+        gap:0;
+    }
+    .panel-subtitle{
+        margin: 3px;
+    }
+    h4{
+        margin:0;
+        gap: 0;
     }
     #mode-subtitle{
-        display: none;
+        margin-top: 10px;
     }
-    .feature-box{
-        max-width: 100px!important;
-        padding: 2px!important;
-    }
-    .mode-box{
-        max-width: 200px!important;
-        padding:2px!important;
+    /*#inputpanel .panel-content {*/
+    /*    flex-direction: row !important;   !* 横向布局 *!*/
+    /*    justify-content: flex-start !important;  !* 从左到右排列 *!*/
+    /*    align-items: center !important;  !* 垂直居中 *!*/
+    /*    gap: 15px !important;  !* 保持行间距 *!*/
+    /*}*/
+    /*#mode-subtitle{*/
+    /*    display: none;*/
+    /*}*/
+    /*.feature-box{*/
+    /*    max-width: 100px!important;*/
+    /*    padding: 2px!important;*/
+    /*}*/
+    /*.mode-box{*/
+    /*    max-width: 200px!important;*/
+    /*    padding:2px!important;*/
 
-    }
-    .panel-header{
+    .panel-header {
         padding: 2px;
-
-    }
-    .mode-title {
-        font-size: 13px!important;
-        margin-left: -10px;
     }
 
-    .mode-desc {
-        font-size: 11px!important;
-        margin-left: -24px;
-    }
-    .checkbox-group label {
-        font-size: 12px!important;
-    }
+    /*}*/
+    /*.mode-title {*/
+    /*    font-size: 13px!important;*/
+    /*    margin-left: -10px;*/
+    /*}*/
+
+    /*.mode-desc {*/
+    /*    font-size: 11px!important;*/
+    /*    margin-left: -24px;*/
+    /*}*/
+    /*.checkbox-group label {*/
+    /*    font-size: 12px!important;*/
+    /*}*/
 }
-@media (max-width: 768px){
-    .mode-box {
-        max-width: 100px!important;
-    }
-    .feature-box {
-        max-width: 50px!important;
-    }
-}
+/*@media (max-width: 768px){*/
+/*    .mode-box {*/
+/*        max-width: 100px!important;*/
+/*    }*/
+/*    .feature-box {*/
+/*        max-width: 50px!important;*/
+/*    }*/
+/*}*/
 
 
 #panelRestoreBtn {
@@ -190,7 +204,7 @@ html, body {
     background: #007aff;
 }
 #resultRestoreBtn {
-    top: 50px;
+    top: 43px;
     right: 10px;
     background: #34c759;
 }
@@ -243,7 +257,7 @@ html, body {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 9998;
+    z-index: 10001;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s ease;

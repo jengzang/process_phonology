@@ -165,8 +165,8 @@
 
 @media (max-aspect-ratio: 1/1) {
     .expansion-panel-search {
-        left: 22% !important; /* 左侧位置在页面的3/10 */
-        width: 48% !important; /* 设置元素宽度 */
+        left: 1% !important; /* 左侧位置在页面的3/10 */
+        width: 60% !important; /* 设置元素宽度 */
         top: 0; /* 顶部贴着页面上边缘 */
         height: 5.5%; /* 默认高度为页面的2/5 */
         justify-content: center; /* 水平居中 */

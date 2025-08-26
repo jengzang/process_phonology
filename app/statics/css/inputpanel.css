@@ -124,6 +124,97 @@
     cursor:pointer;
 }
 
+/* 移动端适配 */
+@media (max-width: 768px) {
+    /* mode-feature-row 确保默认为纵向排列 */
+    .mode-feature-row {
+        flex-direction: column;  /* 在小屏幕上调整为纵向布局 */
+        gap: 10px;  /* 减小垂直间距 */
+        margin-bottom: 0;
+        /*flex-direction: row;  !* 在移动端切换为横向排列 *!*/
+    }
+
+    /* 在移动端让 mode-box 撑满父容器 */
+    .mode-box {
+        flex: 1;              /* 撑满父容器 */
+        max-width: none;      /* 取消最大宽度限制 */
+        width: 100%;          /* 撑满宽度 */
+        justify-content: center;
+        padding:3px;
+    }
+
+    /* 在移动端让 feature-box 撑满父容器 */
+    .feature-box {
+        flex: 1;              /* 撑满父容器 */
+        max-width: none;      /* 取消最大宽度限制 */
+        width: 100%;          /* 撑满宽度 */
+        justify-content: center;
+        align-items: center;
+        flex-wrap: nowrap;    /* 不换行 */
+        padding:3px;
+    }
+
+    /* 保证 mode-box 和 feature-box 中的 label 横向排列 */
+    .mode-box {
+        display: flex;
+        flex-direction: row;  /* 横向排列 */
+        gap: 10px;            /* 设置横向间距 */
+        flex-wrap: nowrap;    /* 不换行 */
+        justify-content: space-between; /* 居中排列 */
+    }
+    /* 针对 feature-box 内的 label 横向排列 */
+    /* feature-box 内的 checkbox-group */
+    .feature-box .checkbox-group {
+        display: flex;
+        gap: 10px;              /* 设置横向间距 */
+        justify-content: center; /* 水平方向居中 */
+        align-items: center;     /* 垂直方向居中 */
+        flex-direction: row;     /* 横向排列 */
+        width: 100%;             /* 确保填满父容器宽度 */
+    }
+
+    /* 每个 label 内的内容居中 */
+    .feature-box .checkbox-group label {
+        display: flex;           /* 横向排列 label 内部内容 */
+        align-items: center;     /* 让复选框和文字垂直居中 */
+        justify-content: center; /* 让文字和复选框在水平方向居中 */
+        gap: 6px;                /* 文字和复选框之间的间距 */
+        font-size: 14px;         /* 根据需要调整字体大小 */
+        flex: 1;                 /* 让每个 label 撑满宽度 */
+        text-align: center;      /* 确保 label 文字居中 */
+    }
+
+    /* 横向排列 label 内部内容 */
+    .mode-box .mode-label,
+    .feature-box .checkbox-group label {
+        display: flex;        /* 横向排列 label 内部内容 */
+        align-items: center;  /* 确保文字和复选框垂直居中 */
+        gap: 6px;             /* 文字和复选框之间的间距 */
+        font-size: 14px;      /* 调整字体大小 */
+        flex: 1;              /* 撑满父容器 */
+    }
+
+    .mode-title {
+        font-size: 14px;  /* 减小标题字体 */
+    }
+
+    .mode-desc {
+        font-size: 12px;  /* 减小描述文字字体 */
+        margin-left: 0;   /* 调整描述文字左边距 */
+    }
+
+    .checkbox-group label {
+        display: flex;              /* label 内部使用 flex 排列 */
+        align-items: center;        /* 确保文字和复选框垂直居中 */
+        gap: 6px;                   /* 文字和复选框之间的间距 */
+        font-size: 14px;            /* 根据需要调整字体大小 */
+    }
+
+    .checkbox-group input[type="checkbox"]:hover + span {
+        transform: scale(1.05);  /* 减小复选框的放大效果 */
+    }
+}
+
 /*!* 🔹 輸入組塊樣式 *!*/
 /*.input-section {*/
 /*    margin-top: 12px;      !* 與上方區塊的距離 *!*/
@@ -255,6 +346,25 @@ label:hover {
     background-color: rgba(0, 0, 0, 0.05);
 }
 
+/*.partition-container { position: fixed; z-index: 9999; background: #fff; border: 1px solid #ccc; box-shadow: 0 2px 8px rgba(0,0,0,0.2); display: flex; gap: 0px; padding: 0px; pointer-events: auto; border-radius: 50px; }*/
+
+.partition-container {
+    position: fixed;
+    z-index: 9999;
+    background: rgba(255, 255, 255, 0.25);               /* ✅ 半透明玻璃 */
+    border: 1px solid rgba(255, 255, 255, 0.3);           /* ✅ 微白边框 */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);            /* ✅ 柔光阴影 */
+    /*backdrop-filter: blur(12px);                         !* ✅ 玻璃模糊 *!*/
+    /*-webkit-backdrop-filter: blur(12px);                 !* ✅ Safari 支持 *!*/
+
+    display: flex;
+    gap: 0px;
+    padding: 0px;
+    pointer-events: auto;
+    border-radius: 50px;
+}
+
+
 .partition-list {
     list-style: none;
     margin: 0;
@@ -276,23 +386,29 @@ label:hover {
 
 /* 音典分區下拉整體容器（第一層） */
 .partition-popup {
-    background: #ffffff;
-    border: 1px solid #ccc;
-    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.35);  /* 💡 半透明玻璃 */
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     padding: 6px;
     display: flex;
     flex-direction: column;
-
 }
+
 
 /* 各層級容器最小寬度 */
 .partition-popup.partition-lvl1,
 .partition-popup.partition-lvl2,
 .partition-popup.partition-lvl3 {
-    min-width: 140px;
+
+    /*min-width: 140px;*/
     border-radius: 10px;
     /*justify-content: center;  !* 水平居中 *!*/
+    user-select: none;               /* 禁止文本选择 */
+    -webkit-user-select: none;       /* iOS/Safari */
+    -webkit-touch-callout: none;     /* 禁止 iOS 的长按菜单 */
 }
 
 /* 列表項目 */
@@ -304,7 +420,13 @@ label:hover {
 
 }
 .partition-popup div:hover {
-    background: rgba(180, 223, 244, 0.72);
+    background: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 4px rgba(255,255,255,0.6) inset;
+}
+
+.partition-popup div.active {
+    background: rgba(180, 223, 244, 0.72);  /* 浅蓝色高亮 */
+    box-shadow: 0 0 6px rgba(0, 122, 255, 0.3);  /* 微光效果 */
 }
 
 /*.partition-popup.partition-lvl1 div {*/

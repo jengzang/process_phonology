@@ -92,86 +92,277 @@ function makeDraggable(el, handle, getMode) {
     });
     document.addEventListener("mouseup", () => isDown = false);
 }
+document.addEventListener("DOMContentLoaded", () => {
+    const inputpanel = document.getElementById("inputpanel");
+    const resultpanel = document.getElementById("resultPanel");
+    const mappanel = document.getElementById("mapPanel"); // 获取地图面板
 
-// 最小化最大化函數
-function bindPanel(minBtn, maxBtn, restoreBtn, el, getMode, setMode) {
-    minBtn.addEventListener("click", () => {
-        setMode(0);  // 设置为最小化模式
-        el.className = "panel panel-minimized";  // 设置面板为最小化状态
-        restoreBtn.style.display = "block";  // 显示恢复按钮
-    });
+    makeDraggable(inputpanel, document.getElementById("dragHandle"), () => currentMode);
+    makeDraggable(resultpanel, document.getElementById("resultDragHandle"), () => resultMode);
+    makeDraggable(mappanel, document.getElementById("mapDragHandle"), () => currentMode); // 给 mapPanel 添加拖动
+});
 
-    maxBtn.addEventListener("click", () => {
-        const newMode = getMode() === 2 ? 1 : 2;  // 如果是最大化，切换到中等状态，反之切换到最大化
-        setMode(newMode);  // 设置面板的模式为最大化或中等
-        el.className = "panel " + (newMode === 2 ? "panel-fullscreen" : "panel panel-medium");  // 更新面板的类名
+// 面板大小切换
+function v_togglePanel(panel, height, top, zIndex) {
+    // 设置panel元素的高度和top值
+    panel.style.height = height + 'vh';  // 使用传入的height值，单位为vh
+    panel.style.top = top + 'vh';        // 使用传入的top值，单位为vh
 
-        // 最大化时，置顶面板并确保它位于最前面
-        if (newMode === 2) {
-            el.style.position = "fixed";  // 固定在视口上
-            el.style.top = "0";  // 置顶
-            el.style.left = "0";  // 左对齐
-            el.style.zIndex = "9999";  // 让面板在最前面
-        } else {
-            el.style.position = "";  // 恢复默认定位
-            el.style.top = "";  // 恢复默认位置
-            el.style.left = "";  // 恢复默认位置
-            el.style.zIndex = "";  // 恢复默认 z-index
-        }
+    // 如果传入了zIndex，则设置z-index
+    if (zIndex !== undefined) {
+        panel.style.zIndex = zIndex;
+    }
+}
+function h_togglePanel(panel, width, left, zIndex) {
+    panel.style.width = width + 'vw';
+    panel.style.left = left + 'vw';
+    if (zIndex !== undefined) {
+        panel.style.zIndex = zIndex;
+    }
+}
 
-        restoreBtn.style.display = "none";  // 隐藏恢复按钮
-    });
+function resetPanelsToMediumLayout() {
+    const inputpanel = document.getElementById("inputpanel");
+    const resultpanel = document.getElementById("resultPanel");
+    const mappanel = document.getElementById("mapPanel");
 
-    restoreBtn.addEventListener("click", () => {
-        setMode(1);  // 设置为中等模式
-        el.className = "panel panel-medium";  // 设置面板为中等状态
-        restoreBtn.style.display = "none";  // 隐藏恢复按钮
-    });
+    // 移除所有最大化等样式（可选）
+    inputpanel.style.zIndex = 1;
+    resultpanel.style.zIndex = 1;
+    mappanel.style.zIndex = 1;
+
+    if (window.innerHeight < window.innerWidth) {
+        // 📺 横屏布局：左右分栏
+        inputpanel.style.top = "0";
+        inputpanel.style.left = "0";
+        inputpanel.style.width = "20vw";
+        inputpanel.style.height = "100vh";
+
+        resultpanel.style.top = "0";
+        resultpanel.style.left = "20vw";
+        resultpanel.style.width = "35vw";
+        resultpanel.style.height = "100vh";
+
+        mappanel.style.top = "0";
+        mappanel.style.left = "55vw";
+        mappanel.style.width = "45vw";
+        mappanel.style.height = "100vh";
+    } else {
+        // 📱 竖屏布局：上下堆叠
+        inputpanel.style.top = "0";
+        inputpanel.style.left = "0";
+        inputpanel.style.width = "100%";
+        inputpanel.style.height = "60vh";
+
+        resultpanel.style.top = "60vh";
+        resultpanel.style.left = "0";
+        resultpanel.style.width = "100%";
+        resultpanel.style.height = "15vh";
+
+        mappanel.style.top = "75vh";
+        mappanel.style.left = "0";
+        mappanel.style.width = "100%";
+        mappanel.style.height = "25vh";
+    }
 }
 
 // 監聽最小化最大化按鈕
-document.addEventListener("DOMContentLoaded", () => {
+function switchBindingLogic() {
+    resetPanelsToMediumLayout(); // ⬅️ 每次切换都初始化面板
+
     const inputpanel = document.getElementById("inputpanel");
-    const resultPanel = document.getElementById("resultPanel");
-    const mapPanel = document.getElementById("mapPanel"); // 获取地图面板
+    const resultpanel = document.getElementById("resultPanel");
+    const mappanel = document.getElementById("mapPanel");
 
-    // ❗ 保證 restore 按鈕在初始時為隱藏
-    document.getElementById("panelRestoreBtn").style.display = "none";
-    document.getElementById("resultRestoreBtn").style.display = "none";
-    document.getElementById("mapPanelRestoreBtn").style.display = "none"; // 地图面板的复原按钮初始为隐藏
+    const inputmin = document.getElementById("minimizeBtn");
+    const inputmax = document.getElementById("maximizeBtn");
+    const resultmin = document.getElementById("resultMinimizeBtn");
+    const resultmax = document.getElementById("resultMaximizeBtn");
+    const mapmin = document.getElementById("mapMinimizeBtn");
+    const mapmax = document.getElementById("mapMaximizeBtn");
 
-    makeDraggable(inputpanel, document.getElementById("dragHandle"), () => currentMode);
-    makeDraggable(resultPanel, document.getElementById("resultDragHandle"), () => resultMode);
-    makeDraggable(mapPanel, document.getElementById("mapDragHandle"), () => currentMode); // 给 mapPanel 添加拖动
 
-    bindPanel(
-        document.getElementById("minimizeBtn"),
-        document.getElementById("maximizeBtn"),
-        document.getElementById("panelRestoreBtn"),
-        inputpanel,
-        () => currentMode,
-        m => currentMode = m
-    );
+    // 清除之前的绑定（只适用于最简场景，不用 cloneNode）
+    inputmin.replaceWith(inputmin.cloneNode(true));
+    inputmax.replaceWith(inputmax.cloneNode(true));
+    resultmin.replaceWith(resultmin.cloneNode(true));
+    resultmax.replaceWith(resultmax.cloneNode(true));
+    mapmin.replaceWith(mapmin.cloneNode(true));
+    mapmax.replaceWith(mapmax.cloneNode(true));
 
-    bindPanel(
-        document.getElementById("resultMinimizeBtn"),
-        document.getElementById("resultMaximizeBtn"),
-        document.getElementById("resultRestoreBtn"),
-        resultPanel,
-        () => resultMode,
-        m => resultMode = m
-    );
+    const _inputmin = document.getElementById("minimizeBtn");
+    const _inputmax = document.getElementById("maximizeBtn");
+    const _resultmin = document.getElementById("resultMinimizeBtn");
+    const _resultmax = document.getElementById("resultMaximizeBtn");
+    const _mapmin = document.getElementById("mapMinimizeBtn");
+    const _mapmax = document.getElementById("mapMaximizeBtn");
 
-    // 为地图面板添加最小化、最大化、复原控制
-    bindPanel(
-        document.getElementById("mapMinimizeBtn"),
-        document.getElementById("mapMaximizeBtn"),
-        document.getElementById("mapPanelRestoreBtn"),
-        mapPanel,
-        () => currentMode,
-        m => currentMode = m
-    );
-});
+    const inputRestoreBtn = document.getElementById("panelRestoreBtn");
+    const resultRestoreBtn = document.getElementById("resultRestoreBtn");
+    const mapRestoreBtn = document.getElementById("mapPanelRestoreBtn");
+
+    inputRestoreBtn.replaceWith(inputRestoreBtn.cloneNode(true));
+    resultRestoreBtn.replaceWith(resultRestoreBtn.cloneNode(true));
+    mapRestoreBtn.replaceWith(mapRestoreBtn.cloneNode(true));
+
+
+    if (window.innerHeight >= window.innerWidth) {
+        const _resultRestoreBtn = document.getElementById("resultRestoreBtn");
+        _resultRestoreBtn.style.display = "block";  // 显示恢复按钮
+        _resultRestoreBtn.style.width = "30px";
+        _resultRestoreBtn.style.height = "30px";
+        _resultRestoreBtn.style.right = "75px";
+        const _mapRestoreBtn = document.getElementById("mapPanelRestoreBtn");
+        _mapRestoreBtn.style.display = "block";  // 显示恢复按钮
+        _mapRestoreBtn.style.width = "30px";
+        _mapRestoreBtn.style.height = "30px";
+        _mapRestoreBtn.style.right = "110px";
+        _mapRestoreBtn.style.top = "43px";
+        let resultRestoreToggled = false;
+        let mapRestoreToggled = false;
+        _resultRestoreBtn.addEventListener("click", () => {
+            if (!resultRestoreToggled) {
+                // 状态 A
+                v_togglePanel(inputpanel, 70, 0, 1);
+                v_togglePanel(resultpanel, 15, 70, 1);
+                v_togglePanel(mappanel, 15, 85, 1);
+            } else {
+                // 状态 B
+                v_togglePanel(inputpanel, 15, 0, 1);
+                v_togglePanel(resultpanel, 45, 5, 1);
+                v_togglePanel(mappanel, 50, 50, 1);
+            }
+            resultRestoreToggled = !resultRestoreToggled;
+        });
+        _mapRestoreBtn.addEventListener("click", () => {
+            if (!mapRestoreToggled) {
+                // 状态 A
+                v_togglePanel(inputpanel, 15, 0, 1);
+                v_togglePanel(resultpanel, 25, 5, 1);
+                v_togglePanel(mappanel, 70, 30, 1);
+            } else {
+                // 状态 B
+                v_togglePanel(inputpanel, 15, 0, 1);
+                v_togglePanel(resultpanel, 60, 15, 1);
+                v_togglePanel(mappanel, 25, 75, 1);
+            }
+            mapRestoreToggled = !mapRestoreToggled;
+        });
+
+        // 手动绑定逻辑
+        _inputmin.addEventListener("click", () => {
+            const h = inputpanel.style.height;
+            v_togglePanel(inputpanel, h !== "15vh" ? 15 : 60, 0);
+        });
+        _inputmax.addEventListener("click", () => {
+            const h = inputpanel.style.height;
+            const z = inputpanel.style.zIndex;
+            v_togglePanel(inputpanel, (h !== "100vh" || z !== "11111") ? 100 : 60, 0, (h !== "100vh" || z !== "11111") ? 11111 : 1);
+        });
+
+        _resultmin.addEventListener("click", () => {
+            const h = resultpanel.style.height;
+            v_togglePanel(resultpanel, h !== "25vh" ? 25 : 45, h !== "25vh" ? 5 : 15);
+        });
+        _resultmax.addEventListener("click", () => {
+            const h = resultpanel.style.height;
+            const z = resultpanel.style.zIndex;
+            v_togglePanel(resultpanel, (h !== "100vh" || z !== "11111") ? 100 : 75, (h !== "100vh" || z !== "11111") ? 0 : 15, (h !== "100vh" || z !== "11111") ? 11111 : 1);
+        });
+
+        _mapmin.addEventListener("click", () => {
+            const h = mappanel.style.height;
+            v_togglePanel(mappanel, h !== "25vh" ? 25 : 45, h !== "25vh" ? 75 : 55);
+        });
+        _mapmax.addEventListener("click", () => {
+            const h = mappanel.style.height;
+            const z = mappanel.style.zIndex;
+            v_togglePanel(mappanel, (h !== "100vh" || z !== "11111") ? 100 : 70,
+                (h !== "100vh" || z !== "11111") ? 0 : 30, (h !== "100vh" || z !== "11111") ? 11111 : 1);
+        });
+
+    }
+    else {
+        const _inputRestoreBtn = document.getElementById("panelRestoreBtn");
+        const _resultRestoreBtn = document.getElementById("resultRestoreBtn");
+        const _mapRestoreBtn = document.getElementById("mapPanelRestoreBtn");
+        // ❗ 保證 restore 按鈕在初始時為隱藏
+        _inputRestoreBtn.style.display = "none";
+        _resultRestoreBtn.style.display = "none";
+        _mapRestoreBtn.style.display = "none"; // 地图面板的复原按钮初始为隐藏
+        _resultRestoreBtn.style.width = "40px";
+        _resultRestoreBtn.style.height = "40px";
+        _resultRestoreBtn.style.right = "10px";
+        _mapRestoreBtn.style.width = "40px";
+        _mapRestoreBtn.style.height = "40px";
+        _mapRestoreBtn.style.right = "10px";
+        _mapRestoreBtn.style.top = "90px";
+        // 手动绑定逻辑
+        _inputmin.addEventListener("click", () => {
+            const w = inputpanel.style.width;
+            const isMinimized = w !== "0vw";
+            h_togglePanel(inputpanel, isMinimized ? 0 : 20, 0);
+            if (isMinimized) {
+                _inputRestoreBtn.style.display = "block";
+            }
+        });
+        _inputRestoreBtn.addEventListener("click", () => {
+            h_togglePanel(inputpanel, 20, 0, 1);
+            _inputRestoreBtn.style.display = "none";
+        });
+        _inputmax.addEventListener("click", () => {
+            const h = inputpanel.style.width;
+            const z = inputpanel.style.zIndex;
+            const isMaximized =( h === "100vw" && z === "11111");
+            // console.log(isMaximized)
+            if (isMaximized) {
+                h_togglePanel(inputpanel, 20, 0, 1); // 还原
+            } else {
+                h_togglePanel(inputpanel, 100, 0, 11111); // 最大化
+            }
+
+        });
+
+        _resultmin.addEventListener("click", () => {
+            const w = resultpanel.style.width;
+            const isMinimized = w !== "0vw";
+            h_togglePanel(resultpanel, isMinimized ? 0 : 35, isMinimized ? 100 : 20);
+            if (isMinimized) {
+                _resultRestoreBtn.style.display = "block";
+            }
+        });
+        _resultRestoreBtn.addEventListener("click", () => {
+            h_togglePanel(resultpanel, 35, 20, 1);
+            _resultRestoreBtn.style.display = "none";
+        });
+        _resultmax.addEventListener("click", () => {
+            const h = resultpanel.style.width;
+            const z = resultpanel.style.zIndex;
+            h_togglePanel(resultpanel, (h !== "100vw" || z !== "11111") ? 100 : 35,
+                (h !== "100vw" || z !== "11111") ? 0 : 20, (h !== "100vw" || z !== "11111") ? 11111 : 1);
+        });
+
+        _mapmin.addEventListener("click", () => {
+            const w = mappanel.style.width;
+            const isMinimized = w !== "0vw";
+            h_togglePanel(mappanel, isMinimized ? 0 : 45, isMinimized ? 100 : 55);
+            if (isMinimized) {
+                _mapRestoreBtn.style.display = "block";
+            }
+        });
+        _mapRestoreBtn.addEventListener("click", () => {
+            h_togglePanel(mappanel, 45, 55, 1);
+            _mapRestoreBtn.style.display = "none";
+        });
+        _mapmax.addEventListener("click", () => {
+            const h = mappanel.style.width;
+            const z = mappanel.style.zIndex;
+            h_togglePanel(mappanel, (h !== "100vw" || z !== "11111") ? 100 : 45,
+                (h !== "100vw" || z !== "11111") ? 0 : 55, (h !== "100vw" || z !== "11111") ? 11111 : 1);
+        });
+    }
+}
+
 
 
 // 🌐 共用封裝 fetch，統一紀錄前後端交換資料
@@ -272,6 +463,8 @@ function validateInputs() {
 
 // 主邏輯 監聽runBtn
 document.addEventListener("DOMContentLoaded", () => {
+    switchBindingLogic();
+    window.addEventListener("resize", switchBindingLogic);
     document.getElementById("runBtn")?.addEventListener("click", async () => {
         // Clear the resultPanelContent div before proceeding with any other logic
         const resultPanelContent = document.getElementById("resultPanelContent");
@@ -359,6 +552,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         window.isRun = true;
         // await runAnalysis();          // 先送出分析並記錄 log
+        if (window.innerHeight >= window.innerWidth) {
+            const inputpanel = document.getElementById("inputpanel");
+            const resultpanel = document.getElementById("resultPanel");
+            const mappanel = document.getElementById("mapPanel");
+            v_togglePanel(inputpanel, 15, 0, 1);
+            v_togglePanel(resultpanel, 40, 15, 1);
+            v_togglePanel(mappanel, 45, 55, 1);
+        }
         await analysis_from_db();
         if (!Array.isArray(window.latestResults) || window.latestResults.length === 0) {
             return;
