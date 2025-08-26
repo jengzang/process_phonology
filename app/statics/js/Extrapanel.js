@@ -421,6 +421,43 @@ document.addEventListener("DOMContentLoaded", function () {
 
         try {
             const token = localStorage.getItem("ACCESS_TOKEN")
+            // 判断用户身份
+            let userRole = "anonymous"; // 默认身份是匿名用户
+            if (token) {
+                const user = await update_userdatas_bytoken(token, console_log = true);
+                if (user && user.role === "admin") {
+                    userRole = "admin";
+                } else {
+                    userRole = "user";
+                }
+            }
+            const res = await fetch(`${window.API_BASE}/get_locs/?${query.toString()}`, {
+                method: "GET",
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {})
+                }
+            });
+
+            const loc_data = await res.json();
+            // 🚫 判斷返回的地點數是否超過 限制
+            const limit_anonymous =300
+            const limit_users =1000
+            if (userRole === "anonymous"){
+                if (loc_data.locations_result && loc_data.locations_result.length > limit_anonymous) {
+                    alert(`🚫 由於服務器限制，未登錄用戶查字只能選擇 ${limit_anonymous} 個地點。\n⚠️ 本次查詢了 ${data.locations_result.length} 個地點。`);
+                    showAuthPopup();
+                    return;
+                }
+            }else if (userRole === "user") {
+                if (loc_data.locations_result && loc_data.locations_result.length > limit_users) {
+                    const userConfirmed = confirm(`⚠️ 本次選擇了超過1000個地點（${loc_data.locations_result.length}個）\n⚠️ 可能會很卡。\n\n是否繼續？`);
+                    if (!userConfirmed) {
+                        return;  // 如果用户点击“取消”，停止后续操作
+                    }
+                }
+
+            }
             // 發送 GET 請求到後端
             const response = await fetch(`${window.API_BASE}/search_chars/?${params.toString()}`, {
                 method: 'GET',

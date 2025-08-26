@@ -1,3 +1,5 @@
+import gzip
+import io
 import json
 import os
 import threading
@@ -18,7 +20,7 @@ from app.auth.database import get_db
 from app.auth.dependencies import get_current_user, get_current_user_sync
 from app.auth.models import ApiUsageLog, ApiUsageSummary, User
 from common.config import KEYWORD_LOG_FILE, SUMMARY_FILE, API_USAGE_FILE, API_DETAILED_JSON, API_DETAILED_FILE, \
-    CLEAR_WEEK, RECORD_API
+    CLEAR_WEEK, RECORD_API, MAX_ANONYMOUS_SIZE, MAX_USER_SIZE
 
 # === 队列 ===
 keyword_queue = queue.Queue()
@@ -382,7 +384,35 @@ class TrafficLoggingMiddleware(BaseHTTPMiddleware):
         response_body = b""
         async for chunk in response.body_iterator:
             response_body += chunk
+        # 如果响应是 JSON 格式，进行压缩
+        if "application/json" in response.headers.get("Content-Type", ""):
+            # 压缩 JSON 响应体
+            # print("壓縮")
+            response_body = compress_json(response_body)
+            response.headers["Content-Encoding"] = "gzip"  # 设置响应的编码类型
+            # 更新 Content-Length 为压缩后的大小
+            response.headers["Content-Length"] = str(len(response_body))
+
         response_size = len(response_body)
+        # if user is None:
+        #     print("未登錄")
+        # else :
+        #     if user and user.role != "admin":
+        #         print("普通")
+        #     else:
+        #         print("管理")
+        # 判断用户和响应体大小是否符合限制
+        if user is None and response_size > MAX_ANONYMOUS_SIZE:
+            raise HTTPException(
+                status_code=413,  # Payload Too Large
+                detail="🚫 由於服務器限制，未登錄用戶暫不允許請求過多的數據 🙅‍♂️🙅‍♀️"
+            )
+        else:
+            if user and user.role != "admin" and response_size > MAX_USER_SIZE:
+                raise HTTPException(
+                    status_code=413,  # Payload Too Large
+                    detail="🚫 由於服務器限制，您的返回數據超過限制，請減少請求範圍 🛑💾"
+                )
 
         # 计算处理时间
         duration = time.time() - start_time
@@ -407,3 +437,10 @@ class TrafficLoggingMiddleware(BaseHTTPMiddleware):
 
 async def iter_response_body(response_body: bytes) -> AsyncIterable[bytes]:
     yield response_body
+
+def compress_json(response_body: bytes) -> bytes:
+    # 使用 gzip 压缩 JSON 数据
+    buf = io.BytesIO()
+    with gzip.GzipFile(fileobj=buf, mode='wb') as f:
+        f.write(response_body)
+    return buf.getvalue()

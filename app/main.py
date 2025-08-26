@@ -56,7 +56,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+# 允許跨域
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+# api統計、json壓縮
 app.add_middleware(TrafficLoggingMiddleware)
 
 if _RUN_TYPE == 'EXE':

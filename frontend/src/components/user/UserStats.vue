@@ -83,9 +83,9 @@
         <td>{{ log.browser }}</td><!-- 浏览器 -->
         <td>{{ formatTime(log.called_at) }}</td>  <!-- 北京时间 -->
         <!-- 新增的上行流量 -->
-        <td>{{ log.uploadTraffic }} KB</td>
+        <td>{{ log.uploadTraffic }}KB</td>
         <!-- 新增的下行流量 -->
-        <td>{{ log.downloadTraffic }} KB</td>
+        <td>{{ log.downloadTraffic }}MB</td>
       </tr>
       </tbody>
     </table>
@@ -136,7 +136,7 @@ export default {
         showUserAgent: false,  // 初始时不显示 User Agent
         // 假设 log.request_size 是上行流量，log.response_size 是下行流量
         uploadTraffic: log.request_size ? (log.request_size / 1024).toFixed(2) : '0.00',  // 转换为 KB
-        downloadTraffic: log.response_size ? (log.response_size / 1024).toFixed(2) : '0.00',  // 转换为 KB
+        downloadTraffic: log.response_size ? (log.response_size / (1024 * 1024)).toFixed(2) : '0.00',  // 转换为 KB
       }));
       // 初始化按 API 路径分组的对象
       const apiStats = {};

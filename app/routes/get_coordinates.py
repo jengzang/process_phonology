@@ -90,12 +90,12 @@ async def get_coordinates(
 
     finally:
         duration = time.time() - start
-        path = request.url.path
-        ip = request.client.host
-        agent = request.headers.get("user-agent", "")
-        referer = request.headers.get("referer", "")
-        user_id = user.id if user else None
+        # path = request.url.path
+        # ip = request.client.host
+        # agent = request.headers.get("user-agent", "")
+        # referer = request.headers.get("referer", "")
+        # user_id = user.id if user else None
 
         log_detailed_api(request.url.path, duration, 200, request.client.host, request.headers.get("user-agent", ""),
                          request.headers.get("referer", ""))
-        log_detailed_api_to_db(db_user, path, duration, 200, ip, agent, referer, user_id, CLEAR_WEEK)
+        # log_detailed_api_to_db(db_user, path, duration, 200, ip, agent, referer, user_id, CLEAR_WEEK)

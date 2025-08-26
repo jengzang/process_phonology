@@ -78,11 +78,15 @@ async function analysis_from_db() {
         if (res.ok && token) {
             await update_userdatas_bytoken(token)
         }
-    } catch (error) {
+    }catch (error) {
         console.error("分析失敗", error);
-        // alert(result.detail);
-        // log("❌ 錯誤", { message: error.message });
-        alert("❌ 請求後端錯誤：" + error.message);
+        // 优先显示 error.response.detail（如果有）
+        if (error.response && error.response.detail) {
+            alert("❌ 错误信息：" + error.response.detail);
+        } else {
+            // 如果没有 `detail` 字段，显示 error.message
+            alert("❌ 请求后端错误：" + error.message);
+        }
         clearLoadingMessage();
     }
 }
@@ -172,7 +176,14 @@ async function get_detail(location,feature_value,bool=false,vue = false,
         }
     } catch (error) {
         console.error("分析失敗", error);
-        alert("❌ 請求後端錯誤：" + error.message);
+        // 优先显示 error.response.detail（如果有）
+        if (error.response && error.response.detail) {
+            alert("❌ 错误信息：" + error.response.detail);
+        } else {
+            // 如果没有 `detail` 字段，显示 error.message
+            alert("❌ 请求后端错误：" + error.message);
+        }
+        clearLoadingMessage();
     }
 }
 

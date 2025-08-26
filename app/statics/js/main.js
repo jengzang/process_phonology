@@ -289,42 +289,72 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("❌ 請輸入地點或分區！");
             return;
         }
+        const token = localStorage.getItem("ACCESS_TOKEN");
+
+        // 判断用户身份
+        let userRole = "anonymous"; // 默认身份是匿名用户
+        if (token) {
+            const user = await update_userdatas_bytoken(token, console_log = true);
+            if (user && user.role === "admin") {
+                userRole = "admin";
+            } else {
+                userRole = "user";
+            }
+        }
         if (!validateInputs()) {
             // 直接 return，不繼續執行後續邏輯
             return;
-        }
-        const token = localStorage.getItem("ACCESS_TOKEN");
-        if (!token) {
-            try {
-                const query = new URLSearchParams();
-                locations.forEach(loc => query.append("locations", loc));
-                regions.forEach(reg => query.append("regions", reg));
-                const token = localStorage.getItem("ACCESS_TOKEN")
-                const res = await fetch(`${window.API_BASE}/get_locs/?${query.toString()}`, {
-                    method: "GET",
-                    headers: {
-                        'Content-Type': 'application/json',
-                        ...(token ? { Authorization: `Bearer ${token}` } : {})
-                    }
-                });
+        }else{
+            if (userRole === "anonymous"){
+                const status_inputs = parseMultilineListInput("status_inputs");
+                console.log(status_inputs);
+                // 判断是否为空或只包含空白字符（空格、回车等）
+                if (status_inputs.length === 0) {
+                    alert(`您的中古地位輸入框為空！\n⚠️ 由於服務器限制，未登錄用戶暫時不支持自動分析\n請填入中古地位後重試!`);
+                    showAuthPopup();
+                    return
+                }
 
-                const data = await res.json();
-                // console.log(data)
-                // 🚫 判斷返回的地點數是否超過 限制
-                const limit =200
-                if (data.locations_result && data.locations_result.length > limit) {
-                    alert(`🚫 由於服務器限制，未登錄用戶單次只能查詢 ${limit} 個地點。\n⚠️ 本次查詢了 ${data.locations_result.length} 個地點。`);
+                // 判断是否包含 "-" 字符
+                if (status_inputs.some(input => input.includes("-"))) {
+                    alert(`⚠️ 由於服務器限制，未登錄用戶暫時不能使用全匹配分析\n請刪除“-”字符後重試!`);
+                    showAuthPopup();
+                    return
+                }
+            }
+        }
+        try {
+            const query = new URLSearchParams();
+            locations.forEach(loc => query.append("locations", loc));
+            regions.forEach(reg => query.append("regions", reg));
+            const token = localStorage.getItem("ACCESS_TOKEN")
+            const res = await fetch(`${window.API_BASE}/get_locs/?${query.toString()}`, {
+                method: "GET",
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {})
+                }
+            });
+
+            const data = await res.json();
+            // 🚫 判斷返回的地點數是否超過 限制
+            const limit_anonymous =100
+            const limit_users =600
+            if (userRole === "anonymous"){
+                if (data.locations_result && data.locations_result.length > limit_anonymous) {
+                    alert(`🚫 由於服務器限制，未登錄用戶單次只能查詢 ${limit_anonymous} 個地點。\n⚠️ 本次查詢了 ${data.locations_result.length} 個地點。`);
                     showAuthPopup();
                     return;
                 }
-
-
-                // ✅ 否則正常處理
-                // console.log("✅ 返回結果:", data.locations_result);
-
-            } catch (err) {
-                console.error("❌ 請求錯誤:", err);
+            }else if (userRole === "user") {
+                if (data.locations_result && data.locations_result.length > limit_users) {
+                    alert(`🚫 由於服務器限制，用戶單次只能查詢 ${limit_users} 個地點。\n⚠️ 本次查詢了 ${data.locations_result.length} 個地點。`);
+                    return;
+                }
             }
+            // ✅ 否則正常處理
+        } catch (err) {
+            console.error("❌ 請求錯誤:", err);
         }
 
         window.isRun = true;

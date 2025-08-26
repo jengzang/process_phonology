@@ -57,7 +57,7 @@ MISSING_DATA_LOG = os.path.join(BASE_DIR, "logs", "缺資料.txt")
 WRITE_INFO_LOG = os.path.join(BASE_DIR, "logs", "write.txt")
 WRITE_ERROR_LOG = os.path.join(BASE_DIR, "logs", "write_error.txt")
 
-# 是否刪除兩個小時前的api記錄
+# 是否刪除一星期前的api記錄
 CLEAR_WEEK = False
 # 只记录路径中包含以下词的 API
 RECORD_API = [
@@ -93,6 +93,10 @@ REQUIRE_LOGIN = False
 # 一小時內用戶使用api時長
 MAX_USER_USAGE_PER_HOUR = 1000  # 1000秒
 MAX_IP_USAGE_PER_HOUR = 500
+
+# 用戶能接收的最大json包
+MAX_ANONYMOUS_SIZE = 1024 * 1024  # 1MB for anonymous users
+MAX_USER_SIZE = 6 * 1024 * 1024   # 6MB for authenticated users
 
 # =============== 配置 =======================
 # banner配置

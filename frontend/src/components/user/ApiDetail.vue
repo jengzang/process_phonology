@@ -64,7 +64,7 @@
             <td>{{ userStat.user }}</td>  <!-- 显示用户名 -->
             <td>{{ userStat.totalDuration.toFixed(3) }}s</td> <!-- 总使用时长 -->
             <td>{{ userStat.occurrenceCount }}</td> <!-- 出现次数 -->
-            <td>{{ userStat.totalUploadTraffic }}MB</td>  <!-- 上行流量 -->
+            <td>{{ userStat.totalUploadTraffic }}KB</td>  <!-- 上行流量 -->
             <td>{{ userStat.totalDownloadTraffic }}MB</td>  <!-- 下行流量 -->
           </tr>
           </tbody>
@@ -92,7 +92,7 @@
             <td>{{ ipStat.ip }}</td>
             <td>{{ ipStat.totalDuration.toFixed(3) }}s</td> <!-- 总使用时长 -->
             <td>{{ ipStat.occurrenceCount }}</td> <!-- 出现次数 -->
-            <td>{{ ipStat.totalUploadTraffic }}MB</td>  <!-- 上行流量 -->
+            <td>{{ ipStat.totalUploadTraffic }}KB</td>  <!-- 上行流量 -->
             <td>{{ ipStat.totalDownloadTraffic }}MB</td>  <!-- 下行流量 -->
           </tr>
           </tbody>
@@ -120,7 +120,7 @@
             <td>{{ path }}</td>
             <td>{{ data.totalDuration.toFixed(3) }}s</td>  <!-- 显示总持续时间 -->
             <td>{{ data.count }}</td>
-            <td>{{ data.totalUploadTraffic.toFixed(2) }}MB</td>  <!-- 上行流量 -->
+            <td>{{ data.totalUploadTraffic.toFixed(2) }}KB</td>  <!-- 上行流量 -->
             <td>{{ data.totalDownloadTraffic.toFixed(2) }}MB</td>  <!-- 下行流量 -->
           </tr>
           </tbody>
@@ -233,7 +233,7 @@ export default {
           user: user || '匿名用户',
           totalDuration,
           occurrenceCount,
-          totalUploadTraffic: (totalUploadTraffic / (1024 * 1024)).toFixed(2),  // 转换为 MB
+          totalUploadTraffic: (totalUploadTraffic / (1024)).toFixed(2),  // 转换为 MB
           totalDownloadTraffic: (totalDownloadTraffic / (1024 * 1024)).toFixed(2)  // 转换为 MB
         };
       });
@@ -255,7 +255,7 @@ export default {
           ip,
           totalDuration,
           occurrenceCount,
-          totalUploadTraffic: (totalUploadTraffic / (1024 * 1024)).toFixed(2),  // 转换为 MB
+          totalUploadTraffic: (totalUploadTraffic / (1024)).toFixed(2),  // 转换为 MB
           totalDownloadTraffic: (totalDownloadTraffic / (1024 * 1024)).toFixed(2)  // 转换为 MB
 
         };
@@ -272,7 +272,7 @@ export default {
         acc[log.path].totalDuration += log.duration;
 
         // 转换上行流量和下行流量为 MB，计算时保持数字类型，最后格式化为两位小数
-        acc[log.path].totalUploadTraffic += ((log.request_size / (1024 * 1024))) || 0;  // 转换为 MB，保持数字
+        acc[log.path].totalUploadTraffic += ((log.request_size / (1024))) || 0;  // 转换为 MB，保持数字
         acc[log.path].totalDownloadTraffic += ((log.response_size / (1024 * 1024))) || 0;  // 转换为 MB，保持数字
 
 

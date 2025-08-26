@@ -755,7 +755,7 @@ async function update_userdatas_bytoken(token,console_log = false) {
                 console.warn("⚠️ /auth/me 回傳非 200 狀態");
                 return null;
             }
-        };
+        }
     } catch (err) {
         console.error("❌ 無法更新用戶資料", err);
         return null;
