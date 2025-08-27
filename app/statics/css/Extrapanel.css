@@ -78,6 +78,7 @@
 /* 可展开的面板样式（多层玻璃升级版） */
 .expansion-panel-search {
     position: fixed;
+    overflow: hidden; /* 确保圆角区域外的子元素不显示 */
     top: 0;
     left: 27.5%;
     width: 20.5%;
@@ -93,7 +94,6 @@
             0 8px 28px rgba(0, 0, 0, 0.18),
             0 1px 0 rgba(255,255,255,0.25) inset; /* 轻微顶边高光 */
     height: 6%;
-    overflow: hidden;
     transition: height 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
     justify-content: center;
     isolation: isolate; /* 让伪元素分层更干净 */
@@ -168,9 +168,12 @@
         left: 1% !important; /* 左侧位置在页面的3/10 */
         width: 60% !important; /* 设置元素宽度 */
         top: 0; /* 顶部贴着页面上边缘 */
-        height: 5.5%; /* 默认高度为页面的2/5 */
+        height: 40px; /* 默认高度为页面的2/5 */
         justify-content: center; /* 水平居中 */
         display: flex;
+    }
+    .footer-search{
+        padding: 3px 10px!important;
     }
 }
 
@@ -181,6 +184,7 @@
     /*max-height: 100%;*/
     flex-grow: 1; /* 让内容区域填满剩余空间 */
     max-height: calc(100% - 70px); /* 限制内容区域的最大高度，防止超过底部按钮 */
+    border-radius: 12px;
 }
 
 .footer-search {
@@ -190,7 +194,7 @@
     flex-grow: 0;
     justify-content: space-between;
     align-items: center;
-    padding: 6px 20px;
+    padding: 5px 20px;
 
     /* 🧊 液态玻璃背景（替换原背景） */
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.03));

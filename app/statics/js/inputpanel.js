@@ -197,6 +197,9 @@ function renderList(items, container, parentLabel, textarea, onClose, lvl2 = nul
         const LONG_PRESS_THRESHOLD = 500;
         let touchTimer = null;
         let isLongPress = false;
+        let startY = 0;
+        let startX = 0;
+        let hasMoved = false;
 
         // 🖱️ 桌面端 hover 逻辑
         item.addEventListener('mouseenter', () => {
@@ -223,24 +226,41 @@ function renderList(items, container, parentLabel, textarea, onClose, lvl2 = nul
         // 📱 移动端触摸逻辑
         item.addEventListener('touchstart', (e) => {
             isLongPress = false;
-            e.preventDefault(); // ⛔ 阻止默认行为：复制/菜单等
-            touchTimer = setTimeout(async () => {
-                isLongPress = true;
-                await popup_box(label, item, parentLabel, textarea, onClose, lvl2, lvl3);
+            hasMoved = false;
 
-                // 高亮当前长按的元素
-                if (activeItem && activeItem !== item) {
-                    activeItem.classList.remove('active');
+            const touch = e.touches[0];
+            startY = touch.clientY;
+            startX = touch.clientX;
+
+            touchTimer = setTimeout(async () => {
+                if (!hasMoved) { // ⛔ 只有在没移动时才算长按
+                    isLongPress = true;
+                    await popup_box(label, item, parentLabel, textarea, onClose, lvl2, lvl3);
+
+                    if (activeItem && activeItem !== item) {
+                        activeItem.classList.remove('active');
+                    }
+                    item.classList.add('active');
+                    activeItem = item;
                 }
-                item.classList.add('active');
-                activeItem = item;
             }, LONG_PRESS_THRESHOLD);
+        });
+
+        item.addEventListener('touchmove', (e) => {
+            const touch = e.touches[0];
+            const deltaY = Math.abs(touch.clientY - startY);
+            const deltaX = Math.abs(touch.clientX - startX);
+
+            // 如果移动距离大于 10px，就认为是滚动/滑动
+            if (deltaY > 10 || deltaX > 10) {
+                hasMoved = true;
+                clearTimeout(touchTimer); // ❌ 取消长按触发
+            }
         });
 
         item.addEventListener('touchend', () => {
             clearTimeout(touchTimer);
-            // 👉 如果不是长按，那就视为轻触，执行“选择标签”逻辑
-            if (!isLongPress) {
+            if (!isLongPress && !hasMoved) {
                 const existing = textarea.value.trim();
                 const parts = existing ? existing.split(/\s+/) : [];
                 if (!parts.includes(label)) {

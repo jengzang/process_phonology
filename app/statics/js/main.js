@@ -154,15 +154,15 @@ function resetPanelsToMediumLayout() {
         inputpanel.style.width = "100%";
         inputpanel.style.height = "60dvh";
 
-        mappanel.style.top = "60dvh";
-        mappanel.style.left = "0";
-        mappanel.style.width = "100%";
-        mappanel.style.height = "20dvh";
-
-        resultpanel.style.top = "80dvh";
+        resultpanel.style.top = "60dvh";
         resultpanel.style.left = "0";
         resultpanel.style.width = "100%";
         resultpanel.style.height = "20dvh";
+
+        mappanel.style.top = "80dvh";
+        mappanel.style.left = "0";
+        mappanel.style.width = "100%";
+        mappanel.style.height = "20dvh";
     }
 }
 
@@ -213,41 +213,43 @@ function switchBindingLogic() {
         _resultRestoreBtn.style.display = "block";  // 显示恢复按钮
         _resultRestoreBtn.style.width = "30px";
         _resultRestoreBtn.style.height = "30px";
-        _resultRestoreBtn.style.right = "3vw";
-        _resultRestoreBtn.style.top = "10dvh";
+        _resultRestoreBtn.style.right = "70px";
+        _resultRestoreBtn.style.top = "5dvh";
         const _mapRestoreBtn = document.getElementById("mapPanelRestoreBtn");
         _mapRestoreBtn.style.display = "block";  // 显示恢复按钮
         _mapRestoreBtn.style.width = "30px";
         _mapRestoreBtn.style.height = "30px";
-        _mapRestoreBtn.style.right = "12vw";
-        _mapRestoreBtn.style.top = "10dvh";
-        let resultRestoreToggled = false;
+        _mapRestoreBtn.style.right = "110px";
+        _mapRestoreBtn.style.top = "5dvh";
+        // let resultRestoreToggled = false;
         let mapRestoreToggled = false;
         _resultRestoreBtn.addEventListener("click", () => {
-            if (!resultRestoreToggled) {
+            const heightInPixels = inputpanel.getBoundingClientRect().height;
+            const threshold = window.innerHeight * 0.5; // 60dvh ➜ 像素
+            if (heightInPixels < threshold) {
                 // 状态 A
                 v_togglePanel(inputpanel, 70, 0, 1);
-                v_togglePanel(mappanel, 15, 70, 1);
-                v_togglePanel(resultpanel, 15, 85, 1);
+                v_togglePanel(resultpanel, 15, 70, 2);
+                v_togglePanel(mappanel, 15, 85, 3);
             } else {
                 // 状态 B
                 v_togglePanel(inputpanel, 15, 0, 1);
-                v_togglePanel(mappanel, 40, 15, 1);
-                v_togglePanel(resultpanel, 45, 55, 1);
+                v_togglePanel(resultpanel, 40, 15, 2);
+                v_togglePanel(mappanel, 45, 55, 3);
             }
-            resultRestoreToggled = !resultRestoreToggled;
+            // resultRestoreToggled = !resultRestoreToggled;
         });
         _mapRestoreBtn.addEventListener("click", () => {
             if (!mapRestoreToggled) {
                 // 状态 A
                 v_togglePanel(inputpanel, 15, 0, 1);
-                v_togglePanel(mappanel, 25, 5, 1);
-                v_togglePanel(resultpanel, 70, 30, 1);
+                v_togglePanel(resultpanel, 25, 5, 2);
+                v_togglePanel(mappanel, 70, 30, 3);
             } else {
                 // 状态 B
                 v_togglePanel(inputpanel, 15, 0, 1);
-                v_togglePanel(mappanel, 70, 5, 1);
-                v_togglePanel(resultpanel, 25, 75, 1);
+                v_togglePanel(resultpanel, 70, 5, 2);
+                v_togglePanel(mappanel, 25, 75, 3);
             }
             mapRestoreToggled = !mapRestoreToggled;
         });
@@ -263,24 +265,24 @@ function switchBindingLogic() {
             v_togglePanel(inputpanel, (h !== "100dvh" || z !== "11111") ? 100 : 60, 0, (h !== "100dvh" || z !== "11111") ? 11111 : 1);
         });
 
-        _mapmin.addEventListener("click", () => {
-            const h = mappanel.style.height;
-            v_togglePanel(mappanel, h !== "25dvh" ? 25 : 45, h !== "25dvh" ? 5 : 15);
-        });
-        _mapmax.addEventListener("click", () => {
-            const h = mappanel.style.height;
-            const z = mappanel.style.zIndex;
-            v_togglePanel(mappanel, (h !== "100dvh" || z !== "11111") ? 100 : 75, (h !== "100dvh" || z !== "11111") ? 0 : 15, (h !== "100dvh" || z !== "11111") ? 11111 : 2);
-        });
-
         _resultmin.addEventListener("click", () => {
             const h = resultpanel.style.height;
-            v_togglePanel(resultpanel, h !== "25dvh" ? 25 : 45, h !== "25dvh" ? 75 : 55);
+            v_togglePanel(resultpanel, h !== "25dvh" ? 25 : 45, h !== "25dvh" ? 5 : 15,2);
         });
         _resultmax.addEventListener("click", () => {
             const h = resultpanel.style.height;
             const z = resultpanel.style.zIndex;
-            v_togglePanel(resultpanel, (h !== "100dvh" || z !== "11111") ? 100 : 70,
+            v_togglePanel(resultpanel, (h !== "100dvh" || z !== "11111") ? 100 : 75, (h !== "100dvh" || z !== "11111") ? 0 : 15, (h !== "100dvh" || z !== "11111") ? 11111 : 2);
+        });
+
+        _mapmin.addEventListener("click", () => {
+            const h = mappanel.style.height;
+            v_togglePanel(mappanel, h !== "20dvh" ? 20 : 40, h !== "20dvh" ? 80 : 60,3);
+        });
+        _mapmax.addEventListener("click", () => {
+            const h = mappanel.style.height;
+            const z = mappanel.style.zIndex;
+            v_togglePanel(mappanel, (h !== "100dvh" || z !== "11111") ? 100 : 70,
                 (h !== "100dvh" || z !== "11111") ? 0 : 30, (h !== "100dvh" || z !== "11111") ? 11111 : 3);
         });
 
@@ -572,8 +574,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const resultpanel = document.getElementById("resultPanel");
             const mappanel = document.getElementById("mapPanel");
             v_togglePanel(inputpanel, 15, 0, 1);
-            v_togglePanel(mappanel, 40, 15, 1);
-            v_togglePanel(resultpanel, 45, 55, 1);
+            v_togglePanel(resultpanel, 40, 15, 2);
+            v_togglePanel(mappanel, 45, 55, 3);
         }
         await analysis_from_db();
         if (!Array.isArray(window.latestResults) || window.latestResults.length === 0) {

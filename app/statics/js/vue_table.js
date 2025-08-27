@@ -759,29 +759,46 @@ function getCurrentCols() { return getLayoutSpec().cols; }
 
 function slotToRB(idx) {
     const { cols, widthPct, gapPct } = getLayoutSpec();
-    const col = idx % cols;                // 0 = 最右列
-    const row = Math.floor(idx / cols);    // 0 = 最底行
+    const col = idx % cols;
+    const row = Math.floor(idx / cols);
     const leftPct = col * (widthPct + gapPct);
-    const bottomPx = ROW_BOTTOM_START + row * ROW_GAP_PX;
-    return {
-        left:  `${leftPct}%`,
-        bottom: `${bottomPx}px`,
-        width:  `${widthPct}%`,
+    const isVertical = cols === 1; // 🤔 竖屏（仅1列）使用 top 定位
+
+    const pos = {
+        left: `${leftPct}%`,
+        width: `${widthPct}%`,
         height: PANEL_HEIGHT,
     };
+
+    if (isVertical) {
+        pos.top = `${ROW_BOTTOM_START + row * ROW_GAP_PX}px`;
+    } else {
+        pos.bottom = `${ROW_BOTTOM_START + row * ROW_GAP_PX}px`;
+    }
+
+    return pos;
 }
+
 
 function slotRectPx(idx) {
     const rb = slotToRB(idx);
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const widthPx  = (parseFloat(rb.width) / 100) * vw;
+    const widthPx = (parseFloat(rb.width) / 100) * vw;
     const heightPx = rb.height.endsWith('vh') ? (parseFloat(rb.height) / 100) * vh : parseFloat(rb.height);
-    const bottomPx = parseFloat(rb.bottom);
     const left = (parseFloat(rb.left) / 100) * vw;
-    const top  = vh - bottomPx - heightPx;
+    let top;
+
+    if (rb.top !== undefined) {
+        top = parseFloat(rb.top);
+    } else {
+        const bottomPx = parseFloat(rb.bottom);
+        top = vh - bottomPx - heightPx;
+    }
+
     return { left, top, width: widthPx, height: heightPx };
 }
+
 
 function applySlotPosition(container, idx) {
     const rb = slotToRB(idx);
@@ -790,14 +807,24 @@ function applySlotPosition(container, idx) {
         display: 'flex',
         transform: 'none',
         right: 'auto',
-        top: 'auto',
         left: rb.left,
-        bottom: rb.bottom,
         width: rb.width,
-        height: rb.height
+        height: rb.height,
+        zIndex: '', // reset
     });
+
+    // 只设置一个：top 或 bottom
+    if (rb.top !== undefined) {
+        container.style.top = rb.top;
+        container.style.bottom = 'auto';
+    } else {
+        container.style.bottom = rb.bottom;
+        container.style.top = 'auto';
+    }
+
     container.dataset.slotIndex = String(idx);
 }
+
 
 function allocateSlot() {
     for (let i = 0; i < panelSlots.length; i++) {

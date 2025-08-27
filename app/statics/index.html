@@ -65,7 +65,7 @@
 <div id="query-detail-panel3" class="query-detail-panel" style="left: 20%">
     <button id="close-panel3" class="close-btn">×</button>
     <div id='display-detail3' class="panel-content">
-        <p style="margin: 0">說明<br><span class="example-input"><strong>-</strong></span> 代表 <span class="example-desc">全匹配</span> 分析，意為提取所有“-”後對應的所有中古類別。</p>
+        <p style="margin: 0">說明<br><span class="example-input"><strong>-</strong></span> 代表 <span class="example-desc">全匹配</span> 分析，意為提取“-”後對應的所有中古類別。</p>
         <p style="margin: 0"><span class="example-input"><strong>空格</strong></span> 代表 <span class="example-desc">合併</span> 分析，即一起分析多個特徵的所轄字。</p>
         <p style="margin-top: 0"><span class="example-input"><strong>回車</strong></span> 代表 <span class="example-desc">獨立</span> 分析，即把輸入特徵按回車拆分再各自分析轄字。</p>
         <p style="margin: 0">一些示例<br><span class="example-input"><strong>「泥」</strong></span> 使用 <span class="example-desc">泥母</span> 進行分析。</p>
@@ -97,9 +97,15 @@
             <tr><td>母</td><td>並、云、以、來、初、匣、奉、娘、定、崇、常、幫、影、從、微、徹、心、敷、日、昌、明、曉、書、泥、溪、滂、澄、生、疑、知、禪、章、端、精、群、船、莊、見、透、邪、非、@清(清有歧義，需用@指定清母)</td></tr>
             </tbody>
         </table>
-        <p><span class="example-desc">點擊按鈕即可查詢！</span>在分析結果界面，像這樣的 <span class="example-input"><strong>藍色字</strong></span> 都是
-            <span class="example-desc">可點擊</span>的。單擊後可在浮窗中選擇，再次生成新窗口<span class="example-desc">細分查詢</span>
-            。這樣的窗口可以<span class="example-desc">無限生成</span>(瀏覽器帶得動的話)，可以同時對比多個地點/特徵。</p>
+        <p><span class="example-desc">點擊按鈕即可查詢！</span></p>
+        <p>在分析結果界面，像這樣的 <span class="example-input"><strong>藍色字</strong></span> 都是
+            <span class="example-desc">可點擊</span>的。<br>單擊後可在浮窗中選擇特徵，即可再次生成新窗口，進行<span class="example-desc">細分查詢</span>
+            。<br>這樣的窗口可以<span class="example-desc">無限生成</span>(瀏覽器帶得動的話)，可以同時對比多個地點/特徵。</p>
+        <p>✔ 注1：<span class="example-desc">移動端</span>界面可能顯示不全，請多滑動/拖動。</p>
+        <p>✔ 注2：點擊 <span class="example-input">音典分區 ▼</span> 按鈕，會出現音典分區彈窗，用戶可<span class="example-desc">單擊</span>選擇所需分區。如要顯示下一級分區:<br>
+            ※ <span class="example-desc">電腦端</span>只需將<span class="example-desc">光標</span>移到對應分區上即可；<br>
+            ※ <span class="example-desc">移動端</span>則需要<span class="example-desc">長按</span>對應分區</p>
+        <p>更詳細的使用說明，可點擊屏幕上方 <span class="example-input"> ❓使用說明 </span> 按鈕，點擊後會跳轉至詳細教程文章</p>
     </div>
 </div>
 <div id="popup3" class="popup">
@@ -115,7 +121,7 @@
     <div class="panel-header" id="dragHandle">
         <span class="panel-title">🔍 設置參數</span>
         <button id="openUsageModalBtn" title="點擊後鏈接跳轉">
-            使用說明⚙️
+            ❓使用說明
         </button>
         <button id="minimizeBtn" class="mode-btn">_</button>
         <button id="maximizeBtn" class="mode-btn">⛶</button>
@@ -427,7 +433,7 @@
                 點擊右上角 × 清空該頁面 →<br>該頁面不會自動清空，方便多次查詢、比對<br>
             </div>
             <div class="syllables">
-                <br>********************************
+                <br>****************************
                 <br>更詳細的查字功能，可移步<br>
                 <a href="https://mcpdict.vear.vip/" target="_blank" rel="noopener noreferrer">
                     漢字音典（唯二網頁版）
