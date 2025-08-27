@@ -146,7 +146,7 @@ function showAuthPopup() {
                 } catch {}
                 clearToken()
                 // error.value = '✅ 退出成功<br> ⏳ 兩秒後將自動跳轉到登錄頁面。'
-
+                updateLoginUI(false);
                 setTimeout(async () => {
                     mode.value = 'login'
                     error.value = ''
@@ -158,6 +158,8 @@ function showAuthPopup() {
 
                     const res = await api('/auth/me')
                     user.value = res
+                    const isLoggedIn = res && res.id && res.username;
+                    updateLoginUI(isLoggedIn, res?.username);
                 } catch {
                     clearToken()
                     mode.value = 'login'
@@ -762,4 +764,20 @@ async function update_userdatas_bytoken(token,console_log = false) {
     }
 }
 
+function updateLoginUI(isLoggedIn, username = '') {
+    const loginBtn = document.getElementById('login');
+    const loginTip = document.getElementById('login-tip');
+
+    if (isLoggedIn) {
+        loginBtn.textContent = '已登录';
+        loginBtn.classList.add('logged-in');
+        loginBtn.classList.remove('logged-out');
+        loginTip.textContent = `${username} 歡迎🥳`;
+    } else {
+        loginBtn.textContent = '登录';
+        loginBtn.classList.add('logged-out');
+        loginBtn.classList.remove('logged-in');
+        loginTip.textContent = '此功能需登錄使用';
+    }
+}
 

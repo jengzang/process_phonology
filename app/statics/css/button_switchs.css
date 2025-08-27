@@ -190,38 +190,61 @@
     filter: brightness(1.1); /* 增強亮度 */
 }
 
-.panel-content1 #login , .input-example-btn{
-    background: linear-gradient(145deg, #f0f0f0, #cacaca);
-    border: 1px solid #bbb;
-    border-radius: 8px;
-    padding: 4px 10px;
-    font-size: 12px;
+.panel-content1 #login.logged-out,
+.input-example-btn {
+    background: #007aff; /* 蓝色调，Apple 默认按钮色 */
+    border: none; /* Apple 按钮通常无边框 */
+    border-radius: 12px;
+    padding: 4px 8px;
+    font-size: 13px;
     font-weight: 600;
-    color: #333;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: white;
     cursor: pointer;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    transition: all 0.3s ease;
+    transition: all 0.25s ease;
     margin-right: 10px;
-    min-width: 22px;
+    min-width: 24px;
 }
 
-#login{
+#login {
     white-space: nowrap;
-    overflow: hidden;    /* 超出内容隐藏 */
-    text-overflow: ellipsis; /* 显示省略号 */
-    margin-right: 0!important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: 0 !important;
 }
 
 .input-example-btn {
-    writing-mode: vertical-rl; /* 让文字竖向排列 */
+    writing-mode: vertical-rl;
     margin-right: 0;
     margin-left: 10px;
-    padding: 10px 6px;
+    padding: 12px 8px;
 }
 
-.panel-content1 #login:hover,.input-example-btn:hover {
-    background: linear-gradient(145deg, #e0e0e0, #d4d4d4);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+.panel-content1 #login.logged-out:hover,
+.input-example-btn:hover {
+    background: #339aff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    transform: translateY(-1px);
+}
+#login.logged-in {
+    background-color: #28a745; /* 绿色 */
+    color: white;
+    border: none #28a745;    /* Apple 按钮通常无边框 */
+    border-radius: 12px;
+    padding: 4px 8px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.25s ease;
+    margin-right: 10px;
+    min-width: 24px;
+}
+#login.logged-in:hover{
+    background-color: #34c759; /* Apple 风格绿色，hover 更亮 */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
     transform: translateY(-1px);
 }
 

@@ -348,6 +348,13 @@
     margin-top: 0;
     color: #555;
 }
+@media (max-width: 768px) {
+    .panel-content1 p {
+        font-size: 12px;
+        margin-top: 0;
+        color: #555;
+    }
+}
 
 #loading-overlay {
     position: fixed;

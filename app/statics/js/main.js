@@ -213,14 +213,14 @@ function switchBindingLogic() {
         _resultRestoreBtn.style.display = "block";  // 显示恢复按钮
         _resultRestoreBtn.style.width = "30px";
         _resultRestoreBtn.style.height = "30px";
-        _resultRestoreBtn.style.right = "10px";
-        _resultRestoreBtn.style.top = "80px";
+        _resultRestoreBtn.style.right = "3vw";
+        _resultRestoreBtn.style.top = "10dvh";
         const _mapRestoreBtn = document.getElementById("mapPanelRestoreBtn");
         _mapRestoreBtn.style.display = "block";  // 显示恢复按钮
         _mapRestoreBtn.style.width = "30px";
         _mapRestoreBtn.style.height = "30px";
-        _mapRestoreBtn.style.right = "45px";
-        _mapRestoreBtn.style.top = "80px";
+        _mapRestoreBtn.style.right = "12vw";
+        _mapRestoreBtn.style.top = "10dvh";
         let resultRestoreToggled = false;
         let mapRestoreToggled = false;
         _resultRestoreBtn.addEventListener("click", () => {
@@ -423,6 +423,17 @@ window.fetchWithLog = async function(url, options) {
 /**************
 ---主控制邏輯---
 ***************/
+// 檢查用戶登錄狀態
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const res = await api('/auth/me');
+        const isLoggedIn = res && res.id && res.username;
+        updateLoginUI(isLoggedIn, res?.username);
+    } catch (err) {
+        console.error('登录状态检查失败:', err);
+        updateLoginUI(false); // 默认为未登录
+    }
+});
 const allow_chars_status = new Set([
     "攝","摄","呼","等","韻","韵","入","調","调","清","濁","浊","系","組","组","母",
     "假","咸","宕","山","效","曾","果","梗","止","江","流","深","臻","蟹","通","遇",

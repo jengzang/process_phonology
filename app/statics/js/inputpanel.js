@@ -22,6 +22,26 @@ document.getElementById('button-masschange').addEventListener('click', async fun
     }
 });
 
+const checkboxes = document.querySelectorAll('#features-group input[type="checkbox"]');
+
+checkboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', () => {
+        if (checkbox.checked) {
+            // ✅ 勾选一个时，取消其他所有
+            checkboxes.forEach(other => {
+                if (other !== checkbox) {
+                    other.checked = false;
+                }
+            });
+        } else {
+            // ⛔ 禁止取消当前唯一选中项
+            const isAnyChecked = Array.from(checkboxes).some(cb => cb.checked);
+            if (!isAnyChecked) {
+                checkbox.checked = true;
+            }
+        }
+    });
+});
 
 // 選擇分析模式（音本位還是字本位）
 function updateVisibility() {
@@ -106,16 +126,6 @@ window.showPartitionSelector = function (textarea) {
         container.style.top = `${panelRect.top}px`;
         container.style.left = `${panelRect.right}px`;
     }
-    // container.style.zIndex = '9999';
-    // container.style.background = '#fff';
-    // container.style.border = '1px solid #ccc';
-    // container.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
-    // container.style.display = 'flex';
-    // container.style.gap = '0px';
-    // container.style.padding = '0px';
-    // container.style.pointerEvents = 'auto';
-    // container.style.borderRadius =' 50px';
-    // container.style.display='none'
     const lvl1 = document.createElement('div');
     const lvl2 = document.createElement('div');
     const lvl3 = document.createElement('div');
@@ -229,7 +239,16 @@ function renderList(items, container, parentLabel, textarea, onClose, lvl2 = nul
 
         item.addEventListener('touchend', () => {
             clearTimeout(touchTimer);
-            // 不立即移除高亮，框消失后再移除
+            // 👉 如果不是长按，那就视为轻触，执行“选择标签”逻辑
+            if (!isLongPress) {
+                const existing = textarea.value.trim();
+                const parts = existing ? existing.split(/\s+/) : [];
+                if (!parts.includes(label)) {
+                    parts.push(label);
+                    textarea.value = parts.join(' ');
+                }
+                onClose();
+            }
         });
 
         item.addEventListener('touchcancel', () => {
