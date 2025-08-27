@@ -233,17 +233,22 @@ function renderList(items, container, parentLabel, textarea, onClose, lvl2 = nul
             startX = touch.clientX;
 
             touchTimer = setTimeout(async () => {
-                if (!hasMoved) { // ⛔ 只有在没移动时才算长按
+                if (!hasMoved) {
                     isLongPress = true;
-                    await popup_box(label, item, parentLabel, textarea, onClose, lvl2, lvl3);
 
-                    if (activeItem && activeItem !== item) {
-                        activeItem.classList.remove('active');
+                    const result = await popup_box(label, item, parentLabel, textarea, onClose, lvl2, lvl3);
+
+                    // ✅ 只有当 popup_box 成功展示内容时才设置 activeItem
+                    if (result !== false) {
+                        if (activeItem && activeItem !== item) {
+                            activeItem.classList.remove('active');
+                        }
+                        item.classList.add('active');
+                        activeItem = item;
                     }
-                    item.classList.add('active');
-                    activeItem = item;
                 }
             }, LONG_PRESS_THRESHOLD);
+
         });
 
         item.addEventListener('touchmove', (e) => {

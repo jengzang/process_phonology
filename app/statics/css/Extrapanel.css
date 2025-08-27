@@ -40,7 +40,12 @@
 .right-panel.open {
     right: 0; /* 展開時位於頁面右側 */
 }
+@media (max-aspect-ratio: 1/1) {
+    .right-panel {
+        right: -47% ;
+    }
 
+}
 
 /* 右側面板的內容 */
 .panel-content1 {

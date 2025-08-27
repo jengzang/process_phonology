@@ -751,7 +751,7 @@ async function update_userdatas_bytoken(token,console_log = false) {
             if (userRes.ok) {
                 const userData = await userRes.json();
                 window.currentUser = userData;
-                console.log("✅ 用戶資料已更新", userData);
+                // console.log("✅ 用戶資料已更新", userData);
                 return userData; // 可選：回傳資料供外部使用
             } else {
                 console.warn("⚠️ /auth/me 回傳非 200 狀態");

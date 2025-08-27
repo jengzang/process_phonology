@@ -569,6 +569,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         window.isRun = true;
         // await runAnalysis();          // 先送出分析並記錄 log
+        await analysis_from_db();
+        if (!Array.isArray(window.latestResults) || window.latestResults.length === 0) {
+            return;
+        }
         if (window.innerHeight >= window.innerWidth) {
             const inputpanel = document.getElementById("inputpanel");
             const resultpanel = document.getElementById("resultPanel");
@@ -576,10 +580,6 @@ document.addEventListener("DOMContentLoaded", () => {
             v_togglePanel(inputpanel, 15, 0, 1);
             v_togglePanel(resultpanel, 40, 15, 2);
             v_togglePanel(mappanel, 45, 55, 3);
-        }
-        await analysis_from_db();
-        if (!Array.isArray(window.latestResults) || window.latestResults.length === 0) {
-            return;
         }
         if (window.isButtonClosed) {
             const bar = document.getElementById('stickyContextBar2');

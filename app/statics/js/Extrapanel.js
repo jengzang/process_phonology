@@ -431,6 +431,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     userRole = "user";
                 }
             }
+            const query = new URLSearchParams();
+            locations.forEach(loc => query.append("locations", loc));
+            regions.forEach(reg => query.append("regions", reg));
             const res = await fetch(`${window.API_BASE}/get_locs/?${query.toString()}`, {
                 method: "GET",
                 headers: {
@@ -499,6 +502,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 // }
 
                 if (Array.isArray(resultData)) {
+                    if (window.innerHeight >= window.innerWidth) {
+                        const inputpanel = document.getElementById("inputpanel");
+                        const resultpanel = document.getElementById("resultPanel");
+                        const mappanel = document.getElementById("mapPanel");
+                        v_togglePanel(inputpanel, 15, 0, 1);
+                        v_togglePanel(resultpanel, 15, 15, 2);
+                        v_togglePanel(mappanel, 70, 30, 3);
+                    }
                     resultData.forEach((item) => {
                         // 如果音节或 location 为空，则跳过当前元素
                         if (!item.音节.length|| !item.location) {
@@ -626,7 +637,14 @@ document.addEventListener("DOMContentLoaded",  function () {
                     await update_userdatas_bytoken(token)
                 }
                 const resultData = data.tones_result; // 提取 `result` 数组
-
+                if (window.innerHeight >= window.innerWidth) {
+                    const inputpanel = document.getElementById("inputpanel");
+                    const resultpanel = document.getElementById("resultPanel");
+                    const mappanel = document.getElementById("mapPanel");
+                    v_togglePanel(inputpanel, 15, 0, 1);
+                    v_togglePanel(resultpanel, 15, 15, 2);
+                    v_togglePanel(mappanel, 70, 30, 3);
+                }
                 // // 在前端控制台输出返回的数据
                 // console.log('从后端返回的数据:', resultData);
                 const headers = ['地點', '陰平', '陽平', '陰上', '陽上', '陰去', '陽去', '陰入', '陽入', '其他調', '輕聲'];

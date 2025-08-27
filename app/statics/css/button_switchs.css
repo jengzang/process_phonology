@@ -389,13 +389,26 @@
     background-color: #007aff;  /* 苹果蓝 */
     color: white;
     font-size: 32px;
-    text-align: center;
     line-height: 50px;
     border-radius: 50%;
     cursor: pointer;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     transition: transform 0.3s ease, background-color 0.3s ease;
     transform-origin: center; /* 确保旋转围绕圆心 */
+    /* ✅ 居中 & 不换行 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    white-space: nowrap;
+    text-align: center;
+}
+@media (max-aspect-ratio: 1/1) {
+    .expand-button {
+        right: 10px;
+        /*font-size: 25px;*/
+        width: 40px;
+        height: 40px;
+    }
 }
 
 /* hover效果 */

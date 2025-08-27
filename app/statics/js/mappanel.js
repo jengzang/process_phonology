@@ -822,6 +822,14 @@ async function create_dot_all() {
 
         //如果数据存在，动态更新地图
         if (result) {
+            if (window.innerHeight >= window.innerWidth) {
+                const inputpanel = document.getElementById("inputpanel");
+                const resultpanel = document.getElementById("resultPanel");
+                const mappanel = document.getElementById("mapPanel");
+                v_togglePanel(inputpanel, 15, 0, 1);
+                v_togglePanel(resultpanel, 15, 5, 2);
+                v_togglePanel(mappanel, 90, 10, 3);
+            }
             // 更新地图中心点和缩放级别
             map.setCenter(mapParams.center_coordinate);
             map.setZoom(mapParams.zoom_level);
