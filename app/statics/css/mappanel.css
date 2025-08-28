@@ -214,19 +214,25 @@
     background-color: #e0e0e0; /* 激活状态时的背景色 */
 }
 
-/* 下拉箭头按钮样式，跟随placeholder */
+.feature-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
 .dropdown-arrow {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    padding: 10px;
     background: none;
     border: none;
-    font-size: 20px;
-    color: #888;
+    color: #444;
     cursor: pointer;
-    position: absolute;
-    right: 10px;
-    top: 50%; /* 使箭头垂直居中 */
-    transform: translateY(-50%);
-    transition: transform 0.3s ease, color 0.3s ease;
+    z-index: 10;
 }
+
 
 .dropdown-arrow:hover {
     color: #007bff; /* 鼠标悬停时颜色变化 */
