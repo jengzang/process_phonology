@@ -702,10 +702,6 @@ button[type="submit"]:active {
     transition: all 0.3s ease;
 }
 
-/* 开启状态时的背景和小圆点位置 */
-.custom-switch.open {
-    background-color: #4CAF50;  /* 绿色 */
-}
 
 .custom-switch.open .custom-slider:before {
     transform: translateX(20px); /* 小圆点向右移动 */
@@ -724,6 +720,10 @@ button[type="submit"]:active {
     box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);  /* 添加小圆点的发光效果 */
 }
 
+/* 开启状态时的背景和小圆点位置 */
+.custom-switch.open {
+    background-color: #4CAF50;  /* 绿色 */
+}
 /* 开启状态下的悬停效果：背景颜色变化，不带光环效果 */
 .custom-switch.open:hover {
     background: linear-gradient(135deg, forestgreen, #4CAF50); /* 背景渐变 */

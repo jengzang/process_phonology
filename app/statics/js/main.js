@@ -105,7 +105,7 @@ function makeDraggable(el, handle, getMode) {
     const preventSelection = e => e.preventDefault();
 
 
-    const onPointerDown = e => {
+    const onmouseDown = e => {
         if (getMode() !== 1) return;
         e.preventDefault();
         isDown = true;
@@ -119,11 +119,11 @@ function makeDraggable(el, handle, getMode) {
 
         // ✅ 禁止文本选中
         document.addEventListener("selectstart", preventSelection);
-        document.addEventListener("pointermove", onPointerMove);
-        document.addEventListener("pointerup", onPointerUp);
+        document.addEventListener("mousemove", onmouseMove);
+        document.addEventListener("mouseup", onmouseUp);
     };
 
-    const onPointerMove = e => {
+    const onmouseMove = e => {
         if (!isDown) return;
 
         const dx = e.clientX - initialX;
@@ -142,7 +142,7 @@ function makeDraggable(el, handle, getMode) {
         }
     };
 
-    const onPointerUp = () => {
+    const onmouseUp = () => {
         if (!isDown) return;
         isDown = false;
 
@@ -155,11 +155,11 @@ function makeDraggable(el, handle, getMode) {
 
         // ✅ 恢复文本选择
         document.removeEventListener("selectstart", preventSelection);
-        document.removeEventListener("pointermove", onPointerMove);
-        document.removeEventListener("pointerup", onPointerUp);
+        document.removeEventListener("mousemove", onmouseMove);
+        document.removeEventListener("mouseup", onmouseUp);
     };
 
-    handle.addEventListener("pointerdown", onPointerDown);
+    handle.addEventListener("mousedown", onmouseDown);
 }
 
 
