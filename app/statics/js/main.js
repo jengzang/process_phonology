@@ -177,7 +177,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         panels.forEach(({ el, handle, mode }) => {
             el.classList.add("draggable");
-            el.style.transform = "translate(0px, 0px)";
+            // el.style.transform = "translate(0px, 0px)";
             makeDraggable(el, handle, mode);
         });
     }
