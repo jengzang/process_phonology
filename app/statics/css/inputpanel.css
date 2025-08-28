@@ -482,11 +482,6 @@ label:hover {
     max-width: 400px;
 }
 
-.input-example-container {
-    flex: 1;
-    min-width: 0;
-    max-width: 50px;
-}
 
 .group-row > div {
     flex: 1;
@@ -664,12 +659,16 @@ label:hover {
 }
 
 
-/* 输入示例按钮的容器，垂直排列 */
 .input-example-container {
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: flex-start; /* 控制主轴（竖直）对齐 */
+    align-items: center;         /* ✅ 控制交叉轴（水平方向）居中 */
+    flex: 1;
+    min-width: 0;
+    max-width: 50px;
 }
+
 
 .feature-table {
     width: 100%;

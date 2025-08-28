@@ -5,9 +5,26 @@ window.plotted = false
 window.isButtonClosed = false; // 默認是開啟狀態（海量數據）
 //是否運行過
 window.isRun = false;
+window.runCooldown = false;
 // 🎛 通用控制：拖曳與最小化/最大化控制
 let currentMode = 1;
 let resultMode = 1;
+// 用戶身份判斷
+async function getUserRole() {
+    if (typeof window.userRole !== 'undefined') {
+        return window.userRole; // 只有 undefined 才會重新驗證
+    }
+    window.userRole = "anonymous";
+    const token = localStorage.getItem("ACCESS_TOKEN")
+    if (token) {
+        // console.log(token)
+        const user = await update_userdatas_bytoken(token, true);
+        window.userRole = user?.role === "admin" ? "admin" : "user";
+    }
+    return window.userRole;
+
+}
+
 
 /****************
 歡迎界面以及使用教程
@@ -64,12 +81,14 @@ window.addEventListener("DOMContentLoaded", () => {
 
     // 阻止點擊內容區也觸發關閉
     // modal.addEventListener("click", (e) => e.stopPropagation());
-
+    const userRole = getUserRole();
+    console.log(userRole)
     // 可選：自動關閉（20 秒）
     setTimeout(() => {
         overlay.classList.remove("show");
         setTimeout(() => overlay.classList.add("hidden"), 400);
     }, 20000);
+
 });
 
 /**************
@@ -77,25 +96,94 @@ window.addEventListener("DOMContentLoaded", () => {
 ***************/
 // 三個主面板的拖動邏輯
 function makeDraggable(el, handle, getMode) {
-    let isDown = false, startX = 0, startY = 0;
-    handle.addEventListener("mousedown", e => {
+    let isDown = false;
+    let startX = 0, startY = 0;
+    let initialX = 0, initialY = 0;
+    let dragging = false;
+    let zIndexBackup = "";
+    const dragThreshold = 15; // px
+    const preventSelection = e => e.preventDefault();
+
+
+    const onPointerDown = e => {
         if (getMode() !== 1) return;
         e.preventDefault();
         isDown = true;
+
+        zIndexBackup = el.style.zIndex || "";
+        initialX = e.clientX;
+        initialY = e.clientY;
+
         startX = e.clientX - el.offsetLeft;
         startY = e.clientY - el.offsetTop;
-    });
-    document.addEventListener("mousemove", e => {
+
+        // ✅ 禁止文本选中
+        document.addEventListener("selectstart", preventSelection);
+        document.addEventListener("pointermove", onPointerMove);
+        document.addEventListener("pointerup", onPointerUp);
+    };
+
+    const onPointerMove = e => {
         if (!isDown) return;
-        el.style.left = `${e.clientX - startX}px`;
-        el.style.top = `${e.clientY - startY}px`;
-    });
-    document.addEventListener("mouseup", () => isDown = false);
+
+        const dx = e.clientX - initialX;
+        const dy = e.clientY - initialY;
+
+        // 判断是否达到拖动阈值
+        if (!dragging && Math.sqrt(dx * dx + dy * dy) > dragThreshold) {
+            dragging = true;
+            el.classList.add("dragging");
+            el.style.zIndex = "9999";
+        }
+
+        if (dragging) {
+            el.style.left = `${e.clientX - startX}px`;
+            el.style.top = `${e.clientY - startY}px`;
+        }
+    };
+
+    const onPointerUp = () => {
+        if (!isDown) return;
+        isDown = false;
+
+        if (dragging) {
+            el.classList.remove("dragging");
+            el.style.zIndex = zIndexBackup;
+        }
+
+        dragging = false;
+
+        // ✅ 恢复文本选择
+        document.removeEventListener("selectstart", preventSelection);
+        document.removeEventListener("pointermove", onPointerMove);
+        document.removeEventListener("pointerup", onPointerUp);
+    };
+
+    handle.addEventListener("pointerdown", onPointerDown);
 }
+
+
+
 document.addEventListener("DOMContentLoaded", () => {
     const inputpanel = document.getElementById("inputpanel");
     const resultpanel = document.getElementById("resultPanel");
     const mappanel = document.getElementById("mapPanel"); // 获取地图面板
+    function initDraggablePanels() {
+        const panels = [
+            { el: inputpanel, handle: document.getElementById("dragHandle"), mode: () => currentMode },
+            { el: resultpanel, handle: document.getElementById("resultDragHandle"), mode: () => resultMode },
+            { el: mappanel, handle: document.getElementById("mapDragHandle"), mode: () => currentMode }
+        ];
+
+        panels.forEach(({ el, handle, mode }) => {
+            el.classList.add("draggable");
+            el.style.transform = "translate(0px, 0px)";
+            makeDraggable(el, handle, mode);
+        });
+    }
+
+    initDraggablePanels();
+
 
     makeDraggable(inputpanel, document.getElementById("dragHandle"), () => currentMode);
     makeDraggable(resultpanel, document.getElementById("resultDragHandle"), () => resultMode);
@@ -107,6 +195,7 @@ function v_togglePanel(panel, height, top, zIndex) {
     // 设置panel元素的高度和top值
     panel.style.height = height + 'dvh';  // 使用传入的height值，单位为dvh
     panel.style.top = top + 'dvh';        // 使用传入的top值，单位为dvh
+    panel.style.left = '0';
 
     // 如果传入了zIndex，则设置z-index
     if (zIndex !== undefined) {
@@ -116,6 +205,7 @@ function v_togglePanel(panel, height, top, zIndex) {
 function h_togglePanel(panel, width, left, zIndex) {
     panel.style.width = width + 'vw';
     panel.style.left = left + 'vw';
+    panel.style.top = '0';
     if (zIndex !== undefined) {
         panel.style.zIndex = zIndex;
     }
@@ -152,12 +242,12 @@ function resetPanelsToMediumLayout() {
         inputpanel.style.top = "0";
         inputpanel.style.left = "0";
         inputpanel.style.width = "100%";
-        inputpanel.style.height = "60dvh";
+        inputpanel.style.height = "65dvh";
 
-        resultpanel.style.top = "60dvh";
+        resultpanel.style.top = "65dvh";
         resultpanel.style.left = "0";
         resultpanel.style.width = "100%";
-        resultpanel.style.height = "20dvh";
+        resultpanel.style.height = "15dvh";
 
         mappanel.style.top = "80dvh";
         mappanel.style.left = "0";
@@ -231,11 +321,13 @@ function switchBindingLogic() {
                 v_togglePanel(inputpanel, 70, 0, 1);
                 v_togglePanel(resultpanel, 15, 70, 2);
                 v_togglePanel(mappanel, 15, 85, 3);
+                _resultRestoreBtn.textContent = "🔍️";
             } else {
                 // 状态 B
                 v_togglePanel(inputpanel, 15, 0, 1);
                 v_togglePanel(resultpanel, 40, 15, 2);
                 v_togglePanel(mappanel, 45, 55, 3);
+                _resultRestoreBtn.textContent = "📋";
             }
             // resultRestoreToggled = !resultRestoreToggled;
         });
@@ -245,11 +337,13 @@ function switchBindingLogic() {
                 v_togglePanel(inputpanel, 15, 0, 1);
                 v_togglePanel(resultpanel, 25, 5, 2);
                 v_togglePanel(mappanel, 70, 30, 3);
+                _mapRestoreBtn.textContent = "🗺️";
             } else {
                 // 状态 B
                 v_togglePanel(inputpanel, 15, 0, 1);
                 v_togglePanel(resultpanel, 70, 5, 2);
                 v_togglePanel(mappanel, 25, 75, 3);
+                _mapRestoreBtn.textContent = "📊";
             }
             mapRestoreToggled = !mapRestoreToggled;
         });
@@ -421,6 +515,133 @@ window.fetchWithLog = async function(url, options) {
     }
 };
 
+/**************
+ ---骰子邏輯---
+ ***************/
+const presets = [
+    {
+        mode: 's2p',
+        locations: '广州 梅縣 汕头',
+        regions: '瓊崖',
+        features: ['韻母'],
+        status_inputs: '流',
+        group_inputs: '',
+        pho_values: ''
+    },
+    {
+        mode: 's2p',
+        locations: '鬱林 北流',
+        regions: '吳化 銅容',
+        features: ['聲母'],
+        status_inputs: '精母',
+        group_inputs: '',
+        pho_values: ''
+    },
+    {
+        mode: 's2p',
+        locations: '台山台城 新會會城 東莞橋頭',
+        regions: '東江',
+        features: ['聲調'],
+        status_inputs: '次濁上',
+        group_inputs: '',
+        pho_values: ''
+    },
+    {
+        mode: 's2p',
+        locations: '南雄',
+        regions: '韶州',
+        features: ['韻母'],
+        status_inputs: '蟹-等',
+        group_inputs: '',
+        pho_values: ''
+    },
+    {
+        mode: 's2p',
+        locations: '南寧亭子 南寧那河 化州下江',
+        regions: '鬱白',
+        features: ['韻母'],
+        status_inputs: '宕 江',
+        group_inputs: '',
+        pho_values: ''
+    },
+    {
+        mode: 'p2s',
+        locations: '揭陽 饒平 永安 福州',
+        regions: '莆仙',
+        features: ['韻母'],
+        status_inputs: '',
+        group_inputs: '攝',
+        pho_values: 'a'
+    },
+    {
+        mode: 's2p',
+        locations: '南京 鹽城 淮安 廬江 ',
+        regions: '海泗',
+        features: ['聲母'],
+        status_inputs: '見組二',
+        group_inputs: '',
+        pho_values: ''
+    },
+    {
+        mode: 'p2s',
+        locations: '台山斗山墟 恩平恩城 鶴山雅瑤 從化獅象',
+        regions: '南海',
+        features: ['聲母'],
+        status_inputs: '',
+        group_inputs: '組',
+        pho_values: 'h'
+    },
+    {
+        mode: 's2p',
+        locations: '銀川 天津 邢臺',
+        regions: '魯中',
+        features: ['韻母'],
+        status_inputs: '豪',
+        group_inputs: '',
+        pho_values: ''
+    },
+    {
+        mode: 's2p',
+        locations: '髙安 修水',
+        regions: '撫州',
+        features: ['聲母'],
+        status_inputs: '知組三',
+        group_inputs: '',
+        pho_values: ''
+    },
+    // ...共10组
+];
+
+let currentIndex = 0;
+document.getElementById('dice-button').addEventListener('click', () => {
+    const pick = presets[currentIndex];
+
+    // 设置单选框
+    const modeInput = document.querySelector(`input[name="mode"][value="${pick.mode}"]`);
+    if (modeInput) {
+        modeInput.checked = true;
+        modeInput.dispatchEvent(new Event('change')); // 🔥 触发显示/隐藏逻辑
+    }
+
+
+    // 设置文本输入框
+    document.getElementById('locations').value = pick.locations;
+    document.getElementById('regions').value = pick.regions;
+
+    // 设置多选框（先取消全部，再勾选选中的）
+    document.querySelectorAll('#features-group input[type="checkbox"]').forEach(cb => {
+        cb.checked = pick.features.includes(cb.value);
+    });
+
+    // 设置多行文本框
+    document.getElementById('status_inputs').value = pick.status_inputs;
+    document.getElementById('group_inputs').value = pick.group_inputs;
+    document.getElementById('pho_values').value = pick.pho_values;
+
+    // ➕ 下一次使用下一组
+    currentIndex = (currentIndex + 1) % presets.length;
+});
+
 
 /**************
 ---主控制邏輯---
@@ -461,7 +682,7 @@ function validateInputs() {
     // 檢查 status_inputs 是否有不合法字符
     for (const ch of status_inputs) {
         if (![...ch].every(char => allow_chars_status.has(char))) {
-            alert(`❌ 中古地位輸入有不合法字符：${ch}`);
+            showToast(`❌ 中古地位輸入有不合法字符：${ch}`,'darkred');
             return false;
         }
     }
@@ -469,7 +690,7 @@ function validateInputs() {
     // 檢查 group_inputs 是否有不合法字符
     for (const ch of group_inputs) {
         if (![...ch].every(char => allow_chars_groups.has(char))) {
-            alert(`❌ 中古分類有不合法字符：${ch}`);
+            showToast(`❌ 中古分類有不合法字符：${ch}`,'darkred');
             return false;
         }
     }
@@ -477,62 +698,51 @@ function validateInputs() {
     return true; // ✅ 都合法
 }
 
-
 // 主邏輯 監聽runBtn
 document.addEventListener("DOMContentLoaded", () => {
     switchBindingLogic();
     window.addEventListener("resize", switchBindingLogic);
     document.getElementById("runBtn")?.addEventListener("click", async () => {
-        // Clear the resultPanelContent div before proceeding with any other logic
-        const resultPanelContent = document.getElementById("resultPanelContent");
-        if (resultPanelContent) {
-            resultPanelContent.innerHTML = ''; // Correct way to clear the content
-        }
-        window.latestResults = []
-        window.locations_data = []
-        window.selectedItem = []
-        window.plotted = false;
         const locations = document.getElementById('locations').value.trim().split(/\s+/);
         const regions = document.getElementById('regions').value.trim().split(/\s+/);
 
         if (isEmptyInput(locations) && isEmptyInput(regions)) {
-            alert("❌ 請輸入地點或分區！");
+            showToast("❌ 請輸入地點或分區！",'darkred');
             return;
         }
-        const token = localStorage.getItem("ACCESS_TOKEN");
-
-        // 判断用户身份
-        let userRole = "anonymous"; // 默认身份是匿名用户
-        if (token) {
-            const user = await update_userdatas_bytoken(token, console_log = true);
-            if (user && user.role === "admin") {
-                userRole = "admin";
-            } else {
-                userRole = "user";
-            }
-        }
+        const userRole = await getUserRole();
+        // console.log(userRole)
         if (!validateInputs()) {
             // 直接 return，不繼續執行後續邏輯
             return;
-        }else{
+        }
+        else{
             if (userRole === "anonymous"){
+                const mode = document.querySelector('input[name="mode"]:checked').value;
                 const status_inputs = parseMultilineListInput("status_inputs");
-                console.log(status_inputs);
+                const pho_values = parseMultilineListInput("pho_values");
+                // console.log(status_inputs);
                 // 判断是否为空或只包含空白字符（空格、回车等）
-                if (status_inputs.length === 0) {
-                    alert(`您的中古地位輸入框為空！\n⚠️ 由於服務器限制，未登錄用戶暫時不支持自動分析\n請填入中古地位後重試!`);
+                if (mode === "s2p" && status_inputs.length === 0) {
+                    showToast(`您的中古地位輸入框為空！\n⚠️ 由於服務器限制，未登錄用戶暫時不支持自動分析\n請填入中古地位後重試!`);
                     showAuthPopup();
-                    return
+                    return;
+                }
+                if (mode === "p2s" && pho_values.length === 0) {
+                    showToast(`您的待查音節輸入框為空！\n⚠️ 由於服務器限制，未登錄用戶暫時不支持查全部音節\n請填入具體音節後重試!`);
+                    showAuthPopup();
+                    return;
                 }
 
                 // 判断是否包含 "-" 字符
                 if (status_inputs.some(input => input.includes("-"))) {
-                    alert(`⚠️ 由於服務器限制，未登錄用戶暫時不能使用全匹配分析\n請刪除“-”字符後重試!`);
+                    showToast(`⚠️ 由於服務器限制，未登錄用戶暫時不能使用全匹配分析\n請刪除“-”字符後重試!`);
                     showAuthPopup();
                     return
                 }
             }
         }
+
         try {
             const query = new URLSearchParams();
             locations.forEach(loc => query.append("locations", loc));
@@ -552,13 +762,13 @@ document.addEventListener("DOMContentLoaded", () => {
             const limit_users =600
             if (userRole === "anonymous"){
                 if (data.locations_result && data.locations_result.length > limit_anonymous) {
-                    alert(`🚫 由於服務器限制，未登錄用戶單次只能查詢 ${limit_anonymous} 個地點。\n⚠️ 本次查詢了 ${data.locations_result.length} 個地點。`);
+                    showToast(`🚫 由於服務器限制，未登錄用戶單次只能查詢 ${limit_anonymous} 個地點。\n⚠️ 本次查詢了 ${data.locations_result.length} 個地點。`);
                     showAuthPopup();
                     return;
                 }
             }else if (userRole === "user") {
                 if (data.locations_result && data.locations_result.length > limit_users) {
-                    alert(`🚫 由於服務器限制，用戶單次只能查詢 ${limit_users} 個地點。\n⚠️ 本次查詢了 ${data.locations_result.length} 個地點。`);
+                    showToast(`🚫 由於服務器限制，用戶單次只能查詢 ${limit_users} 個地點。\n⚠️ 本次查詢了 ${data.locations_result.length} 個地點。`);
                     return;
                 }
             }
@@ -566,6 +776,28 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (err) {
             console.error("❌ 請求錯誤:", err);
         }
+        if (userRole !== 'admin'){
+            // 🔒 冷卻控制只針對分析主邏輯
+            if (window.runCooldown) {
+                showToast("⏳ 分析已啟動，請等待 15 秒後再試！");
+                return;
+            }
+            // ✅ 真正執行分析 → 開始冷卻計時
+            window.runCooldown = true;
+            setTimeout(() => {
+                window.runCooldown = false;
+            }, 15000);
+        }
+
+        // Clear the resultPanelContent div before proceeding with any other logic
+        const resultPanelContent = document.getElementById("resultPanelContent");
+        if (resultPanelContent) {
+            resultPanelContent.innerHTML = ''; // Correct way to clear the content
+        }
+        window.latestResults = []
+        window.locations_data = []
+        window.selectedItem = []
+        window.plotted = false;
 
         window.isRun = true;
         // await runAnalysis();          // 先送出分析並記錄 log

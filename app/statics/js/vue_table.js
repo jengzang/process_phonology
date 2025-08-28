@@ -767,7 +767,7 @@ function slotToRB(idx) {
     const pos = {
         left: `${leftPct}%`,
         width: `${widthPct}%`,
-        height: PANEL_HEIGHT,
+        height: isVertical ? '33vh' : PANEL_HEIGHT,
     };
 
     if (isVertical) {
@@ -920,15 +920,18 @@ function enableDragSnap(container) {
     let offsetX = 0, offsetY = 0;
     let origSlot = Number(container.dataset.slotIndex);
     let currentCandidate = origSlot;
+    const preventDefault = e => e.preventDefault();
 
-    const onMouseDown = (e) => {
-        if (e.target.closest('.close-btn')) return; // 不从关闭按钮拖
+    const onPointerDown = (e) => {
+        if (e.target.closest('.close-btn')) return;
 
         const rect = container.getBoundingClientRect();
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
 
         const timeout = setTimeout(() => {
             dragging = true;
-
+            container.classList.add('dragging');
             Object.assign(container.style, {
                 right: 'auto',
                 bottom: 'auto',
@@ -939,28 +942,30 @@ function enableDragSnap(container) {
 
             releaseSlot(origSlot);
             showGridOverlays(origSlot);
+            document.addEventListener('selectstart', preventDefault);
+            document.addEventListener('dragstart', preventDefault);
+            document.body.style.userSelect = 'none';
 
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
+            document.addEventListener('pointermove', onPointerMove);
+            document.addEventListener('pointerup', onPointerUp);
             document.body.style.userSelect = 'none';
         }, 300);
 
-        document.addEventListener('mouseup', function cancelEarly() {
+        document.addEventListener('pointerup', function cancelEarly() {
             clearTimeout(timeout);
-            document.removeEventListener('mouseup', cancelEarly);
+            document.removeEventListener('pointerup', cancelEarly);
         });
-    }
+    };
 
-    const onMouseMove = (e) => {
+    const onPointerMove = (e) => {
         if (!dragging) return;
         const left = e.clientX - offsetX;
-        const top  = e.clientY - offsetY;
+        const top = e.clientY - offsetY;
         Object.assign(container.style, { left: `${left}px`, top: `${top}px` });
 
-        // 计算中心点，实时给出最近空槽并高亮
         const rect = container.getBoundingClientRect();
         const cx = rect.left + rect.width / 2;
-        const cy = rect.top  + rect.height / 2;
+        const cy = rect.top + rect.height / 2;
         const target = findNearestFreeSlot(cx, cy, origSlot);
         if (target !== null) {
             currentCandidate = target;
@@ -968,19 +973,21 @@ function enableDragSnap(container) {
         }
     };
 
-    const onMouseUp = () => {
+    const onPointerUp = () => {
         if (!dragging) return;
         dragging = false;
+        container.classList.remove('dragging');
 
         hideGridOverlays();
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
+        document.removeEventListener('pointermove', onPointerMove);
+        document.removeEventListener('pointerup', onPointerUp);
         document.body.style.userSelect = '';
+        document.removeEventListener("selectstart", preventDefault);
+        document.removeEventListener("dragstart", preventDefault);
 
-        // 吸附到“最近空槽”或回原槽（不挤走别人）
+
         const snapTo = currentCandidate ?? origSlot;
 
-        // 如果吸附的是新槽位（超出原有长度），要补到 slots
         if (snapTo >= panelSlots.length) {
             const needPush = snapTo - panelSlots.length + 1;
             for (let i = 0; i < needPush; i++) panelSlots.push(null);
@@ -990,11 +997,12 @@ function enableDragSnap(container) {
         panelSlots[snapTo] = container;
         container.dataset.slotIndex = String(snapTo);
         origSlot = snapTo;
-        container.style.zIndex = ''; // 复位
+        container.style.zIndex = '';
     };
 
-    container.addEventListener('mousedown', onMouseDown);
+    container.addEventListener('pointerdown', onPointerDown);
 }
+
 
 function createNewVuePanel() {
     const slotIndex = allocateSlot();

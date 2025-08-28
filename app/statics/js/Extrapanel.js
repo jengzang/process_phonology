@@ -151,7 +151,7 @@ document.getElementById("infoForm").addEventListener("submit", async function (e
     const auth = await ensureAuthenticated(event);
     if (!auth){
         // console.log("攔截")
-        alert("💡 提交個人數據需登錄！")
+        showToast("💡 提交個人數據需登錄！")
     }  // 🚫 未登入 → 已經 preventDefault 並提示，直接退出
     else
     {
@@ -165,7 +165,7 @@ document.getElementById("infoForm").addEventListener("submit", async function (e
 
         // 表單驗證
         if (!location || !region || !coordinates || !feature || !value) {
-            alert("❌ 所有字段（除說明）必須填寫！");
+            showToast("❌ 所有字段（除說明）必須填寫！",'darkred');
             return;  // 如果有空的字段，則不提交
         }
 
@@ -193,16 +193,16 @@ document.getElementById("infoForm").addEventListener("submit", async function (e
             .then(data => {
                 // 根據後端返回的結果處理
                 if (data.success) {
-                    alert(data.message);
+                    showToast(data.message);
                     // 可以選擇清空表單或其他操作
                     // document.getElementById("infoForm").reset();  // 清空表單
                 } else {
-                    alert("提交失敗：" + data.message);
+                    showToast("提交失敗：" + data.message,'darkred');
                 }
             })
             .catch(error => {
                 console.error("提交失敗:", error);
-                alert("提交時發生錯誤！");
+                showToast("提交時發生錯誤！",'darkred');
             });
     }
 });
@@ -220,7 +220,7 @@ customToggle.addEventListener('click', async function (e) {
 
     const auth = await ensureAuthenticated(e);
     if (!auth) {
-        alert("💡 自定義數據庫需要登錄")
+        showToast("💡 自定義數據庫需要登錄")
         return;
     } // 🚫 未登入直接退出
 
@@ -400,7 +400,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let lastPositionsDiv = null;
 
     charactersBtn.addEventListener('click', async () => {
-        document.getElementById('loading-overlay').classList.remove('loading-hidden');
+
         // await create_map1();
         // 获取输入框中的汉字
         const chars = inputBox.value.trim().split(""); // 将输入框内容拆分成字符数组
@@ -408,10 +408,23 @@ document.addEventListener("DOMContentLoaded", function () {
         const regions = regionsInput.value.trim().split(/\s+/); // 获取并拆分 regions
 
         if (chars.length === 0) {
-            alert("❌ 请输入汉字！");
+            showToast("❌ 请输入汉字！",'darkred');
             document.getElementById('loading-overlay').classList.add('loading-hidden');
             return;
         }
+        if (window.userRole !== 'admin'){
+            // 🔒 冷卻控制只針對分析主邏輯
+            if (window.runCooldown) {
+                showToast("⏳ 分析已啟動，請等待 15 秒後再試！");
+                return;
+            }
+            // ✅ 真正執行分析 → 開始冷卻計時
+            window.runCooldown = true;
+            setTimeout(() => {
+                window.runCooldown = false;
+            }, 15000);
+        }
+        document.getElementById('loading-overlay').classList.remove('loading-hidden');
 
         // 構造查詢字符串
         const params = new URLSearchParams();
@@ -448,7 +461,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const limit_users =1000
             if (userRole === "anonymous"){
                 if (loc_data.locations_result && loc_data.locations_result.length > limit_anonymous) {
-                    alert(`🚫 由於服務器限制，未登錄用戶查字只能選擇 ${limit_anonymous} 個地點。\n⚠️ 本次查詢了 ${data.locations_result.length} 個地點。`);
+                    showToast(`🚫 由於服務器限制，未登錄用戶查字只能選擇 ${limit_anonymous} 個地點。\n⚠️ 本次查詢了 ${data.locations_result.length} 個地點。`);
                     showAuthPopup();
                     return;
                 }
@@ -471,10 +484,10 @@ document.addEventListener("DOMContentLoaded", function () {
             const data = await response.json();
             if (!response.ok  || !Array.isArray(data.result)){
                 if (data.detail.includes("登錄")) {
-                    alert(data.detail);
+                    showToast(data.detail);
                     showAuthPopup();
                 }else
-                {alert(data.detail)}
+                {showToast(data.detail)}
                 document.getElementById('loading-overlay').classList.add('loading-hidden');
             }
             // 处理返回的 JSON 数据
@@ -493,12 +506,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 // 🚨 如果所有都未匹配，或者有部分未匹配的
                 if (charsWithoutSyllables.length === resultData.length) {
-                    alert(`❌ 所有漢字「${charsWithoutSyllables.join(' ')}」都未找到對應音節！`);
+                    showToast(`❌ 所有漢字「${charsWithoutSyllables.join(' ')}」均未找到對應音節！`,'darkred');
                     document.getElementById('loading-overlay').classList.add('loading-hidden');
                     return;
                 }
                 // else if (charsWithoutSyllables.length > 0) {
-                //     alert(`⚠️ 以下漢字未找到對應音節：「${charsWithoutSyllables.join(' ')}」`);
+                //     showToast(`⚠️ 以下漢字未找到對應音節：「${charsWithoutSyllables.join(' ')}」`);
                 // }
 
                 if (Array.isArray(resultData)) {
@@ -601,6 +614,18 @@ document.addEventListener("DOMContentLoaded",  function () {
 
 
     tonesBtn.addEventListener('click', async (e) => {
+        if (window.userRole !== 'admin'){
+            // 🔒 冷卻控制只針對分析主邏輯
+            if (window.runCooldown) {
+                showToast("⏳ 分析已啟動，請等待 10 秒後再試！");
+                return;
+            }
+            // ✅ 真正執行分析 → 開始冷卻計時
+            window.runCooldown = true;
+            setTimeout(() => {
+                window.runCooldown = false;
+            }, 10000);
+        }
         document.getElementById('loading-overlay').classList.remove('loading-hidden');
         // 获取输入框中的汉字
         const locations = locationsInput.value.trim().split(/\s+/); // 获取并拆分 locations
@@ -624,10 +649,10 @@ document.addEventListener("DOMContentLoaded",  function () {
             const data = await response.json();
             if (!response.ok || !Array.isArray(data.tones_result)) {
                 if (data.detail.includes("登錄")) {
-                    alert(data.detail);
+                    showToast(data.detail);
                     showAuthPopup();
                 } else {
-                    alert(data.detail)
+                    showToast(data.detail)
                 }
                 document.getElementById('loading-overlay').classList.add('loading-hidden');
             }

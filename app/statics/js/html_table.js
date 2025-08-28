@@ -58,7 +58,7 @@ document.getElementById('toggleColumnsBtn').addEventListener('click', () => {
 
     // ⛔ 沒有資料就不要執行（避免報錯）
     if (!Array.isArray(window.latestResults)) {
-        alert("⚠️ 資料尚未載入，請先執行分析");
+        showToast("⚠️ 資料尚未載入，請先執行分析");
         return;
     }
 
@@ -537,7 +537,7 @@ async function js_table_render(small = false, number = false) {
     if (small) {
         let latestResults = window.latestdetailResults;
         if (!Array.isArray(latestResults) || latestResults.length === 0) {
-            alert("⚠️ 沒有有效的結果可渲染");
+            showToast("⚠️ 沒有有效的結果可渲染");
             clearLoadingMessage();
             return;
         }
@@ -553,7 +553,7 @@ async function js_table_render(small = false, number = false) {
     } else {
         let latestResults = window.latestResults;
         if (!Array.isArray(latestResults) || latestResults.length === 0) {
-            alert("⚠️ 沒有有效的結果可渲染");
+            showToast("⚠️ 沒有有效的結果可渲染");
             clearLoadingMessage();
             return;
         }

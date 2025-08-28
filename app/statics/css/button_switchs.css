@@ -197,7 +197,6 @@
     background: #007aff; /* 蓝色调，Apple 默认按钮色 */
     border: none; /* Apple 按钮通常无边框 */
     border-radius: 12px;
-    padding: 4px 8px;
     font-size: 13px;
     font-weight: 600;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -205,9 +204,13 @@
     cursor: pointer;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     transition: all 0.25s ease;
-    margin-right: 10px;
     min-width: 24px;
 }
+.panel-content1 #login.logged-out{
+    margin-right: 10px;
+    padding: 4px 8px;
+}
+
 
 #login {
     white-space: nowrap;
@@ -220,7 +223,7 @@
     writing-mode: vertical-rl;
     margin-right: 0;
     margin-left: 10px;
-    padding: 12px 8px;
+    padding: 6px 8px;
 }
 
 .panel-content1 #login.logged-out:hover,
@@ -248,6 +251,21 @@
     background-color: #34c759; /* Apple 风格绿色，hover 更亮 */
     box-shadow: 0 4px 10px rgba(0,0,0,0.15);
     transform: translateY(-1px);
+}
+
+.emoji-button {
+    background: none;
+    border: none;
+    padding: 0;
+    /*margin: 0;*/
+    font-size: 2rem;     /* 控制 emoji 大小 */
+    cursor: pointer;
+    outline: none;
+    margin-left: 10px;
+}
+
+.emoji-button:hover {
+    transform: scale(1.2); /* 可选：鼠标悬停时微放大 */
 }
 
 /* 設置蘋果風格的按鈕 */
@@ -558,7 +576,7 @@ button[type="submit"]:active {
         /*align-items: center;    !* 垂直方向置中 *!*/
         /*gap: 10px;              !* 垂直間距可稍微加大 *!*/
         /*max-width: 100px;*/
-        margin-top: 20px;
+        margin-top: 5px;
     }
     .center-btn > * {
         width: auto;         /* 自適應寬度 */

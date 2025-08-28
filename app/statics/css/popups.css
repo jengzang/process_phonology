@@ -428,3 +428,37 @@
     font-size: 16px;
     color: #333;
 }
+
+
+#toast {
+    visibility: hidden;
+    min-width: 220px;
+    max-width: 80%;
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    background-color: rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+
+    color: #c28f00;
+    text-shadow: 0 0 1px rgba(0, 0, 0, 0.3);
+
+    text-align: center;
+    border-radius: 12px;
+    padding: 20px 28px;
+    position: fixed;
+    z-index: 9999;
+    left: 50%;
+    top: 70%; /* 居中改這裡 */
+    transform: translate(-50%, -50%); /* 完全居中 */
+    font-size: 20px; /* ✅ 字体更大 */
+    line-height: 1.5;
+    opacity: 0;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+}
+
+#toast.show {
+    visibility: visible;
+    opacity: 1;
+}

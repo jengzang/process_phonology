@@ -229,7 +229,7 @@ async function create_map1(){
     // }
 
     if (isEmptyInput(locations) && isEmptyInput(regions)) {
-        alert("❌ 請輸入地點或分區！");
+        showToast("❌ 請輸入地點或分區！",'darkred');
         return;
     }
 
@@ -267,7 +267,7 @@ async function create_map1(){
         if (!res.ok) {
             // console.error("❌ 请求失败:", res.status);
             const errorData = await res.json();  // 尝试获取返回的JSON错误信息
-            alert(`後端錯誤！錯誤信息: ${errorData.detail || '請稍後重試'}`)
+            showToast(`後端錯誤！錯誤信息: ${errorData.detail || '請稍後重試'}`,'darkred')
             // debugLog.textContent = "❌ 请求失败";
             return;
         }
@@ -684,7 +684,7 @@ async function create_dot_all() {
     let maxLevel = 0;  // 存储最大 level
 
     if (isEmptyInput(locations) && isEmptyInput(regions)) {
-        alert("❌ 請輸入地點或分區！");
+        showToast("❌ 請輸入地點或分區！",'darkred');
         return;
     }
 
@@ -762,7 +762,7 @@ async function create_dot_all() {
             !Array.isArray(all_locations_dot.coordinates_locations) ||
             all_locations_dot.coordinates_locations.length === 0
         ) {
-            alert("❌ 輸入的地點未能完全匹配！\n可點擊輸入框下方選框的正確地點")
+            showToast("❌ 輸入的地點未能完全匹配！\n可點擊輸入框下方選框的正確地點",'darkred')
             return;
         }
         const mapParams = {
@@ -899,10 +899,38 @@ async function create_dot_all() {
 }
 
 //繪製總的點圖監聽
-document.getElementById("allmap-first").addEventListener("click", create_dot_all);
+document.getElementById("allmap-first").addEventListener("click", async () => {
+    if (window.userRole !== 'admin'){
+        // 🔒 冷卻控制只針對分析主邏輯
+        if (window.runCooldown) {
+            showToast("⏳ 分析已啟動，請等待 10 秒後再試！");
+            return;
+        }
+        // ✅ 真正執行分析 → 開始冷卻計時
+        window.runCooldown = true;
+        setTimeout(() => {
+            window.runCooldown = false;
+        }, 10000);
+    }
+
+    await create_dot_all(); // ✅ 通過檢查才執行
+});
+
 
 // 监听用户选择 max-level 时的变化
 document.getElementById('max-level').addEventListener('change', async function() {
+    if (window.userRole !== 'admin'){
+        // 🔒 冷卻控制只針對分析主邏輯
+        if (window.runCooldown) {
+            showToast("⏳ 分析已啟動，請等待 10 秒後再試！");
+            return;
+        }
+        // ✅ 真正執行分析 → 開始冷卻計時
+        window.runCooldown = true;
+        setTimeout(() => {
+            window.runCooldown = false;
+        }, 10000);
+    }
     await create_dot_all();  // 用户选择时调用 create_dot_all
 });
 

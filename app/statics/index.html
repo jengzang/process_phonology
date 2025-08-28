@@ -45,7 +45,7 @@
 </div>
 
 <div id="authBox"></div>
-
+<div id="toast"></div>
 <!-- 全局彈出層 用於音典分區的彈出 -->
 <div id="popupLayer"></div>
 <!-- 地點匹配建議提示框 -->
@@ -132,14 +132,14 @@
         <div class="mode-feature-row">
             <div class="mode-box">
                 <label class="mode-label">
-                    <input type="radio" name="mode" value="s2p" checked />
+                    <input type="radio" name="mode" value="s2p" style="pointer-events: none;" checked />
                     <div class="mode-text">
                         <div class="mode-title">中古➡️讀音</div>
                         <div class="mode-desc">按中古地位整理讀音</div>
                     </div>
                 </label>
                 <label class="mode-label">
-                    <input type="radio" name="mode" value="p2s" />
+                    <input type="radio" name="mode" value="p2s" style="pointer-events: none;" />
                     <div class="mode-text">
                         <div class="mode-title">讀音➡️中古</div>
                         <div class="mode-desc">分析音位的中古來源</div>
@@ -158,7 +158,7 @@
 
         <!-- 地點與分區 -->
         <div class="input-section">
-            <h4 class="panel-subtitle">方言點</h4>
+<!--            <h4 class="panel-subtitle">方言點</h4>-->
             <div class="location-row">
                 <div class="location-input">
                     <label for="locations">地點</label>
@@ -181,14 +181,15 @@
                 </div>
                 <!-- 添加“輸入示例”按钮，垂直排列 -->
                 <div class="input-example-container">
-                    <button id="input-example-button" class="input-example-btn">輸入示例</button>
+                    <button id="input-example-button" class="input-example-btn">❔示例</button>
+                    <button class="emoji-button" id="dice-button">🎲</button>
                 </div>
             </div>
         </div>
 
         <div class="input-section">
             <div id="group_inputs_group" style="display: none;">
-                <h4 class="panel-subtitle">分類與待查音節</h4>
+<!--                <h4 class="panel-subtitle">分類與待查音節</h4>-->
                 <div class="group-row">
                     <div style="max-width: 250px;">
                         <label for="group_inputs">按中古音分類</label>

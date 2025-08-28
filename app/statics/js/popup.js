@@ -77,3 +77,23 @@ function positionAndShowPopup({ popupEl, event, offsetTop = 30, offsetLeft = 30,
         nativeEvent.stopPropagation();
     }
 }
+
+
+function showToast(message, color) {
+    const toast = document.getElementById("toast");
+    // 替換換行符為 <br>
+    toast.innerHTML = message.replace(/\n/g, "<br>");
+
+    // 如果提供了颜色，就使用；否则保留原样
+    if (color) {
+        toast.style.color = color;
+    } else {
+        toast.style.color = ""; // 恢复默认样式表颜色
+    }
+
+    toast.className = "show";
+
+    setTimeout(() => {
+        toast.className = toast.className.replace("show", "");
+    }, 5000);
+}

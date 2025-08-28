@@ -48,7 +48,7 @@ function showAuthPopup() {
                 try {
                     const form = new URLSearchParams()
                     if (loginMode.value === 'email') {
-                        form.append('email', email.value)
+                        form.append('username', email.value)
                     } else {
                         form.append('username', username.value)
                     }
@@ -60,7 +60,9 @@ function showAuthPopup() {
                     })
                     saveToken(res.access_token)
                     await fetchUser()
-
+                    window.userRole = undefined;
+                    window.userRole = await getUserRole();
+                    console.log(userRole)
                     error.value = '✅ 登錄成功<br>即將跳轉個人信息界面'
                     setTimeout(() => {
                         mode.value = 'profile'
@@ -145,6 +147,7 @@ function showAuthPopup() {
                     await api('/auth/logout', { method: 'POST' })
                 } catch {}
                 clearToken()
+                window.userRole = undefined;
                 // error.value = '✅ 退出成功<br> ⏳ 兩秒後將自動跳轉到登錄頁面。'
                 updateLoginUI(false);
                 setTimeout(async () => {

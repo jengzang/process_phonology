@@ -10,7 +10,7 @@ async function analysis_from_db() {
     const pho_values = parseMultilineListInput("pho_values");
 
     if (isEmptyInput(locations) && isEmptyInput(regions)) {
-        alert("⚠️ 請輸入地點或分區！");
+        showToast("⚠️ 請輸入地點或分區！");
         return;
     }
 
@@ -58,14 +58,14 @@ async function analysis_from_db() {
 
         if (!res.ok || !result.success || !Array.isArray(result.results)) {
             console.error("❌ 回傳錯誤", result);
-            // alert(result.detail);
+            // showToast(result.detail);
             clearLoadingMessage();
             if (result.detail.includes("登錄")) {
-                alert(result.detail);
+                showToast(result.detail);
                 showAuthPopup();
             }
             else {
-                alert(result.detail);
+                showToast(result.detail);
             }
             return;
         }
@@ -159,7 +159,7 @@ async function get_detail(location,feature_value,bool=false,vue = false,
 
         if (!res.ok || !result.success || !Array.isArray(result.results)) {
             console.error("❌ 回傳錯誤", result);
-            alert("輸入的中古地位不正確！");
+            showToast("輸入的中古地位不正確！",'darkred');
             return;
         }
         const data = result.results;
@@ -228,7 +228,7 @@ miniBtn0.addEventListener("click", async () => {
 
         // 表單驗證
         if (!location || !feature || !value) {
-            alert("⚠️ 刪除失敗，地點/特徵/值存在空值");
+            showToast("⚠️ 刪除失敗，地點/特徵/值存在空值");
             return;  // 如果有空的字段，則不提交
         }
 
@@ -255,7 +255,7 @@ miniBtn0.addEventListener("click", async () => {
             .then(data => {
                 // 根據後端返回的結果處理
                 if (data.success) {
-                    alert("🧹 刪除成功！\n請點擊自定按鈕刷新！\n" + data.message);
+                    showToast("🧹 刪除成功！\n請點擊自定按鈕刷新！\n" + data.message);
                     // 可以選擇清空表單或其他操作
                     // document.getElementById("infoForm").reset();  // 清空表單
                 } else {
@@ -264,7 +264,7 @@ miniBtn0.addEventListener("click", async () => {
             })
             .catch(error => {
                 console.error("刪除失敗:", error);
-                alert("刪除時發生錯誤！");
+                showToast("刪除時發生錯誤！",'darkred');
             });
     }
 
