@@ -239,10 +239,10 @@ html, body {
 }
 
 .draggable {
-    position: absolute;
-    transform: translate(0, 0);
+    /*position: absolute;*/
+    /*transform: translate(0, 0);*/
     transition: transform 0.3s ease;
-    will-change: transform;
+    /*will-change: transform;*/
 }
 
 .dragging {
