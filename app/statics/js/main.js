@@ -758,7 +758,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const data = await res.json();
             // 🚫 判斷返回的地點數是否超過 限制
-            const limit_anonymous =100
+            const limit_anonymous =200
             const limit_users =600
             if (userRole === "anonymous"){
                 if (data.locations_result && data.locations_result.length > limit_anonymous) {
@@ -779,14 +779,14 @@ document.addEventListener("DOMContentLoaded", () => {
         if (userRole !== 'admin'){
             // 🔒 冷卻控制只針對分析主邏輯
             if (window.runCooldown) {
-                showToast("⏳ 分析已啟動，請等待 15 秒後再試！");
+                showToast("⏳ 分析已啟動，請等待 10 秒後再試！");
                 return;
             }
             // ✅ 真正執行分析 → 開始冷卻計時
             window.runCooldown = true;
             setTimeout(() => {
                 window.runCooldown = false;
-            }, 15000);
+            }, 10000);
         }
 
         // Clear the resultPanelContent div before proceeding with any other logic

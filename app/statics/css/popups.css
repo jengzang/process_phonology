@@ -33,7 +33,7 @@
     display: none;
     flex-direction: column;
     padding: 12px 0;
-    z-index: 10000;
+    z-index: 90000;
     font-family: -apple-system, BlinkMacSystemFont, "San Francisco", "Helvetica Neue", sans-serif;
     transition: all 0.4s ease;
     /*transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;*/
@@ -69,7 +69,7 @@
     display: none;
     flex-direction: column;
     padding: 12px 0;
-    z-index: 1000;
+    z-index: 90000;
     font-family: -apple-system, BlinkMacSystemFont, "San Francisco", "Helvetica Neue", sans-serif;
     transition: all 0.4s ease;
     opacity: 1;
@@ -124,13 +124,14 @@
             0 4px 14px rgba(0, 0, 0, 0.2),
             0 0 8px rgba(255, 255, 255, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.3);
-    z-index: 99999;
+    z-index: 90000;
     text-align: center;
     color: #222;
     font-weight: 500;
     opacity: 1;
     visibility: visible;
     transition: transform 0.3s ease, opacity 0.3s ease;
+
 }
 
 .popup-vue p {
@@ -446,7 +447,7 @@
     border-radius: 12px;
     padding: 20px 28px;
     position: fixed;
-    z-index: 9999;
+    z-index: 99999;
     left: 50%;
     top: 70%; /* 居中改這裡 */
     transform: translate(-50%, -50%); /* 完全居中 */

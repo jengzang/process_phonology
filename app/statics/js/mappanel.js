@@ -924,14 +924,14 @@ document.getElementById("allmap-first").addEventListener("click", async () => {
     if (window.userRole !== 'admin'){
         // 🔒 冷卻控制只針對分析主邏輯
         if (window.runCooldown) {
-            showToast("⏳ 分析已啟動，請等待 10 秒後再試！");
+            showToast("⏳ 分析已啟動，請等待 5 秒後再試！");
             return;
         }
         // ✅ 真正執行分析 → 開始冷卻計時
         window.runCooldown = true;
         setTimeout(() => {
             window.runCooldown = false;
-        }, 10000);
+        }, 5000);
     }
 
     await create_dot_all(); // ✅ 通過檢查才執行
@@ -943,14 +943,14 @@ document.getElementById('max-level').addEventListener('change', async function()
     if (window.userRole !== 'admin'){
         // 🔒 冷卻控制只針對分析主邏輯
         if (window.runCooldown) {
-            showToast("⏳ 分析已啟動，請等待 10 秒後再試！");
+            showToast("⏳ 分析已啟動，請等待 5 秒後再試！");
             return;
         }
         // ✅ 真正執行分析 → 開始冷卻計時
         window.runCooldown = true;
         setTimeout(() => {
             window.runCooldown = false;
-        }, 10000);
+        }, 5000);
     }
     await create_dot_all();  // 用户选择时调用 create_dot_all
 });

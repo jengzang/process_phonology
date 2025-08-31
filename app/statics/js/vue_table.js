@@ -124,100 +124,12 @@ function parseFeatureString(featureStr) {
     };
 }
 
-window.visibleLocations = []; // 存储可见的地点序列
-// 更新浮動ber、虛擬滾動邏輯也在裡面
-function updateStickyContext(displayRow,rowCount,changeDiaplayRows) {
-    const bar = document.getElementById('stickyContextBar2');
-    const content = document.querySelector('#resultPanelContent');
 
-    if (!bar || !content) {
-        console.warn('⚠️ Sticky observer 初始化失敗：缺少必要的 DOM 元素');
-        return;
-    }
-
-    // 始终显示 sticky bar
-    bar.style.display = 'block';
-    let lastScrollTop = 0; // 初始化滚动位置
-
-    content.addEventListener('scroll', (event   ) => {
-        // console.log('call back scroll:',this)
-        const tableBody = event.target;
-        // console.log("scrollHeight",tableBody.scrollHeight);
-        // console.log("scrollTop",tableBody.scrollTop);
-        // console.log("clientHeight",tableBody.clientHeight);
-        const scrollDirection = tableBody.scrollTop > lastScrollTop ? 'down' : 'up';
-        lastScrollTop = tableBody.scrollTop;
-
-        if (tableBody.scrollTop + tableBody.clientHeight >= tableBody.scrollHeight - 10) {
-            // console.log('excute')
-            // console.log(displayRow,rowCount)
-            if (displayRow< rowCount) {
-                changeDiaplayRows() // 每次加载 20 行数据
-            }
-        }
-        const contentRect = content.getBoundingClientRect();
-
-        // 获取所有的 locations-vue 元素
-        const locations = [...document.querySelectorAll('.locations-vue')];
-        let lastVisibleLocation = null;
-        let lastVisibleLocationHeight = null; // 存储最近可见地点的滚动高度
-        let visibleLocations = window.visibleLocations;
-
-        // 查找最下面的可见 locations-vue 元素
-        for (let i = 0; i < locations.length; i++) {
-            const rect = locations[i].getBoundingClientRect();
-            // 如果这个元素的顶部已经进入了可视区域
-            if (rect.top >= contentRect.top && rect.top <= contentRect.bottom) {
-                lastVisibleLocation = locations[i]; // 每次找到符合条件的元素时更新
-                lastVisibleLocationHeight =content.scrollTop + rect.top; // 获取当前滚动条高度
-            }
-        }
-
-        // 如果找到了最下面的可见 location，更新 sticky bar 内容
-        if (lastVisibleLocation) {
-            const stickyText = document.getElementById('stickyContextText2');
-            if (stickyText) {
-                stickyText.textContent = `📍 ${lastVisibleLocation.textContent}`;
-            }
-            if (!visibleLocations.some(loc => loc.name === lastVisibleLocation.textContent.trim())) {
-                // console.log("loc.name",visibleLocations.name)
-                // console.log("text",lastVisibleLocation.textContent);
-                // 只记录独特的地点，增加滚动高度信息
-                window.visibleLocations.push({
-                    name: lastVisibleLocation.textContent.trim(), // 存储地点名称（文本）
-                    scrollHeight: content.scrollTop, // 记录当前的滚动高度
-                });
-                // console.log("visibleLocations", visibleLocations);
-            }
-        } else {
-            if (scrollDirection === 'up') {
-                // console.log("向上滾動啊")
-                // 向上滚动时判断当前区域属于哪个地点
-                for (let i = visibleLocations.length - 1; i >= 0; i--) {
-                    const location = visibleLocations[i];
-                    // console.log("Y",content.scrollTop)
-                    // console.log("")
-                    // 判断当前位置是否在该地标的滚动高度附近
-                    if (content.scrollTop + window.innerHeight / 2 > location.scrollHeight) {
-                        const stickyText = document.getElementById('stickyContextText2');
-                        if (stickyText) {
-                            stickyText.textContent = `📍 ${location.name}`;
-                        }
-                        break; // 找到后退出
-                    }
-                }
-            }
-        }
-    });
-
-    // 初始化时触发一次滚动事件，确保第一次可见的行能更新 sticky bar
-    content.dispatchEvent(new Event('scroll'));
-}
 
 // 基於vue的標籤渲染數據
 async function initVue(mountTarget = '#resultPanelContent',
                        data = window.latestResults, isCondensed = true) {
-    const { createApp, ref, computed, h, onMounted, nextTick , onUnmounted, Teleport} = Vue;
+    const { createApp, ref, computed, h, onMounted, nextTick , onUnmounted, Teleport, watch} = Vue;
 
     const app = createApp({
         setup() {
@@ -229,6 +141,10 @@ async function initVue(mountTarget = '#resultPanelContent',
                 visibleRows.value  = visibleRows.value + 20
             }
             const totalRows = ref(tableData.value.length);  // 总行数
+
+            const availableValues = ref([]);           // 仍保留原有字符串列表（给筛选逻辑用）
+            const availableValueStats = ref([]);       // 新增：[{ value, totalShare }]，供排序展示
+            const selectedValues = ref([]);
 
             const showPopup = ref(false);//
             const popupData = ref({ location: '', feature: '', value: '' });
@@ -264,23 +180,30 @@ async function initVue(mountTarget = '#resultPanelContent',
 
             // 过滤数据的计算属性
             const filteredData = computed(() => {
-                // console.log("过滤数据前的表格数据:", tableData.value); // 每次过滤前的数据
-                if (!isCondensedMode.value) {
-                    return tableData.value; // 如果是显示模式，返回所有数据
-                }
+                const selected = selectedValues.value;
+
                 return tableData.value.filter(item => {
+                    // 🌟 如果开启了筛选器，先过滤出选中的特征值
+                    const groupValues = item.分組值 || {};
+                    const feature = Object.keys(groupValues)[0] || '';
+                    const value = groupValues[feature];
+
+                    // 如果用户有勾选特征值，而且当前数据项不包含任何，则排除
+                    if (selected.length > 0 && !selected.includes(value)) {
+                        return false;
+                    }
+
+                    // 🌟 如果是全显模式，直接返回
+                    if (!isCondensedMode.value) return true;
+
+                    // ✅ 否则执行原本的主体过滤逻辑
                     const 字數 = item.字數 || 0;
                     const 佔比 = item.佔比 || 0;
 
-                    // 根据条件判断是否隐藏数据
-                    if (佔比 < 0.05 || 字數 === 1) return false; // 条件 1：必须隐藏
-                    if (佔比 > 0.10 || 字數 >= 8) {
-                        return true; // 条件 2：必须显示
-                    } else if ((佔比 * 字數) < 0.4) {
-                        return false; // 条件 3：应该隐藏
-                    }
+                    if (佔比 < 0.05 || 字數 === 1) return false;
+                    if (佔比 > 0.10 || 字數 >= 8) return true;
+                    else if ((佔比 * 字數) < 0.4) return false;
 
-                    // 默认返回 true，显示数据
                     return true;
                 });
             });
@@ -292,24 +215,21 @@ async function initVue(mountTarget = '#resultPanelContent',
                     if (a.地點 !== b.地點) {
                         return a.地點.localeCompare(b.地點); // 字符串排序
                     }
-
                     // 2. 按特征排序：分組值的第一个键（特征）
                     const featureA = Object.keys(a.分組值 || {})[0] || '';
                     const featureB = Object.keys(b.分組值 || {})[0] || '';
                     if (featureA !== featureB) {
                         return featureA.localeCompare(featureB); // 字符串排序
                     }
-
                     // 3. 按佔比排序（降序排序）
                     return b.佔比 - a.佔比; // 降序排序
-
                 });
             });
 
             // 计算需要显示的数据
             const displayedData = computed(() => {
                 const totalVisibleRows = Math.min(visibleRows.value, sortedData.value.length);
-                console.log("当前显示的数据行数:", totalVisibleRows);
+                // console.log("当前显示的数据行数:", totalVisibleRows);
                 return sortedData.value.slice(0, totalVisibleRows);  // 切割出指定行数的数据
             });
             const popupPosition = ref({ top: 100, left: 100 }); // 默认初始位置
@@ -425,6 +345,152 @@ async function initVue(mountTarget = '#resultPanelContent',
                 return characters;
             };
 
+            // 更新浮動ber、虛擬滾動邏輯也在裡面
+            const updateStickyContext = (displayRow, rowCount, changeDiaplayRows) => {
+                const bar = document.getElementById('stickyContextBar2');
+                const content = document.querySelector('#resultPanelContent');
+
+                if (!bar || !content) {
+                    console.warn('⚠️ Sticky observer 初始化失敗：缺少必要的 DOM 元素');
+                    return;
+                }
+
+                // 始终显示 sticky bar
+                bar.style.display = 'block';
+                let lastScrollTop = 0; // 初始化滚动位置
+
+                // ✅ 使用闭包替代全局变量
+                const visibleLocations = [];
+
+                content.addEventListener('scroll', (event) => {
+                    const tableBody = event.target;
+                    const scrollDirection = tableBody.scrollTop > lastScrollTop ? 'down' : 'up';
+                    lastScrollTop = tableBody.scrollTop;
+
+                    // ✅ 更稳健的滚动触底判断
+                    const isNearBottom = Math.abs(
+                        tableBody.scrollHeight - tableBody.scrollTop - tableBody.clientHeight
+                    ) < 10;
+
+                    if (isNearBottom) {
+                        if (displayRow < rowCount) {
+                            changeDiaplayRows(); // 每次加载 20 行数据
+                        }
+                    }
+
+                    const contentRect = content.getBoundingClientRect();
+                    const locations = [...document.querySelectorAll('.locations-vue')];
+                    let lastVisibleLocation = null;
+                    let lastVisibleLocationHeight = null;
+
+                    // 查找最下面的可见 locations-vue 元素
+                    for (let i = 0; i < locations.length; i++) {
+                        const rect = locations[i].getBoundingClientRect();
+                        if (rect.top >= contentRect.top && rect.top <= contentRect.bottom) {
+                            lastVisibleLocation = locations[i];
+                            lastVisibleLocationHeight = content.scrollTop + rect.top;
+                        }
+                    }
+
+                    if (lastVisibleLocation) {
+                        const stickyText = document.getElementById('stickyContextText2');
+                        if (stickyText) {
+                            stickyText.textContent = `📍 ${lastVisibleLocation.textContent}`;
+                        }
+
+                        const alreadyExists = visibleLocations.some(
+                            loc => loc.name === lastVisibleLocation.textContent.trim()
+                        );
+                        if (!alreadyExists) {
+                            visibleLocations.push({
+                                name: lastVisibleLocation.textContent.trim(),
+                                scrollHeight: content.scrollTop,
+                            });
+                        }
+                    } else {
+                        if (scrollDirection === 'up') {
+                            for (let i = visibleLocations.length - 1; i >= 0; i--) {
+                                const location = visibleLocations[i];
+                                if (content.scrollTop > location.scrollHeight - 50)
+                                {
+                                    const stickyText = document.getElementById('stickyContextText2');
+                                    if (stickyText) {
+                                        stickyText.textContent = `📍 ${location.name}`;
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // 初始化时触发一次滚动事件，确保第一次可见的行能更新 sticky bar
+                content.dispatchEvent(new Event('scroll'));
+            }
+            const renderStickyFilterSelect = () => {
+                const old = document.querySelector('.stickybar-filter-wrapper');
+                if (old && old.parentNode) {
+                    old.parentNode.removeChild(old);
+                }
+                const stickyText = document.getElementById('stickyContextText2');
+                const toggleBtn = document.getElementById('toggleColumnsBtn2');
+                if (!stickyText || !toggleBtn) return;
+
+                if (document.querySelector('.stickybar-filter-wrapper')) return;
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'stickybar-filter-wrapper';
+
+                const trigger = document.createElement('div');
+                trigger.className = 'stickybar-filter-trigger';
+                trigger.textContent = '🎯 篩選';
+
+                const dropdown = document.createElement('div');
+                dropdown.className = 'stickybar-filter-dropdown';
+
+                availableValueStats.value.forEach(({ value, totalShare }) => {
+                    const label = document.createElement('label');
+                    label.className = 'stickybar-filter-option';
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.value = value;
+
+                    checkbox.addEventListener('change', () => {
+                        const selected = Array.from(dropdown.querySelectorAll('input:checked')).map(c => c.value);
+                        selectedValues.value = selected;
+                        if (selected.length === 0) {
+                            trigger.textContent = '🎯 篩選';
+                        } else {
+                            const recent = selected.slice(-3);
+                            const overflow = selected.length > 3 ? '…' : '';
+                            trigger.textContent = `🎯 已選：${recent.join('|')}${overflow}`;
+                        }
+
+                    });
+
+                    label.appendChild(checkbox);
+                    label.append(` ${value}`);
+                    // 在选项文字里展示累加占比（百分数，1 位小数）
+                    // const pct = (totalShare * 100).toFixed(1);
+                    // label.append(` ${value} (${pct}%)`);
+                    dropdown.appendChild(label);
+                });
+
+                trigger.addEventListener('click', () => {
+                    dropdown.classList.toggle('open');
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!wrapper.contains(e.target)) {
+                        dropdown.classList.remove('open');
+                    }
+                });
+
+                wrapper.appendChild(trigger);
+                wrapper.appendChild(dropdown);
+                stickyText.parentNode.insertBefore(wrapper, toggleBtn);
+            };
 
             const getCheckedFeatures = () => {
                 return Array.from(document.querySelectorAll('#features-group input:checked'))
@@ -447,7 +513,28 @@ async function initVue(mountTarget = '#resultPanelContent',
 
 
             onMounted(() => {
-                const resultPanelContent = document.getElementById('resultPanelContent');
+                if (mountTarget !== '#resultPanelContent') {
+                    return; // 🚫 不是主面板，就不执行以下逻辑
+                }
+                // ✅ 累加所有結果中的佔比到各特徵值
+                const totals = new Map();
+                tableData.value.forEach(item => {
+                    const groupValues = item.分組值 || {};
+                    const feature = Object.keys(groupValues)[0];
+                    const val = groupValues[feature];
+                    const share = Number(item.佔比) || 0;
+                    if (val) totals.set(val, (totals.get(val) || 0) + share);
+                });
+
+                // ✅ 生成排序後的列表（降序）
+                availableValueStats.value = [...totals.entries()]
+                    .map(([value, totalShare]) => ({ value, totalShare }))
+                    .sort((a, b) => b.totalShare - a.totalShare);
+
+                // ✅ 仍然維持一份簡單的值列表（供篩選用）
+                availableValues.value = availableValueStats.value.map(x => x.value);
+
+                const resultPanelContent = document.querySelector(mountTarget);
                 const firstRow = document.querySelector('.data-row-vue');
                 if (firstRow) {
                     const rowHeight = firstRow.offsetHeight;
@@ -459,7 +546,16 @@ async function initVue(mountTarget = '#resultPanelContent',
                 Vue.nextTick(() => {
                     // console.log('DOM 渲染完成，布局更新');
                 });
+                //渲染浮動欄
                 updateStickyContext(visibleRows.value,totalRows.value,changeDiaplayRows);
+                //渲染篩選
+                renderStickyFilterSelect();
+                const toggleButton = document.getElementById('toggleColumnsBtn2');
+                if (toggleButton) {
+                    toggleButton.addEventListener('click', toggleColumns);
+                } else {
+                    console.error('无法找到切换按钮！');
+                }
             });
 
             const renderData = () => {
@@ -473,8 +569,6 @@ async function initVue(mountTarget = '#resultPanelContent',
                         locationContent = h('p', { class: 'locations-vue' }, `${item.地點}`);
                         displayedLocations.add(item.地點);  // 记录该地点已显示过
                     }
-
-
                     // 当处于隐藏模式时，修改 .characters-vue 的显示方式
                     let charactersContent;
                     if (isCondensedMode.value) {
@@ -500,24 +594,46 @@ async function initVue(mountTarget = '#resultPanelContent',
             // 切换隐藏模式的按钮处理函数
             const toggleColumns = () => {
                 // 切换隐藏模式状态
-                isCondensedMode.value = !isCondensedMode.value;
-                console.log("切换隐藏模式:", isCondensedMode.value);
+                const newValue = !isCondensedMode.value;
+                // if (newValue === true && selectedValues.value.length > 0 && displayedData.value.length === 0) {
+                //     showToast('⚠️ 當前篩選下，主體模式無可顯示資料！');
+                //     return; // ❌ 阻止切换
+                // }
+                isCondensedMode.value = newValue;
+                // console.log("切換隱藏模式:", isCondensedMode.value);
 
-                // 使用 Vue.nextTick 确保数据更新后执行视图渲染
+                const switchWrapper = document.getElementById('toggleColumnsBtn2');
+                const switchElement = switchWrapper?.querySelector('.custom-switch');
+                if (switchElement) {
+                    switchElement.classList.toggle('open', !newValue); // ✅ 不用 isCondensedMode.value
+                }
+                const switchText = document.getElementById('switch-text2');
+                if (switchText) {
+                    switchText.textContent = !newValue ? '全顯' : '主體';
+                }
                 nextTick(() => {
-                    // console.log("视图已更新，重新渲染表格");
+                    // 表格更新逻辑
                 });
             };
 
-            // 为按钮添加事件监听
-            onMounted(() => {
-                const toggleButton = document.getElementById('toggleColumnsBtn2');
-                if (toggleButton) {
-                    toggleButton.addEventListener('click', toggleColumns);
-                } else {
-                    console.error('无法找到切换按钮！');
+            watch([displayedData, selectedValues], ([newDisplayed, newSelected]) => {
+                if (newSelected.length > 0 && newDisplayed.length === 0 && isCondensedMode.value) {
+                    isCondensedMode.value = false;
+                    // console.log('🎯 篩選結果為空，自動切換為「全顯模式」');
+                    showToast('⚠️ 當前篩選結果在「主體模式」下為空\n已自動切換為「全顯模式」');
+                    // ✅ 同步按钮文字和样式
+                    const switchWrapper = document.getElementById('toggleColumnsBtn2');
+                    const switchElement = switchWrapper?.querySelector('.custom-switch');
+                    if (switchElement) {
+                        switchElement.classList.add('open'); // 因为现在是“全显”状态
+                    }
+                    const switchText = document.getElementById('switch-text2');
+                    if (switchText) {
+                        switchText.textContent = '全顯';
+                    }
                 }
             });
+
 
             return {
                 isCondensedMode,

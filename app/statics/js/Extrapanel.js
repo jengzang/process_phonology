@@ -415,14 +415,14 @@ document.addEventListener("DOMContentLoaded", function () {
         if (window.userRole !== 'admin'){
             // 🔒 冷卻控制只針對分析主邏輯
             if (window.runCooldown) {
-                showToast("⏳ 分析已啟動，請等待 5 秒後再試！");
+                showToast("⏳ 分析已啟動，請等待 3 秒後再試！");
                 return;
             }
             // ✅ 真正執行分析 → 開始冷卻計時
             window.runCooldown = true;
             setTimeout(() => {
                 window.runCooldown = false;
-            }, 5000);
+            }, 3000);
         }
         document.getElementById('loading-overlay').classList.remove('loading-hidden');
 
@@ -617,14 +617,14 @@ document.addEventListener("DOMContentLoaded",  function () {
         if (window.userRole !== 'admin'){
             // 🔒 冷卻控制只針對分析主邏輯
             if (window.runCooldown) {
-                showToast("⏳ 分析已啟動，請等待 5 秒後再試！");
+                showToast("⏳ 分析已啟動，請等待 3 秒後再試！");
                 return;
             }
             // ✅ 真正執行分析 → 開始冷卻計時
             window.runCooldown = true;
             setTimeout(() => {
                 window.runCooldown = false;
-            }, 5000);
+            }, 3000);
         }
         document.getElementById('loading-overlay').classList.remove('loading-hidden');
         // 获取输入框中的汉字

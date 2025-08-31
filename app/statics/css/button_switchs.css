@@ -349,24 +349,8 @@
 
 
 /*===================================
---切換隱藏按鈕----vue海量數據模式---表格模式--
+--------切換隱藏按鈕---表格模式------------
  ===================================*/
-.apple-button2 {
-    background: linear-gradient(145deg, #f6f6f6, #e6e6e6);
-    position: absolute;
-    top: 0;
-    right: 20px;
-    border: 1px solid #ccc;
-    border-radius: 18px;
-    color: #333;
-    font-size: 14px;
-    font-weight: bold;
-    padding: 6px 12px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-    margin-left: auto; /* 将按钮推到父容器的右侧 */
-}
 
 /* 🔘 隱藏欄位控制按鈕 */
 #toggleColumnsBtn {
@@ -664,6 +648,7 @@ button[type="submit"]:active {
 /* 整个容器样式 */
 .custom-switch-container {
     position: absolute;
+    /*top: 50%;*/
     left: 70%;  /* 定位到父容器的 70% 位置 */
     transform: translateX(-50%);  /* 居中对齐 */
     display: flex;
@@ -769,7 +754,7 @@ button[type="submit"]:active {
 
 
 /* 按钮内的文字 */
-#switch-text {
+.switch-text {
     color: black;  /* 黑色文字 */
     font-size: 12px;
     font-weight: bold;
@@ -784,7 +769,7 @@ button[type="submit"]:active {
 
 
 /* 开启状态时文字的颜色变化 */
-.custom-switch.open #switch-text {
+.custom-switch.open .switch-text {
     color: black;  /* 保持文字为黑色 */
     transform: translateX(-25px) translateY(-50%);  /* 让文本略微移动并确保上下居中 */
     top: 50%;  /* 确保文字垂直居中 */
@@ -798,18 +783,6 @@ button[type="submit"]:active {
     white-space: nowrap;  /* 禁止换行 */
 }
 
-
-/* 鼠标悬停时的效果 */
-.apple-button2:hover {
-    background: linear-gradient(145deg, #e6e6e6, #f6f6f6);
-    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-}
-
-/* 鼠标点击时的效果 */
-.apple-button2:active {
-    background: linear-gradient(145deg, #ddd, #f1f1f1);
-    box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.1);
-}
 
 
 /*==============================

@@ -263,9 +263,18 @@
     <div id="resultPanelContent" class="panel-content">
     </div>
     <div id="stickyContextBar2" class="sticky-label2" style="display: none;">
-        <span id="stickyContextText2"></span>
-        <button id="toggleColumnsBtn2" class="apple-button2">切换隐藏</button>
+        <div class="sticky-bar-inner">
+            <span id="stickyContextText2"></span>
+            <div id="toggleColumnsBtn2" class="custom-switch-container" style="left: 90%">
+                <div class="custom-switch">
+                <span class="custom-slider">
+                    <span id="switch-text2" class="switch-text">主體</span>
+                </span>
+                </div>
+            </div>
+        </div>
     </div>
+
 </div>
 
 
@@ -283,7 +292,7 @@
         <div id="custom-switch-container" class="custom-switch-container">
             <div class="custom-switch" id="custom-toggle">
                 <span class="custom-slider">
-                    <span id="switch-text">隱藏</span> <!-- 默认文本为 "自定义信息 (隐藏)" -->
+                    <span id="switch-text" class="switch-text">隱藏</span> <!-- 默认文本为 "自定义信息 (隐藏)" -->
                 </span>
             </div>
         </div>
