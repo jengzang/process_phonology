@@ -85,8 +85,8 @@
     position: fixed;
     overflow: hidden; /* 确保圆角区域外的子元素不显示 */
     top: 0;
-    left: 27%;
-    width: 22%;
+    left: 27.5%;
+    width: 21%;
     resize: horizontal;
     /* base glass */
     background: linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.05));

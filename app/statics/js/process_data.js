@@ -65,7 +65,7 @@ async function analysis_from_db() {
                 showAuthPopup();
             }
             else {
-                showToast(result.detail);
+                showToast(result.detail,'darkred');
             }
             return;
         }
@@ -109,7 +109,7 @@ async function get_detail(location,feature_value,bool=false,vue = false,
     if (bool) {
         if (mode === 'p2s') {
             // ❗检查是否是合法汉字（+允许 -）
-            if (!/^[\u4e00-\u9fa5\-]+$/.test(feature_value)) {
+            if (!/^[\u4e00-\u9fa5\-\s]+$/.test(feature_value)) {
                 status_inputs = []; // 清空
             } else {
                 status_inputs = [feature_value];
@@ -121,7 +121,7 @@ async function get_detail(location,feature_value,bool=false,vue = false,
         }
     } else {
         if (mode === 's2p') {
-            if (!/^[\u4e00-\u9fa5\-]+$/.test(feature_value)) {
+            if (!/^[\u4e00-\u9fa5\-\s]+$/.test(feature_value)) {
                 status_inputs = [];
             } else {
                 status_inputs = [feature_value];

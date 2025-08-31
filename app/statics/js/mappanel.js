@@ -365,42 +365,51 @@ async function create_map1(){
 }
 
 // 特徵下拉框和按鈕的監聽
-function setupEventListeners(dropdownArrow, dropdown, placeholder) {
-    // 鼠标悬停在 featureContainer 上时，展开下拉框
-    featureContainer.addEventListener("mouseenter", function() {
+function setupEventListeners(dropdownArrow, dropdown, placeholder, selectBox) {
+    // Hover 控制下拉（只限 selectBox）
+    selectBox.addEventListener("mouseenter", () => {
         dropdown.classList.add("expanded");
+        dropdownArrow.textContent = "▲";
     });
 
-    // 鼠标移出 featureContainer，收起下拉框
-    featureContainer.addEventListener("mouseleave", function() {
+    selectBox.addEventListener("mouseleave", () => {
         dropdown.classList.remove("expanded");
+        dropdownArrow.textContent = "▼";
     });
 
-    // 点击下拉框项时，更新placeholder
+    // 点击箭头 toggle 展开状态（移动端专用）
+    dropdownArrow.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isExpanded = dropdown.classList.toggle("expanded");
+        dropdownArrow.textContent = isExpanded ? "▲" : "▼";
+    });
+
+    // 点击下拉项
     const items = dropdown.querySelectorAll('.dropdown-item');
     items.forEach(item => {
-        item.addEventListener('click', async function () {
+        item.addEventListener('click', async () => {
             placeholder.textContent = item.textContent;
-            dropdown.classList.remove('expanded');  // 收起下拉框
-            // 触发绘图函数，传递被选中的 item 作为参数
+            dropdown.classList.remove("expanded");
+            dropdownArrow.textContent = "▼";
             window.selectedItem = item.textContent;
             // 等待 mergedData 填充完成
             if (!window.mergedData) {
-                // console.log("fuck", window.mergedData);
-                await func_mergeData()
+                await func_mergeData();
             }
-            await triggerDrawingFunction();  // 传递按钮的文本作为参数
+            await triggerDrawingFunction();
         });
     });
 
-
-    // 按下 ESC 键时收起下拉框
-    document.addEventListener("keydown", function(event) {
+    // 按 ESC 关闭
+    document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
             dropdown.classList.remove("expanded");
+            dropdownArrow.textContent = "▼";
         }
     });
 }
+
+
 
 // 用於點擊runBtn後的數據整理、生成特徵下拉框或按鈕
 function mapFeatureSelection() {
@@ -445,20 +454,20 @@ function mapFeatureSelection() {
             });
 
         } else if (uniqueFeatures.length > 1) {
-            console.log("生成下拉框，特徵值:", uniqueFeatures);
+            // console.log("生成下拉框，特徵值:", uniqueFeatures);
+            const featureContainer = document.getElementById("featureContainer");
+            featureContainer.innerHTML = ""; // 清空旧内容
 
-            const dropdown = document.createElement("div");
-            dropdown.classList.add("dropdown");
+            // 创建 select-box（hover 专用）
+            const selectBox = document.createElement("div");
+            selectBox.classList.add("select-box");
 
             const placeholder = document.createElement("div");
             placeholder.classList.add("placeholder");
             placeholder.textContent = "請選擇繪圖特徵";
-            featureContainer.appendChild(placeholder);
 
-            const dropdownArrow = document.createElement("button");
-            dropdownArrow.classList.add("dropdown-arrow");
-            dropdownArrow.textContent = "⏷";
-            featureContainer.appendChild(dropdownArrow);
+            const dropdown = document.createElement("div");
+            dropdown.classList.add("dropdown");
 
             uniqueFeatures.forEach(feature => {
                 const item = document.createElement("div");
@@ -467,8 +476,20 @@ function mapFeatureSelection() {
                 dropdown.appendChild(item);
             });
 
-            featureContainer.appendChild(dropdown);
-            setupEventListeners(dropdownArrow, dropdown, placeholder);
+            selectBox.appendChild(placeholder);
+            selectBox.appendChild(dropdown);
+
+            // ✅ 创建箭头，插入为兄弟元素（非嵌套）
+            const dropdownArrow = document.createElement("button");
+            dropdownArrow.classList.add("dropdown-arrow");
+            dropdownArrow.textContent = "▼";
+
+            // ✅ 插入到 featureContainer 作为平级元素
+            featureContainer.appendChild(selectBox);
+            featureContainer.appendChild(dropdownArrow);
+
+            // 初始化事件监听
+            setupEventListeners(dropdownArrow, dropdown, placeholder, selectBox);
         }
 
         const selectBox = document.querySelector(".select-box");
@@ -903,14 +924,14 @@ document.getElementById("allmap-first").addEventListener("click", async () => {
     if (window.userRole !== 'admin'){
         // 🔒 冷卻控制只針對分析主邏輯
         if (window.runCooldown) {
-            showToast("⏳ 分析已啟動，請等待 10 秒後再試！");
+            showToast("⏳ 分析已啟動，請等待 5 秒後再試！");
             return;
         }
         // ✅ 真正執行分析 → 開始冷卻計時
         window.runCooldown = true;
         setTimeout(() => {
             window.runCooldown = false;
-        }, 10000);
+        }, 5000);
     }
 
     await create_dot_all(); // ✅ 通過檢查才執行
@@ -922,14 +943,14 @@ document.getElementById('max-level').addEventListener('change', async function()
     if (window.userRole !== 'admin'){
         // 🔒 冷卻控制只針對分析主邏輯
         if (window.runCooldown) {
-            showToast("⏳ 分析已啟動，請等待 10 秒後再試！");
+            showToast("⏳ 分析已啟動，請等待 5 秒後再試！");
             return;
         }
         // ✅ 真正執行分析 → 開始冷卻計時
         window.runCooldown = true;
         setTimeout(() => {
             window.runCooldown = false;
-        }, 10000);
+        }, 5000);
     }
     await create_dot_all();  // 用户选择时调用 create_dot_all
 });
