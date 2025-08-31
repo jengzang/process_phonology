@@ -103,6 +103,27 @@
 /*============================
 -----------輸入面板的輸入框----------
 ============================= */
+textarea {
+    width: 100%;
+    height: 60px;
+    box-sizing: border-box;
+    font-family: monospace;
+    font-size: 13px;
+    margin-top: 4px;
+    padding: 6px 10px;
+    resize: none;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
+    min-width: 60px;
+}
+/* text area悬停效果 */
+textarea:hover {
+    border-color: #007aff; /* 悬停时边框变为蓝色 */
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.6); /* 添加发光效果 */
+}
+
+
 /* 🔹 中古音分類輸入區塊（左右並排） */
 .input-row {
     display: flex;
@@ -125,10 +146,3 @@
 }
 
 
-
-/* 输入框悬停效果 */
-.location-input:hover,
-.region-input:hover {
-    transform: scale(1.05); /* 放大效果 */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* 增加阴影 */
-}

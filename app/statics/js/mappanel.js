@@ -237,6 +237,7 @@ async function create_map1(){
     const url = new URL(`${window.API_BASE}/get_coordinates`);  // 后端 API 地址
     url.searchParams.append('locations', locations);  // 添加 locations 参数
     url.searchParams.append('regions', regions);  // 添加 regions 参数
+    url.searchParams.set("region_mode", window.regionusing);  // ✅ 正確
 
 // 如果开关处于开启状态，添加 iscustom 参数为 true
     if (window.isCustomOn) {
@@ -750,6 +751,7 @@ async function create_dot_all() {
     const url = new URL(`${window.API_BASE}/get_coordinates`);
     url.searchParams.append('locations', locations);
     url.searchParams.append('regions', regions);
+    url.searchParams.set("region_mode", window.regionusing);  // ✅ 正確
     url.searchParams.append('iscustom', 'true');
     url.searchParams.append('flag', 'False');
     const token = localStorage.getItem("ACCESS_TOKEN")

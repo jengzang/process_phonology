@@ -208,7 +208,7 @@ def analyze_characters_from_db(
 def pho2sta(locations, regions, features, status_inputs,
             pho_values=None,
             dialect_db_path=DIALECTS_DB_USER,
-            character_db_path=CHARACTERS_DB_PATH):
+            character_db_path=CHARACTERS_DB_PATH, region_mode='yindian'):
     def convert_simplified_to_traditional(simplified_text):
         return "".join([s2t_column.get(ch, ch) for ch in simplified_text])
 
@@ -231,7 +231,7 @@ def pho2sta(locations, regions, features, status_inputs,
             print(f"❌ 輸入「{user_input}」未匹配任何欄位，特徵【{feature}】將使用預設分組欄位")
             grouping_columns_map[feature] = None
 
-    locations_new = query_dialect_abbreviations(regions, locations)
+    locations_new = query_dialect_abbreviations(regions, locations,region_mode=region_mode)
     match_results = match_locations_batch(" ".join(locations_new))
     if not any(res[1] == 1 for res in match_results):
         # print("🛑 沒有任何地點完全匹配，終止分析。")

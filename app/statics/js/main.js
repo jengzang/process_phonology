@@ -162,8 +162,6 @@ function makeDraggable(el, handle, getMode) {
     handle.addEventListener("mousedown", onmouseDown);
 }
 
-
-
 document.addEventListener("DOMContentLoaded", () => {
     const inputpanel = document.getElementById("inputpanel");
     const resultpanel = document.getElementById("resultPanel");
@@ -464,7 +462,6 @@ function switchBindingLogic() {
 }
 
 
-
 // 🌐 共用封裝 fetch，統一紀錄前後端交換資料
 // 調試時使用，現在已經不用這個函數了
 window.fetchWithLog = async function(url, options) {
@@ -638,6 +635,12 @@ document.getElementById('dice-button').addEventListener('click', () => {
     document.getElementById('group_inputs').value = pick.group_inputs;
     document.getElementById('pho_values').value = pick.pho_values;
 
+    // ✅ 切換 tab 狀態
+    window.regionusing = 'audio';
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    const audioTab = document.querySelector(`.tab-btn[data-tab="yindian"]`);
+    audioTab?.classList.add('active');
+
     // ➕ 下一次使用下一组
     currentIndex = (currentIndex + 1) % presets.length;
 });
@@ -747,6 +750,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const query = new URLSearchParams();
             locations.forEach(loc => query.append("locations", loc));
             regions.forEach(reg => query.append("regions", reg));
+            query.set("region_mode", window.regionusing);
             const token = localStorage.getItem("ACCESS_TOKEN")
             const res = await fetch(`${window.API_BASE}/get_locs/?${query.toString()}`, {
                 method: "GET",
@@ -801,10 +805,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         window.isRun = true;
         // await runAnalysis();          // 先送出分析並記錄 log
-        await analysis_from_db();
-        if (!Array.isArray(window.latestResults) || window.latestResults.length === 0) {
-            return;
-        }
         if (window.innerHeight >= window.innerWidth) {
             const inputpanel = document.getElementById("inputpanel");
             const resultpanel = document.getElementById("resultPanel");
@@ -812,6 +812,10 @@ document.addEventListener("DOMContentLoaded", () => {
             v_togglePanel(inputpanel, 15, 0, 1);
             v_togglePanel(resultpanel, 40, 15, 2);
             v_togglePanel(mappanel, 45, 55, 3);
+        }
+        await analysis_from_db();
+        if (!Array.isArray(window.latestResults) || window.latestResults.length === 0) {
+            return;
         }
         if (window.isButtonClosed) {
             const bar = document.getElementById('stickyContextBar2');

@@ -23,18 +23,20 @@ async def search_chars(
         request: Request,
         chars: List[str] = Query(..., description="要查的漢字序列"),
         locations: Optional[List[str]] = Query(None, description="要查的地點，可多個"),
-        regions: Optional[List[str]] = Query(None, description="要查的音典分區，可多個（輸入某一級的音典分區）"),
+        regions: Optional[List[str]] = Query(None, description="要查的分區，可多個（輸入某一級的分區）"),
+        region_mode: str = Query("yindian", description="分區模式，可選 'yindian' 或 'map'"),  # ✅ 加入這一行
         db: Session = Depends(get_db),
-        user: Optional[User] = Depends(get_current_user)  # ✅ user 可為 None
+        user: Optional[User] = Depends(get_current_user)
 ):
     """
     - 用于 /api/search_chars 查字，返回中古地位、對應地點的讀音及注釋。
     - chars-要查的漢字序列
     - locations-要查的地點，可多個
-    - region-要查的音典分區，可多個（輸入某一級的音典分區）
+    - regions-要查的分區，可多個（輸入某一級的分區）
+    - region_mode-查詢所使用的分區欄位，可選 'yindian'（音典分區）或 'map'（地圖集二分區）
     """
-    ip_address = request.client.host  # 默认是请求的客户端 IP 地址
-    check_api_usage_limit(db, user, REQUIRE_LOGIN, ip_address=ip_address)  # 限制訪問
+    ip_address = request.client.host
+    check_api_usage_limit(db, user, REQUIRE_LOGIN, ip_address=ip_address)
     update_count(request.url.path)
     log_all_fields(request.url.path, {"chars": chars, "locations": locations, "regions": regions})
     start = time.time()
@@ -44,8 +46,16 @@ async def search_chars(
             matched = match_locations_batch(location)
             extracted = [res[0][0] for res in matched if res[0]]
             locations_processed.extend(extracted)
+
         db_path = DIALECTS_DB_ADMIN if user and user.role == "admin" else DIALECTS_DB_USER
-        result = search_characters(chars=chars, locations=locations_processed, regions=regions, db_path=db_path)
+
+        result = search_characters(
+            chars=chars,
+            locations=locations_processed,
+            regions=regions,
+            db_path=db_path,
+            region_mode=region_mode  # ✅ 傳入參數
+        )
         return {"result": result}
     finally:
         duration = time.time() - start
@@ -53,6 +63,7 @@ async def search_chars(
                          request.client.host,
                          request.headers.get("user-agent", ""),
                          request.headers.get("referer", ""))
+
         # path = request.url.path
         # ip = request.client.host
         # agent = request.headers.get("user-agent", "")
@@ -65,17 +76,19 @@ async def search_chars(
 async def search_tones_o(
         request: Request,
         locations: Optional[List[str]] = Query(None, description="要查的地點，可多個"),
-        regions: Optional[List[str]] = Query(None, description="要查的音典分區，可多個（輸入某一級的音典分區）"),
+        regions: Optional[List[str]] = Query(None, description="要查的分區，可多個（輸入某一級的分區）"),
+        region_mode: str = Query("yindian", description="分區模式，可選 'yindian' 或 'map'"),  # ✅ 加入這一行
         db: Session = Depends(get_db),
-        user: Optional[User] = Depends(get_current_user)  # ✅ user 可為 None
+        user: Optional[User] = Depends(get_current_user)
 ):
     """
     - 用于 /api/search_tones 查調，返回調值、調類。
     - locations-要查的地點，可多個
-    - region-要查的音典分區，可多個（輸入某一級的音典分區）
+    - regions-要查的分區，可多個（輸入某一級的分區）
+    - region_mode-查詢所使用的分區欄位，可選 'yindian'（音典分區）或 'map'（地圖集二分區）
     """
-    ip_address = request.client.host  # 默认是请求的客户端 IP 地址
-    check_api_usage_limit(db, user, REQUIRE_LOGIN, ip_address=ip_address)  # 限制訪問
+    ip_address = request.client.host
+    check_api_usage_limit(db, user, REQUIRE_LOGIN, ip_address=ip_address)
     update_count(request.url.path)
     log_all_fields(request.url.path, {"locations": locations, "regions": regions})
     start = time.time()
@@ -86,17 +99,20 @@ async def search_tones_o(
             matched = match_locations_batch(location, False, query_db=query_db)
             extracted = [res[0][0] for res in matched if res[0]]
             locations_processed.extend(extracted)
-        result = search_tones(locations=locations_processed, regions=regions,db_path=query_db)
+
+        result = search_tones(
+            locations=locations_processed,
+            regions=regions,
+            db_path=query_db,
+            region_mode=region_mode  # ✅ 傳入參數
+        )
         return {"tones_result": result}
     finally:
-        duration = time.time() - start  # 计算持续时间
-
-        # 记录详细的 API 流量日志
+        duration = time.time() - start
         log_detailed_api(request.url.path, duration, 200,
                          request.client.host,
                          request.headers.get("user-agent", ""),
                          request.headers.get("referer", ""))
-
         # 记录到数据库
         # log_detailed_api_to_db(
         #     db,

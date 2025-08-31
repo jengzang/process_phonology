@@ -47,7 +47,7 @@ def build_dialect_database():
 
     # 欄位清單（原始名稱）
     required_columns = [
-        "語言", "簡稱", "音典排序", "音典分區", "字表來源（母本）", "方言島",
+        "語言", "簡稱", "音典排序", "地圖集二分區", "音典分區", "字表來源（母本）", "方言島",
         "存儲標記", "經緯度", "地圖級別",
         *geo_map.keys(),
         *tone_map.keys()
@@ -108,6 +108,19 @@ def build_dialect_database():
         # 合併資料
         merged = pd.concat([df_other, df_han], ignore_index=True)
 
+        # ✅ 在此處插入替換邏輯
+        def replace_dialect_zone(val):
+            if isinstance(val, str):
+                if val.startswith("客家話-粵北片"):
+                    return val.replace("客家話-粵北片", "客家話-粵北片·客", 1)
+                elif val.startswith("平話和土話-粵北片"):
+                    return val.replace("平話和土話-粵北片", "平話和土話-粵北片·土", 1)
+            return val
+
+        merged["地圖集二分區"] = merged["地圖集二分區"].apply(replace_dialect_zone)
+
+        # 後續處理 ...
+
         # 轉換 required_columns → 重命名後的欄位名
         renamed_required_columns = [rename_map.get(col, col) for col in required_columns]
 
@@ -164,6 +177,7 @@ def build_dialect_database():
         # 加索引
         conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_dialects_code ON dialects(簡稱);")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_dialects_zone ON dialects(音典分區);")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_dialects_zone ON dialects(地圖集二分區);")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_dialects_flag ON dialects(存儲標記);")
 
     print(f"✅ SQLite 資料庫 `dialects_query.db` 已建立，dialects 表已更新完成。")

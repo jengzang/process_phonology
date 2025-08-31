@@ -425,13 +425,14 @@ def sta2pho(
         features,
         test_inputs,
         db_path_char=CHARACTERS_DB_PATH,
-        db_path_dialect=DIALECTS_DB_USER
+        db_path_dialect=DIALECTS_DB_USER,
+        region_mode='yindian'
 ):
     """
     📌 主控函數：對語音條件輸入進行特徵分析，支援多地點與特徵欄位。
     回傳：List of DataFrames（每個條件的統計結果）
     """
-    locations_new = query_dialect_abbreviations(regions, locations)
+    locations_new = query_dialect_abbreviations(regions, locations, region_mode=region_mode)
     match_results = match_locations_batch(" ".join(locations_new))
     if not any(res[1] == 1 for res in match_results):
         raise HTTPException(status_code=404, detail="🛑 沒有任何地點完全匹配，終止分析。")

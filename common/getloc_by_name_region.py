@@ -18,15 +18,17 @@ def query_dialect_abbreviations(
         db_path=QUERY_DB_ADMIN,
         tables="dialects",
         need_storage_flag=True,  # 是否需要存儲標記
+        region_mode='yindian',
         debug=False
 ):
     """
     查詢 dialects 表的簡稱欄位，支持完全匹配和元素模糊匹配。
 
     參數：
-    - region_input: 字串或列表。可為完整音典分區字串（如 '華北-河北-東北'）或單個元素（如 '河北'）或元素列表
+    - region_input: 字串或列表。可為完整分區字串（如 '華北-河北-東北'）或單個元素（如 '河北'）或元素列表
     - location_sequence: 地點字串，如 '河北/歷史音；東北'
     - debug: 是否輸出調試資訊
+    - region_mode:地圖集二分區-map；音典分區-yindian
 
     返回：
     - 簡稱列表（排序去重）
@@ -65,8 +67,14 @@ def query_dialect_abbreviations(
 
     with sqlite3.connect(db_path) as conn:
         cursor = conn.cursor()
+        # 根據 region_mode 決定使用哪個分區欄位
+        partition_column = "地圖集二分區" if region_mode == "map" else "音典分區"
+        if debug:
+            print(region_mode)
+            print(partition_column)
+            print(db_path)
         query = f"""
-            SELECT 音典分區, 簡稱 
+            SELECT {partition_column}, 簡稱 
             FROM {tables} 
             WHERE 1=1
         """
@@ -189,4 +197,4 @@ def query_dialect_abbreviations_orm(
     return final_result
 
 
-# result = query_dialect_abbreviations(region_input=[],location_sequence= ['東莞'],debug=True)
+# result = query_dialect_abbreviations(region_input=['客家話'],location_sequence= [],debug=True,region_mode='map')

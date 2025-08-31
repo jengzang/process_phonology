@@ -228,7 +228,7 @@
     border-radius: 10px;
     padding: 8px;
     display: none;
-    max-height: 250px;
+    max-height: 200px;
     overflow-y: auto;
     min-width: 70px;
     z-index: 9999;
@@ -302,7 +302,7 @@
     appearance: none;
     background: none;
     border: none;
-    padding: 6px 16px;
+    padding: 6px 8px;
     border-radius: 10px;
     cursor: pointer;
     font-size: 14px;
@@ -344,5 +344,23 @@
     font-weight: bold;
 }
 
+.query-detail-panel.border-breath {
+    animation: border-breath 1.5s ease-in-out;
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.6);
+    border: 2px solid transparent; /* 防止 layout shift */
+    border-radius: 12px;
+}
+
+@keyframes border-breath {
+    0% {
+        box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.6);
+    }
+    50% {
+        box-shadow: 0 0 12px 4px rgba(0, 122, 255, 0.3);
+    }
+    100% {
+        box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.6);
+    }
+}
 
 

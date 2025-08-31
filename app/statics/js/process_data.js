@@ -8,6 +8,7 @@ async function analysis_from_db() {
     const status_inputs = parseMultilineListInput("status_inputs");
     const group_inputs = parseMultilineListInput("group_inputs");
     const pho_values = parseMultilineListInput("pho_values");
+    const region_mode = window.regionusing;
 
     if (isEmptyInput(locations) && isEmptyInput(regions)) {
         showToast("⚠️ 請輸入地點或分區！");
@@ -21,7 +22,8 @@ async function analysis_from_db() {
         features,
         status_inputs,
         group_inputs,
-        pho_values
+        pho_values,
+        region_mode
     };
 
     // const debugLog = document.getElementById("debug-log");
@@ -105,6 +107,7 @@ async function get_detail(location,feature_value,bool=false,vue = false,
     const locations = Array.isArray(location)
         ? location
         : [location];
+    const region_mode = window.regionusing;
     // console.log("locations",locations)
     if (bool) {
         if (mode === 'p2s') {
@@ -138,7 +141,8 @@ async function get_detail(location,feature_value,bool=false,vue = false,
         features,
         status_inputs,
         group_inputs,
-        pho_values
+        pho_values,
+        region_mode
     };
     // console.log(payload);
     try {

@@ -64,44 +64,255 @@ document.querySelectorAll('input[name="mode"]').forEach(r => {
 });
 updateVisibility();
 
-// 🧪 後端測試按鈕
-// document.getElementById("testBackendBtn").addEventListener("click", async () => {
-//     const log = document.getElementById("debug-log");
-//     log.textContent = "⌛ 後端連線測試中...";
-//     try {
-//         const res = await fetch(`${window.API_BASE}/phonology`, {
-//             method: "POST",
-//             headers: { "Content-Type": "application/json" },
-//             body: JSON.stringify({
-//                 mode: "s2p",
-//                 locations: [],
-//                 regions: [],
-//                 features: [],
-//                 status_inputs: "",
-//                 group_inputs: "",
-//                 pho_values: ""
-//             })
-//         });
-//
-//         log.style.color = res.ok ? "green" : "orange";
-//         log.textContent = res.ok ? "✅ OK" : `❌ ${res.status}`;
-//     } catch (e) {
-//         log.style.color = "red";
-//         log.textContent = `❌ 錯誤：${e.message}`;
-//     }
-// });
+/*
+分區的選擇
+ */
+document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("partitionBtn");
+    const textarea = document.getElementById("regions");
+    window.partitionPopupOpen = false;
+    window.regionusing = 'map';
+
+    document.querySelectorAll('.tab-btn').forEach(tabBtn => {
+        tabBtn.addEventListener('click', () => {
+            const selectedType = tabBtn.getAttribute('data-tab');
+            const isSame = window.regionusing === selectedType;
+
+            // ✅ 如果是點選音典或地圖，且已選中 → toggle popup
+            if ((selectedType === 'yindian' || selectedType === 'map') && isSame) {
+                const existing = document.querySelector('#popupLayer .partition-container');
+                if (existing) {
+                    existing.remove();
+                } else {
+                    showRegionSelector?.(textarea, selectedType);
+                }
+                return;
+            }
+
+            // 切換 tab 狀態
+            window.regionusing = selectedType;
+
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            tabBtn.classList.add('active');
+
+            textarea.placeholder = selectedType === 'map'
+                ? '請輸入或選擇「地圖集」分區'
+                : '請輸入或選擇「音典」分區';
+
+            // ⛔ 切到非音典或地圖時，保險起見自動關 popup
+            if (selectedType !== 'yindian' && selectedType !== 'map') {
+                const existing = document.querySelector('#popupLayer .partition-container');
+                existing?.remove();
+            }
+        });
+    });
+
+// ▼ 點擊 → 當前是音典或地圖時才 toggle
+    btn?.addEventListener("click", () => {
+        if (window.regionusing === 'yindian' || window.regionusing === 'map') {
+            const existing = document.querySelector('#popupLayer .partition-container');
+            if (existing) {
+                existing.remove();
+            } else {
+                showRegionSelector?.(textarea, window.regionusing);
+            }
+        }
+    });
+})
+
+
+const STATIC_REGION_TREE = {
+    "東北官話": {
+        "黑松片": ["嫩克小片","佳富小片","站話小片"],
+        "吉瀋片": ["蛟甯小片","延吉小片","通溪小片"],
+        "哈阜片": ["肇撫小片","長錦小片"]
+    },
+    "北京官話": {
+        "朝峯片": [],
+        "京承片": ["懷承小片","京師小片"]
+    },
+    "冀魯官話": {
+        "保唐片": ["撫龍小片","灤昌小片","薊遵小片","天津小片","定霸小片","淶阜小片"],
+        "石濟片": ["趙深小片","邢衡小片","聊泰小片"],
+        "滄惠片": ["黃樂小片","陽壽小片","章桓小片","莒照小片"]
+    },
+    "蘭銀官話": {
+        "北疆片": [],
+        "金城片": [],
+        "河西片": [],
+        "銀吳片": []
+    },
+    "膠遼官話": {
+        "登連片": ["煙威小片","蓬龍小片","大岫小片"],
+        "蓋桓片": [],
+        "靑萊片": ["萊昌小片","靑臨小片","膠蓮小片"]
+    },
+    "中原官話": {
+        "徐淮片": [],
+        "兗菏片": [],
+        "商阜片": [],
+        "信蚌片": [],
+        "洛嵩片": [],
+        "鄭開片": [],
+        "南魯片": [],
+        "漯項片": [],
+        "關中片": [],
+        "秦隴片": [],
+        "隴中片": [],
+        "南疆片": [],
+        "河州片": [],
+        "汾河片": ["平陽小片","絳州小片","解州小片"]
+    },
+    "江淮官話": {
+        "黃孝片": [],
+        "竹柞片": [],
+        "洪巢片": [],
+        "泰如片": []
+    },
+    "西南官話": {
+        "湖廣片": ["鄂北小片","懷玉小片","黔東小片","黎靖小片","鄂中小片","湘北小片","湘西小片"],
+        "桂柳片": ["湘南小片","黔南小片","桂北小片","桂南小片"],
+        "雲南片": ["滇中小片","滇西小片","滇南小片"],
+        "川黔片": ["成渝小片","黔中小片","陝南小片"],
+        "川西片": ["康藏小片","涼山小片"],
+        "西蜀片": ["岷赤小片","雅甘小片","江貢小片"]
+    },
+    "晉語": {
+        "張呼片": [],
+        "邯新片": ["磁漳小片","獲濟小片"],
+        "上黨片": ["晉城小片","長治小片"],
+        "呂梁片": ["隰縣小片","汾州小片"],
+        "志延片": [],
+        "幷州片": [],
+        "五臺片": [],
+        "大包片": []
+    },
+    "贛語": {
+        "懷岳片": [],
+        "鷹弋片": [],
+        "大通片": [],
+        "昌都片": [],
+        "宜瀏片": [],
+        "撫廣片": [],
+        "未分片": [],
+        "吉茶片": [],
+        "耒資片": [],
+        "洞綏片": []
+    },
+    "客家話": {
+        "雩信片": [],
+        "粵北片·客": [],
+        "銅桂片": [],
+        "粵臺片": ["梅惠小片","龍華小片"],
+        "寧龍片": [],
+        "汀州片": [],
+        "海陸片": [],
+        "畲話": [],
+        "粵西片": []
+    },
+    "吳語": {
+        "太湖片": ["杭州小片","毗陵小片","蘇嘉湖小片","上海小片","臨紹小片","甬江小片"],
+        "宣州片": ["" +
+        "太髙小片","銅涇小片","石陵小片"],
+        "台州片": [],
+        "金衢片": [],
+        "上麗片": ["上山小片","麗水小片"],
+        "甌江片": []
+    },
+    "徽語": {
+        "旌占片": [],
+        "績歙片": [],
+        "休黟片": [],
+        "嚴州片": [],
+        "祁婺片": []
+    },
+    "粵語": {
+        "廣府片": [],
+        "四邑片": [],
+        "勾漏片": [],
+        "邕潯片": [],
+        "欽廉片": [],
+        "吳化片": [],
+        "高陽片": [],
+        "不分類": []
+    },
+    "閩語": {
+        "閩南片": ["泉漳小片","大田小片","潮汕小片"],
+        "雷州片": [],
+        "瓊文片": ["府城小片","文昌小片","萬甯小片","崖縣小片","昌感小片"],
+        "莆仙片": [],
+        "閩東片": ["侯官小片","福寧小片"],
+        "閩北片": ["建陽小片","建甌小片"],
+        "閩中片": [],
+        "邵將片": ["將樂小片","邵武小片"]
+    },
+    "湘語": {
+        "長益片": ["長株潭小片","岳陽小片","益沅小片"],
+        "婁邵片": ["漣梅小片","湘雙小片","新化小片","武邵小片","綏會小片"],
+        "辰漵片": [],
+        "衡州片": ["衡山小片","衡陽小片"],
+        "永全片": ["全資小片","東祁小片","道江小片"]
+    },
+    "平話和土話": {
+        "湘南片": [],
+        "粵北片·土": [],
+        "桂北片": [],
+        "桂南片": []
+    },
+    "鄕話": {},
+    "民族語": {},
+};
 
 // 獲取匹配到的分區列表
-function getSubregions(parentLabel) {
-    return fetch(`${window.API_BASE}/partitions?parent=${encodeURIComponent(parentLabel)}`)
-        .then(res => res.json())
-        .then(data => {
-                // 根據返回的數據格式，提取出分區列表
+function getSubregions(parentLabel, mode='yindian') {
+    if (mode === 'map') {
+        const tree = STATIC_REGION_TREE;
+        const result = [];
+
+        if (parentLabel === null) {
+            return Promise.resolve(Object.keys(tree)); // 一級分區
+        }
+        function search(node) {
+            if (!node || typeof node !== 'object') return false;
+
+            for (const key in node) {
+                if (key === parentLabel) {
+                    const children = node[key];
+                    if (Array.isArray(children)) {
+                        result.push(...children);
+                    } else if (typeof children === 'object') {
+                        result.push(...Object.keys(children));
+                    }
+                    return true;
+                }
+                if (search(node[key])) return true;
+            }
+            return false;
+        }
+
+        search(tree);
+        return Promise.resolve(result);
+    }
+
+    else if (mode === 'yindian') {
+        if (parentLabel === null) {
+            return Promise.resolve([
+                '華北','西北','官話','中上江','下江','兩浙','浙南','湘贛','嶺東','廣中',
+                '嶺南','嶺西','閩','湘南','道州','鄕話','白語','蔡家話','民語漢字音'
+            ]);
+        }
+
+        return fetch(`${window.API_BASE}/partitions?parent=${encodeURIComponent(parentLabel)}`)
+            .then(res => res.json())
+            .then(data => {
                 const regionData = data[parentLabel];
-                return regionData ? regionData.partitions : [];  // 如果有partitions，返回它，否則返回空數組
+                return regionData ? regionData.partitions : [];
             });
-        // .then(data => data.partitions);
+    }
+
+    // return Promise.resolve([]);
 }
+
 
 function registerPopupCloseHandler(container, clearCallback, extraAllowedTargets = []) {
     const escHandler = (e) => {
@@ -126,12 +337,16 @@ function registerPopupCloseHandler(container, clearCallback, extraAllowedTargets
 }
 
 
-// 音典一級分區
-window.showPartitionSelector = function (textarea) {
-    const topLevel = [
-        '華北','西北','官話','中上江','下江','兩浙','浙南','湘贛','嶺東','廣中',
-        '嶺南','嶺西','閩','湘南','道州','鄕話','白語','蔡家話','民語漢字音'
-    ];
+// 分區渲染顯示總入口
+function showRegionSelector (textarea, mode='yindian') {
+    // ✅ 若已開，則關閉並 return（toggle）
+    if (window.partitionPopupOpen) {
+        document.querySelector('#popupLayer .partition-container')?.remove();
+        window.partitionPopupOpen = false;
+        return;
+    }
+
+    window.partitionPopupOpen = true; // ⬅️ 開啟時標記
 
     const container = document.createElement('div');
     container.className = 'partition-container';
@@ -163,12 +378,15 @@ window.showPartitionSelector = function (textarea) {
 
     const unregister = registerPopupCloseHandler(container, clearAll);
 
-    renderList(topLevel, lvl1, null, textarea, clearAll, lvl2, lvl3);
-};
+    // 🔁 改這一行：改成 async 拿一級分區
+    getSubregions(null,mode).then(topLevel => {
+        renderList(topLevel, lvl1, null, textarea, clearAll, lvl2, lvl3,mode);
+    });
+}
 
 
 // 渲染分區提示框，可點擊
-function renderList(items, container, parentLabel, textarea, onClose, lvl2 = null, lvl3 = null) {
+function renderList(items, container, parentLabel, textarea, onClose, lvl2 = null, lvl3 = null,mode='yindian') {
     container.innerHTML = "";
     let hoverTimeout;
     let activeItem = null;
@@ -203,7 +421,7 @@ function renderList(items, container, parentLabel, textarea, onClose, lvl2 = nul
         item.addEventListener('mouseenter', () => {
             hoverTimeout = setTimeout(async () => {
                 if (!isLongPress) {
-                    await popup_box(label, item, parentLabel, textarea, onClose, lvl2, lvl3);
+                    await popup_box(label, item, parentLabel, textarea, onClose, lvl2, lvl3,mode);
                 }
             }, 300);
 
@@ -230,7 +448,7 @@ function renderList(items, container, parentLabel, textarea, onClose, lvl2 = nul
                 if (!hasMoved) {
                     isLongPress = true;
 
-                    const result = await popup_box(label, item, parentLabel, textarea, onClose, lvl2, lvl3);
+                    const result = await popup_box(label, item, parentLabel, textarea, onClose, lvl2, lvl3, mode);
 
                     if (result !== false) {
                         if (activeItem && activeItem !== item) {
@@ -304,11 +522,9 @@ function renderList(items, container, parentLabel, textarea, onClose, lvl2 = nul
 }
 
 
-
-
-// 總的渲染分區提示框函數
-async function popup_box(label, item, parentLabel, textarea, onClose, lvl2, lvl3) {
-    const subs = await getSubregions(label);
+// 總的渲染子級分區提示框函數
+async function popup_box(label, item, parentLabel, textarea, onClose, lvl2, lvl3,mode='yindian') {
+    const subs = await getSubregions(label,mode);
     const rect = item.getBoundingClientRect();
     const popupLeft = rect.right;
     const popupHeight = 200;
@@ -333,24 +549,20 @@ async function popup_box(label, item, parentLabel, textarea, onClose, lvl2, lvl3
         lvl2.style.top = `${popupTop}px`;
         lvl2.style.left = `${popupLeft}px`;
         lvl2.style.display = 'block';
-        renderList(subs, lvl2, label, textarea, onClose, null, lvl3);
+        renderList(subs, lvl2, label, textarea, onClose, null, lvl3,mode);
     } else if (lvl3 && parentLabel != null) {
         lvl3.style.position = 'fixed';
         lvl3.style.top = `${popupTop}px`;
         lvl3.style.left = `${popupLeft}px`;
         lvl3.style.display = 'block';
-        renderList(subs, lvl3, label, textarea, onClose);
+        renderList(subs, lvl3, label, textarea, onClose,mode);
     }
 }
 
-// 點擊“音典分區”按鈕展開一級分區
-document.addEventListener("DOMContentLoaded", () => {
-    const btn = document.getElementById("partitionBtn");
-    const textarea = document.getElementById("regions");
-    btn?.addEventListener("click", () => window.showPartitionSelector(textarea));
-});
 
-
+/*
+地点输入框的匹配
+ */
 const inputEl = document.getElementById("locations");
 const suggestion = document.getElementById("inlineSuggestion");
 
