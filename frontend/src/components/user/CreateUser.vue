@@ -43,8 +43,8 @@
         </select>
       </div>
 
-      <button type="submit" class="button">創建用戶</button>
     </form>
+    <button type="submit" class="button">創建用戶</button>
     <div class="logout-button-container">
       <button @click="goToHome">返回首頁</button>
     </div>

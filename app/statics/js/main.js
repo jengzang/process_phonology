@@ -62,6 +62,8 @@ window.addEventListener("DOMContentLoaded", () => {
     const overlay = document.getElementById("welcomeOverlay");
     const modal = document.getElementById("welcomeModal");
     const contactBtn = document.getElementById("contactBtn");
+    const likeBtn = document.getElementById("likeAuthorBtn");
+    const suggestBtn = document.getElementById("suggestionBtn");
 
     // 顯示歡迎彈窗
     overlay.classList.remove("hidden");
@@ -73,23 +75,30 @@ window.addEventListener("DOMContentLoaded", () => {
         window.open("https://www.zhihu.com/people/da-shu-18-11", "_blank");
     });
 
+    likeBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        window.location.href = window.WEB_BASE + "/intro?tab=like";
+    });
+
+    suggestBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        window.location.href = window.WEB_BASE + "/intro?tab=suggestions";
+    });
+
+
     // 點擊空白區關閉
     document.addEventListener("click", () => {
         overlay.classList.remove("show");
         setTimeout(() => overlay.classList.add("hidden"), 400);
     });
 
-    // 阻止點擊內容區也觸發關閉
-    // modal.addEventListener("click", (e) => e.stopPropagation());
-    const userRole = getUserRole();
-    console.log(userRole)
     // 可選：自動關閉（20 秒）
     setTimeout(() => {
         overlay.classList.remove("show");
         setTimeout(() => overlay.classList.add("hidden"), 400);
     }, 20000);
-
 });
+
 
 /**************
 面板通用控制邏輯

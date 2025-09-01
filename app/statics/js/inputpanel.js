@@ -760,4 +760,9 @@ inputEl.addEventListener("blur", () => {
 });
 
 
+const bugBtn = document.getElementById("bugBtn");
 
+bugBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    window.open(window.WEB_BASE + "/intro?tab=suggestions","_blank");
+});

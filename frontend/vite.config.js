@@ -1,19 +1,21 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import path from 'path'
 
 export default defineConfig({
   plugins: [vue()],
-  base: '/admin/',  // 根路径，如果 Vue 应用部署在根目录
+  resolve: { alias: { '@': path.resolve(__dirname, 'src') } },
+  base: '/admin/',
+  build: {
+    rollupOptions: {
+      output: {
+        entryFileNames: 'admin.js',
+        chunkFileNames: 'admin.js',
+        assetFileNames: (a) =>
+            a.name && a.name.endsWith('.css') ? 'app.css' : a.name,
+        manualChunks: undefined,
+        inlineDynamicImports: true          // 合并动态导入，确保单文件
+      }
+    }
+  }
 })
-//   base: '/',  // 根路径，如果 Vue 应用部署在根目录
-//   build: {
-//     rollupOptions: {
-//       input: {
-//         main: 'index.html',
-//       },
-//       output: {
-//         entryFileNames: 'admin.html',  // 将生成的 HTML 文件名改为 admin.html
-//       },
-//     },
-//   },
-// })
