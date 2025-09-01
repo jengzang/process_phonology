@@ -264,54 +264,121 @@ const STATIC_REGION_TREE = {
 };
 
 // 獲取匹配到的分區列表
-function getSubregions(parentLabel, mode='yindian') {
+function getSubregions(parentLabel, mode = 'yindian') {
     if (mode === 'map') {
         const tree = STATIC_REGION_TREE;
-        const result = [];
 
-        if (parentLabel === null) {
-            return Promise.resolve(Object.keys(tree)); // 一級分區
-        }
         function search(node) {
-            if (!node || typeof node !== 'object') return false;
-
+            if (!node || typeof node !== 'object') return null;
             for (const key in node) {
                 if (key === parentLabel) {
-                    const children = node[key];
-                    if (Array.isArray(children)) {
-                        result.push(...children);
-                    } else if (typeof children === 'object') {
-                        result.push(...Object.keys(children));
-                    }
-                    return true;
+                    return node[key];
                 }
-                if (search(node[key])) return true;
+                const found = search(node[key]);
+                if (found) return found;
             }
-            return false;
+            return null;
         }
 
-        search(tree);
+        if (parentLabel === null) {
+            const top = Object.keys(tree);
+            return Promise.resolve(top.map(k => {
+                const v = tree[k];
+                const hasChildren = (
+                    (Array.isArray(v) && v.length > 0) ||
+                    (typeof v === 'object' && v !== null && Object.keys(v).length > 0)
+                );
+                return { label: k, hasChildren };
+            }));
+        }
+
+        const childrenNode = search(tree);
+        if (!childrenNode) return Promise.resolve([]);
+
+        let result = [];
+        if (Array.isArray(childrenNode)) {
+            result = childrenNode.map(k => ({ label: k, hasChildren: false }));
+        } else if (typeof childrenNode === 'object') {
+            result = Object.keys(childrenNode).map(k => {
+                const child = childrenNode[k];
+                const hasChildren = (
+                    (Array.isArray(child) && child.length > 0) ||
+                    (typeof child === 'object' && child !== null && Object.keys(child).length > 0)
+                );
+                return { label: k, hasChildren };
+            });
+        }
         return Promise.resolve(result);
     }
 
     else if (mode === 'yindian') {
-        if (parentLabel === null) {
-            return Promise.resolve([
-                '華北','西北','官話','中上江','下江','兩浙','浙南','湘贛','嶺東','廣中',
-                '嶺南','嶺西','閩','湘南','道州','鄕話','白語','蔡家話','民語漢字音'
-            ]);
+        const CACHE_KEY = '__YINDIAN_TREE_CACHE__';
+
+        // 你給定的一級分區
+        const top = [
+            '華北','西北','官話','中上江','下江','兩浙','浙南','湘贛','嶺東','廣中',
+            '嶺南','嶺西','閩','湘南','道州','鄕話','白語','蔡家話','民語漢字音'
+        ];
+
+        // 初始化快取
+        if (!sessionStorage.getItem(CACHE_KEY)) {
+            return fetch(`${window.API_BASE}/partitions`)
+                .then(res => res.json())
+                .then(tree => {
+                    sessionStorage.setItem(CACHE_KEY, JSON.stringify(tree));
+                    return getSubregions(parentLabel, mode); // 再跑一次
+                });
         }
 
-        return fetch(`${window.API_BASE}/partitions?parent=${encodeURIComponent(parentLabel)}`)
-            .then(res => res.json())
-            .then(data => {
-                const regionData = data[parentLabel];
-                return regionData ? regionData.partitions : [];
+        const tree = JSON.parse(sessionStorage.getItem(CACHE_KEY));
+
+        function search(node) {
+            if (!node || typeof node !== 'object') return null;
+            for (const key in node) {
+                if (key === parentLabel) {
+                    return node[key];
+                }
+                const found = search(node[key]);
+                if (found) return found;
+            }
+            return null;
+        }
+
+        if (parentLabel === null) {
+            return Promise.resolve(top.map(k => {
+                const v = tree[k];
+                const hasChildren = (
+                    (Array.isArray(v) && v.length > 0) ||
+                    (typeof v === 'object' && v !== null && Object.keys(v).length > 0)
+                );
+                return { label: k, hasChildren };
+            }));
+        }
+
+        const childrenNode = search(tree);
+        if (!childrenNode) return Promise.resolve([]);
+
+        let result = [];
+        if (Array.isArray(childrenNode)) {
+            result = childrenNode.map(k => ({ label: k, hasChildren: false }));
+        } else if (typeof childrenNode === 'object') {
+            result = Object.keys(childrenNode).map(k => {
+                const child = childrenNode[k];
+                const hasChildren = (
+                    (Array.isArray(child) && child.length > 0) ||
+                    (typeof child === 'object' && child !== null && Object.keys(child).length > 0)
+                );
+                return { label: k, hasChildren };
             });
+        }
+
+        return Promise.resolve(result);
     }
+
 
     // return Promise.resolve([]);
 }
+
 
 
 function registerPopupCloseHandler(container, clearCallback, extraAllowedTargets = []) {
@@ -376,7 +443,7 @@ function showRegionSelector (textarea, mode='yindian') {
         unregister();
     };
 
-    const unregister = registerPopupCloseHandler(container, clearAll);
+    const unregister = registerPopupCloseHandler(container, clearAll,[container]);
 
     // 🔁 改這一行：改成 async 拿一級分區
     getSubregions(null,mode).then(topLevel => {
@@ -388,7 +455,6 @@ function showRegionSelector (textarea, mode='yindian') {
 // 渲染分區提示框，可點擊
 function renderList(items, container, parentLabel, textarea, onClose, lvl2 = null, lvl3 = null,mode='yindian') {
     container.innerHTML = "";
-    let hoverTimeout;
     let activeItem = null;
 
     if (items && typeof items === "object" && !Array.isArray(items)) {
@@ -405,38 +471,65 @@ function renderList(items, container, parentLabel, textarea, onClose, lvl2 = nul
         container.style.display = "none";
         return;
     }
-    let isLongPress = false;
-    items.forEach(label => {
-        const item = document.createElement('div');
-        item.textContent = label;
-        item.style.padding = '4px 8px';
-        item.style.cursor = 'pointer';
+    items.forEach(item => {
+        const label = typeof item === 'string' ? item : item.label;
+        const hasChildren = typeof item === 'object' && !!item.hasChildren;
 
-        const LONG_PRESS_THRESHOLD = 500;
+        const line = document.createElement('div');
+        line.className = 'partition-line';
+        line.style.display = 'flex';
+        line.style.justifyContent = 'space-between';
+        line.style.alignItems = 'center';
+        line.style.padding = '4px 8px';
+
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'partition-item';
+        itemDiv.textContent = label;
+        itemDiv.style.flexGrow = '1'; // 佔滿左側空間
+
+        line.appendChild(itemDiv);
+
+        if (hasChildren) {
+            const arrow = document.createElement('div');
+            arrow.className = 'partition-arrow';
+            arrow.textContent = '⌵';
+            // ✅ 改成完全等效 hover：模拟 mouseenter 行为
+            arrow.addEventListener('click', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                itemDiv.dispatchEvent(new Event('mouseenter', { bubbles: true }));
+            });
+            line.appendChild(arrow);
+        }
+
+        // 狀態變數
+        let hoverTimeout;
+        let isLongPress = false;
         let touchTimer = null;
         let startY = 0;
         let startX = 0;
         let hasMoved = false;
 
-        item.addEventListener('mouseenter', () => {
+        // 🐭 hover 展開
+        line.addEventListener('mouseenter', () => {
             hoverTimeout = setTimeout(async () => {
                 if (!isLongPress) {
-                    await popup_box(label, item, parentLabel, textarea, onClose, lvl2, lvl3,mode);
+                    await popup_box(label, line, parentLabel, textarea, onClose, lvl2, lvl3, mode);
                 }
-            }, 300);
+            }, 100);
 
-            if (activeItem && activeItem !== item) {
+            if (activeItem && activeItem !== line) {
                 activeItem.classList.remove('active');
             }
-            item.classList.add('active');
-            activeItem = item;
+            line.classList.add('active');
+            activeItem = line;
         });
 
-        item.addEventListener('mouseleave', () => {
+        line.addEventListener('mouseleave', () => {
             clearTimeout(hoverTimeout);
         });
-
-        item.addEventListener('touchstart', (e) => {
+        // 📱 Touch 長按
+        line.addEventListener('touchstart', (e) => {
             isLongPress = false;
             hasMoved = false;
 
@@ -447,55 +540,36 @@ function renderList(items, container, parentLabel, textarea, onClose, lvl2 = nul
             touchTimer = setTimeout(async () => {
                 if (!hasMoved) {
                     isLongPress = true;
-
-                    const result = await popup_box(label, item, parentLabel, textarea, onClose, lvl2, lvl3, mode);
-
+                    const result = await popup_box(label, line, parentLabel, textarea, onClose, lvl2, lvl3, mode);
                     if (result !== false) {
-                        if (activeItem && activeItem !== item) {
+                        if (activeItem && activeItem !== line) {
                             activeItem.classList.remove('active');
                         }
-                        item.classList.add('active');
-                        activeItem = item;
+                        line.classList.add('active');
+                        activeItem = line;
                     }
                 }
-            }, LONG_PRESS_THRESHOLD);
+            }, 500);
         });
 
-        item.addEventListener('touchmove', (e) => {
+        line.addEventListener('touchmove', (e) => {
             const touch = e.touches[0];
             const deltaY = Math.abs(touch.clientY - startY);
             const deltaX = Math.abs(touch.clientX - startX);
-
             if (deltaY > 10 || deltaX > 10) {
                 hasMoved = true;
                 clearTimeout(touchTimer);
             }
         });
 
-        item.addEventListener('touchend', () => {
+        line.addEventListener('touchend', (e) => {
             clearTimeout(touchTimer);
-            if (!isLongPress && !hasMoved) {
-                const existing = textarea.value.trim();
-                const parts = existing ? existing.split(/\s+/) : [];
-                if (!parts.includes(label)) {
-                    parts.push(label);
-                    textarea.value = parts.join(' ');
-                }
-                onClose();
-            }
-        });
+            if (isLongPress || hasMoved) return;
 
-        item.addEventListener('touchcancel', () => {
-            clearTimeout(touchTimer);
-        });
-
-        item.addEventListener('click', (e) => {
-            if (isLongPress) {
-                e.stopImmediatePropagation();
-                e.preventDefault();
-                return;
-            }
-
+            // ✅ 白名单判断：不允许触发自 `.partition-arrow`
+            const touchTarget = e.changedTouches[0];
+            const realTarget = document.elementFromPoint(touchTarget.clientX, touchTarget.clientY);
+            if (realTarget?.closest('.partition-arrow')) return;
 
             const existing = textarea.value.trim();
             const parts = existing ? existing.split(/\s+/) : [];
@@ -503,28 +577,59 @@ function renderList(items, container, parentLabel, textarea, onClose, lvl2 = nul
                 parts.push(label);
                 textarea.value = parts.join(' ');
             }
-
             onClose();
         });
 
-        container.appendChild(item);
+        line.addEventListener('touchcancel', () => {
+            clearTimeout(touchTimer);
+        });
+
+        // 🖱 Click 添加標籤
+        itemDiv.addEventListener('click', (e) => {
+            // console.log("點擊了")
+            if (isLongPress) {
+                e.stopImmediatePropagation();
+                e.preventDefault();
+                return;
+            }
+            const clickedItem = e.target.closest('.partition-item');
+            const clickedArrow = e.target.closest('.partition-arrow');
+            // console.log(clickedArrow)
+            // console.log(clickedItem)
+            if (clickedArrow || clickedItem !== itemDiv) return;
+
+            const existing = textarea.value.trim();
+            const parts = existing ? existing.split(/\s+/) : [];
+            if (!parts.includes(label)) {
+                parts.push(label);
+                textarea.value = parts.join(' ');
+            }
+            onClose();
+        });
+
+        container.appendChild(line);
     });
-
-    const clearAll = () => {
-        if (activeItem) {
-            activeItem.classList.remove('active');
-        }
-        container.remove();
-        unregister();
-    };
-
-    const unregister = registerPopupCloseHandler(container, clearAll);
 }
 
 
 // 總的渲染子級分區提示框函數
 async function popup_box(label, item, parentLabel, textarea, onClose, lvl2, lvl3,mode='yindian') {
+    // 清空 popup 位置，保證 hover/click 不殘留內容
+    if (lvl2 && parentLabel == null) {
+        lvl2.innerHTML = "";
+        lvl2.style.display = 'none'; // <-- ✅ 保證舊內容清除
+    }
+    if (lvl3 && parentLabel != null) {
+        lvl3.innerHTML = "";
+        lvl3.style.display = 'none'; // <-- ✅ 保證舊內容清除
+    }
+
     const subs = await getSubregions(label,mode);
+    if (!subs || subs.length === 0) {
+        // ✅ 沒有子分區，不做任何展示，return false 表示沒展開
+        return false;
+    }
+
     const rect = item.getBoundingClientRect();
     const popupLeft = rect.right;
     const popupHeight = 200;
