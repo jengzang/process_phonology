@@ -91,6 +91,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // 切換 tab 狀態
             window.regionusing = selectedType;
+            document.getElementById('regions').value = '';
+            window.partitionPopupOpen = false; // 👈 这里设才对！
 
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             tabBtn.classList.add('active');
@@ -107,7 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-// ▼ 點擊 → 當前是音典或地圖時才 toggle
+    // ▼ 點擊 → 當前是音典或地圖時才 toggle
     btn?.addEventListener("click", () => {
         if (window.regionusing === 'yindian' || window.regionusing === 'map') {
             const existing = document.querySelector('#popupLayer .partition-container');
@@ -374,16 +376,16 @@ function getSubregions(parentLabel, mode = 'yindian') {
 
         return Promise.resolve(result);
     }
-
-
     // return Promise.resolve([]);
 }
 
 
-
 function registerPopupCloseHandler(container, clearCallback, extraAllowedTargets = []) {
     const escHandler = (e) => {
-        if (e.key === 'Escape') clearCallback();
+        if (e.key === 'Escape') {
+            clearCallback();
+            window.partitionPopupOpen = false; // 👈 这里设才对！
+        }
     };
 
     const outsideClickHandler = (e) => {
@@ -391,6 +393,7 @@ function registerPopupCloseHandler(container, clearCallback, extraAllowedTargets
         const isInsideExtras = extraAllowedTargets.some(target => target.contains(e.target));
         if (!isInsideContainer && !isInsideExtras) {
             clearCallback();
+            // window.partitionPopupOpen = false; // 👈 这里也要设
         }
     };
 
@@ -480,7 +483,6 @@ function renderList(items, container, parentLabel, textarea, onClose, lvl2 = nul
         line.style.display = 'flex';
         line.style.justifyContent = 'space-between';
         line.style.alignItems = 'center';
-        line.style.padding = '4px 8px';
 
         const itemDiv = document.createElement('div');
         itemDiv.className = 'partition-item';
@@ -529,7 +531,7 @@ function renderList(items, container, parentLabel, textarea, onClose, lvl2 = nul
             clearTimeout(hoverTimeout);
         });
         // 📱 Touch 長按
-        line.addEventListener('touchstart', (e) => {
+        itemDiv.addEventListener('touchstart', (e) => {
             isLongPress = false;
             hasMoved = false;
 
@@ -550,9 +552,9 @@ function renderList(items, container, parentLabel, textarea, onClose, lvl2 = nul
                     }
                 }
             }, 500);
-        });
+        }, { passive: false }); // ⬅️ 改 1：非被动
 
-        line.addEventListener('touchmove', (e) => {
+        itemDiv.addEventListener('touchmove', (e) => {
             const touch = e.touches[0];
             const deltaY = Math.abs(touch.clientY - startY);
             const deltaX = Math.abs(touch.clientX - startX);
@@ -560,17 +562,24 @@ function renderList(items, container, parentLabel, textarea, onClose, lvl2 = nul
                 hasMoved = true;
                 clearTimeout(touchTimer);
             }
-        });
+        }, { passive: false }); // ⬅️ 改 1：非被动
 
-        line.addEventListener('touchend', (e) => {
+        itemDiv.addEventListener('touchend', (e) => {
             clearTimeout(touchTimer);
             if (isLongPress || hasMoved) return;
 
-            // ✅ 白名单判断：不允许触发自 `.partition-arrow`
-            const touchTarget = e.changedTouches[0];
-            const realTarget = document.elementFromPoint(touchTarget.clientX, touchTarget.clientY);
+            // ⬅️ 改 2：阻止默认/冒泡，降低合成 click/穿透风险
+            if (e.cancelable) e.preventDefault();
+            e.stopPropagation();
+
+            // ✅ 白名单判断：不允许箭头
+            const touchPoint = e.changedTouches[0];
+            const realTarget = document.elementFromPoint(touchPoint.clientX, touchPoint.clientY);
             if (realTarget?.closest('.partition-arrow')) return;
 
+            // ⬅️ 改 3：必须仍命中当前 itemDiv（防止手指松开时落在别处）
+            if (!realTarget || !itemDiv.contains(realTarget)) return;
+            window.partitionPopupOpen = false; // 👈 这里设才对！
             const existing = textarea.value.trim();
             const parts = existing ? existing.split(/\s+/) : [];
             if (!parts.includes(label)) {
@@ -578,9 +587,10 @@ function renderList(items, container, parentLabel, textarea, onClose, lvl2 = nul
                 textarea.value = parts.join(' ');
             }
             onClose();
-        });
+        }, { passive: false }); // ⬅️ 改 1：非被动
 
-        line.addEventListener('touchcancel', () => {
+
+        itemDiv.addEventListener('touchcancel', () => {
             clearTimeout(touchTimer);
         });
 
@@ -597,7 +607,7 @@ function renderList(items, container, parentLabel, textarea, onClose, lvl2 = nul
             // console.log(clickedArrow)
             // console.log(clickedItem)
             if (clickedArrow || clickedItem !== itemDiv) return;
-
+            window.partitionPopupOpen = false; // 👈 这里设才对！
             const existing = textarea.value.trim();
             const parts = existing ? existing.split(/\s+/) : [];
             if (!parts.includes(label)) {

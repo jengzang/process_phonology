@@ -353,7 +353,7 @@ label:hover {
     align-items: center;              /* 垂直置中（防止位移） */
     justify-content: space-between;
     gap: 0;                         /* 控制箭頭與文字間距 */
-    padding: 4px 8px;
+    padding: 4px 1px 4px 8px!important;
 }
 
 .partition-item {
@@ -368,17 +368,24 @@ label:hover {
 }
 
 .partition-arrow {
-    font-size: 10px;
-    color:darkblue;
+    font-size: 13px;
+    color: darkblue;
     user-select: none;
     cursor: pointer;
     flex-shrink: 0;
-    transform: translateY(1px);       /* 微調對齊基線 */
-    margin:0;
-    padding:0 0 0 5px!important;
+    margin: 0;
+    padding: 0 8px 0 8px !important;
     font-weight: bold;
     opacity: 0.8;
+
+    /* ✅ 修复关键 */
+    display: flex;
+    align-items: center;      /* 垂直居中 */
+    justify-content: center;  /* 水平居中 */
+    height: 100%;
+    width: auto;              /* ❗ 只占内容宽度，避免遮盖地点文字 */
 }
+
 
 .partition-arrow:hover {
     opacity: 1;
