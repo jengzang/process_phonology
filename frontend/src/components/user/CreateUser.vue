@@ -44,7 +44,9 @@
       </div>
 
     </form>
-    <button type="submit" class="button">創建用戶</button>
+    <div class="button-container">
+      <button type="submit" class="create-btn">創建用戶</button>
+    </div>
     <div class="logout-button-container">
       <button @click="goToHome">返回首頁</button>
     </div>
@@ -115,6 +117,13 @@ input:focus, select:focus {
   border-color: #28a745; /* 绿色的聚焦边框 */
   outline: none;
   box-shadow: 0 0 8px rgba(40, 167, 69, 0.3); /* 绿色阴影 */
+}
+
+.button-container {
+  width: 100%;
+  max-width: 600px;
+  margin: 20px auto;       /* ✅ 居中容器 */
+  text-align: center;      /* ✅ 居中按钮 */
 }
 
 /* 按钮样式 */

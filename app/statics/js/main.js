@@ -77,12 +77,12 @@ window.addEventListener("DOMContentLoaded", () => {
 
     likeBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        window.location.href = window.WEB_BASE + "/intro?tab=like";
+        window.location.href = window.WEB_BASE + "/intro#/?tab=like";
     });
 
     suggestBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        window.location.href = window.WEB_BASE + "/intro?tab=suggestions";
+        window.location.href = window.WEB_BASE + "/intro#/?tab=suggestions";
     });
 
 

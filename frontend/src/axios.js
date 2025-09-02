@@ -1,8 +1,4 @@
 import axios from 'axios';
-// window.WEB_BASE = location.origin
-window.WEB_BASE = "http://10.250.101.238:5000"; // 要把这里换成实fastapi实际跑的地址
-window.API_BASE = window.WEB_BASE + "/api";
-window.LOG_BASE = window.WEB_BASE + "/auth";
 window.ADMIN_BASE = window.WEB_BASE + "/admin";
 // 創建 Axios 實例
 const api = axios.create({

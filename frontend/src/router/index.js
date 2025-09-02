@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import {createRouter, createWebHashHistory, createWebHistory} from 'vue-router'
 import UserManagement from '../components/UserManagement.vue'
 import EditUser from '../components/user/EditUser.vue'
 import UserStats from '../components/user/UserStats.vue'
@@ -77,7 +77,7 @@ const routes = [
 ]
 
 const router = createRouter({
-    history: createWebHistory(import.meta.env.BASE_URL),
+    history: createWebHashHistory(import.meta.env.BASE_URL),
     routes
 })
 

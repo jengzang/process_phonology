@@ -12,7 +12,7 @@ export default defineConfig({
         entryFileNames: 'admin.js',
         chunkFileNames: 'admin.js',
         assetFileNames: (a) =>
-            a.name && a.name.endsWith('.css') ? 'app.css' : a.name,
+            a.name && a.name.endsWith('.css') ? 'admin.css' : a.name,
         manualChunks: undefined,
         inlineDynamicImports: true          // 合并动态导入，确保单文件
       }
