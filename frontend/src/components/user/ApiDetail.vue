@@ -23,33 +23,6 @@
             <th>用戶名</th>
             <th>總使用時長</th>
             <th>次數</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr
-              v-for="userStat in userStats"
-              :key="userStat.user"
-              :class="{ 'clickable': userStat.user !== '匿名用戶' }"
-              @click="userStat.user !== '匿名用戶' && viewUserStats(userStat.user)"
-          >
-            <td>{{ userStat.user }}</td>  <!-- 显示用户名 -->
-            <td>{{ userStat.totalDuration.toFixed(3) }}s</td> <!-- 总使用时长 -->
-            <td>{{ userStat.occurrenceCount }}</td> <!-- 出现次数 -->
-          </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <div v-if="showUserModal" class="modal">
-      <div class="modal-content">
-        <span class="close" @click="closeUserModal">&times;</span>
-        <h3>用户列表</h3>
-        <table>
-          <thead>
-          <tr>
-            <th>用戶名</th>
-            <th>總使用時長</th>
-            <th>次數</th>
             <th>上行流量</th>  <!-- 新增列 -->
             <th>下行流量</th>  <!-- 新增列 -->
           </tr>

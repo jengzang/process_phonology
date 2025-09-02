@@ -34,11 +34,11 @@ def fetch_dialect_region(input_data: Union[str, List[str]], query_db=QUERY_DB_AD
 
     # 如果在主資料庫中找不到結果，則查詢補充資料庫的表 informations，並根據 user_id 進行過濾
     if (not result) and db and user:
-    # if db and user:
+        # if db and user:
         result = db.query(Information.音典分區).filter(Information.簡稱 == query_str,
                                                        Information.user_id == user.id).first()
 
-    # 如果找到結果，返回音典分區；否則返回錯誤消息
+    # 如果找到結果，返回分區；否則返回錯誤消息
     if result:
         return {"音典分區": result[0]}
     else:
@@ -47,7 +47,7 @@ def fetch_dialect_region(input_data: Union[str, List[str]], query_db=QUERY_DB_AD
 
 def get_coordinates_from_db(abbreviation_list, supplementary_abbreviation_list=None,
                             db_path=QUERY_DB_ADMIN, use_supplementary_db=False, user=None,
-                            db: Session = None, ):
+                            db: Session = None, region_mode='yindian' ):
     # print("即將處理經緯度")
     print(user)
 
@@ -88,10 +88,13 @@ def get_coordinates_from_db(abbreviation_list, supplementary_abbreviation_list=N
     longitudes = []
     abbreviation_lat_lon_pairs = []
     abbreviation_region_pairs = {}  # 新增：簡稱對應音典分區
-
+    partition_column = "地圖集二分區" if region_mode == "map" else "音典分區"
     # 查主數據庫
     for abbreviation in abbreviation_list:
-        cursor.execute("SELECT 經緯度, 音典分區 FROM dialects WHERE 簡稱=?", (abbreviation,))
+        cursor.execute(
+            f"SELECT 經緯度, {partition_column} FROM dialects WHERE 簡稱=?",
+            (abbreviation,)
+        )
         row = cursor.fetchone()
         if row:
             lat_lon_str, region = row

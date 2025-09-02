@@ -11,5 +11,6 @@ class CoordinatesQuery(BaseModel):
     """
     regions: str
     locations: str
+    region_mode: str = "yindian"
     iscustom: Optional[bool] = None
     flag: bool = True

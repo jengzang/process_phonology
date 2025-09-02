@@ -228,30 +228,31 @@
     display: flex;
     gap: 10px;
     justify-content: center;
+    align-items: flex-start;
 }
 .location-input,
 .region-input {
-    flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
     max-width: 250px;
+    min-width: 0;
+    width: 100%;
+}
+.location-input{
+    flex: 1;
+}
+.region-input{
+    flex: 1.2;
 }
 
-textarea {
-    width: 100%;
-    height: 60px;
-    box-sizing: border-box;
-    font-family: monospace;
-    font-size: 13px;
-    margin-top: 4px;
-    padding: 6px 10px;
-    resize: none;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    background: #fff;
-    min-width: 60px;
+/* 输入框悬停效果 */
+.location-input:hover,
+.region-input:hover {
+    transform: scale(1.05); /* 放大效果 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* 增加阴影 */
 }
+
 
 label {
     font-size: 13px;
@@ -259,12 +260,6 @@ label {
     margin-bottom: 2px;
 }
 
-
-/* text area悬停效果 */
-textarea:hover {
-    border-color: #007aff; /* 悬停时边框变为蓝色 */
-    box-shadow: 0 0 8px rgba(0, 123, 255, 0.6); /* 添加发光效果 */
-}
 
 /* label悬停效果 */
 label:hover {
@@ -332,19 +327,7 @@ label:hover {
 /*}*/
 
 
-/* 音典分區下拉 */
-.text-btn {
-    background: transparent;
-    border: none;
-    font-size: 13px;
-    cursor: pointer;
-    color: #1976d2;
-    padding: 2px 4px;
-    margin-bottom: 0px;
-}
-.text-btn:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-}
+
 
 /*.partition-container { position: fixed; z-index: 9999; background: #fff; border: 1px solid #ccc; box-shadow: 0 2px 8px rgba(0,0,0,0.2); display: flex; gap: 0px; padding: 0px; pointer-events: auto; border-radius: 50px; }*/
 
@@ -363,6 +346,51 @@ label:hover {
     pointer-events: auto;
     border-radius: 50px;
 }
+
+.partition-line {
+    display: flex;
+    flex-direction: row;              /* 水平排列 */
+    align-items: center;              /* 垂直置中（防止位移） */
+    justify-content: space-between;
+    gap: 0;                         /* 控制箭頭與文字間距 */
+    padding: 4px 1px 4px 8px!important;
+}
+
+.partition-item {
+    flex: 1 1 auto;
+    white-space: nowrap;             /* ✅ 防止換行 */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+    cursor: pointer;
+    padding: 0 1px!important;
+    flex-grow: 1;
+}
+
+.partition-arrow {
+    font-size: 13px;
+    color: darkblue;
+    user-select: none;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin: 0;
+    padding: 0 8px 0 8px !important;
+    font-weight: bold;
+    opacity: 0.8;
+
+    /* ✅ 修复关键 */
+    display: flex;
+    align-items: center;      /* 垂直居中 */
+    justify-content: center;  /* 水平居中 */
+    height: 100%;
+    width: auto;              /* ❗ 只占内容宽度，避免遮盖地点文字 */
+}
+
+
+.partition-arrow:hover {
+    opacity: 1;
+}
+
 
 
 .partition-list {
@@ -463,7 +491,7 @@ label:hover {
 .group-row2 {
     display: flex;
     gap: 16px;
-    margin-top: 10px;
+    /*margin-top: 10px;*/
     /*flex: 0 0 auto;*/
     width: 100%;
     justify-content: center; /* 子項未撐滿時居中 */
@@ -511,9 +539,9 @@ label:hover {
 
 /* 通用輸入區塊排版 */
 .input-section {
-    margin-top: 0px;      /* ✅ 往上靠緊一點 */
-    margin-bottom: 0px;   /* 下方略有空隙即可 */
-    padding: 0px 0;       /* 減少上下 padding */
+    margin-top: 0;      /* ✅ 往上靠緊一點 */
+    margin-bottom: 0;   /* 下方略有空隙即可 */
+    padding: 0 0;       /* 減少上下 padding */
 }
 
 /* 增加input-section hover效果 */
@@ -532,8 +560,6 @@ label:hover {
     border: none;
     overflow: hidden;
 }
-
-
 
 
 .partition-list:empty {
@@ -726,3 +752,19 @@ label:hover {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
+.bug-btn {
+    color: #007aff; /* Apple 藍 */
+    font-weight: 500;
+    font-size: 16px;
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
+    justify-content: center;
+}
+
+.bug-btn:hover {
+    background-color: rgba(0, 122, 255, 0.1); /* 輕微hover效果 */
+}

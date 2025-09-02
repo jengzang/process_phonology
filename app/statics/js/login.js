@@ -2,6 +2,14 @@ const { createApp, ref, defineComponent, onMounted ,watch ,computed} = window.Vu
 
 
 function showAuthPopup() {
+    // 👇 检查是否已经存在弹窗
+    if (window.authPopupInstance) {
+        // ❗先移除舊的
+        window.authPopupInstance.unmount();
+        const old = document.querySelector('.query-detail-panel');
+        if (old) old.remove();
+        window.authPopupInstance = null;
+    }
     const container = document.createElement('div')
     document.body.appendChild(container)
 
@@ -25,6 +33,7 @@ function showAuthPopup() {
             const close = () => {
                 app.unmount()
                 document.body.removeChild(container)
+                window.authPopupInstance = null; // 👈 清除引用，允许下次打开
             }
 
             const validateEmail = (email) => {
@@ -320,7 +329,7 @@ function showAuthPopup() {
             }
 
             const goToAdminPanel = () => {
-                window.location.href = window.WEB_BASE + '/admin';  // 跳转到后台管理页面
+                    window.location.href = window.WEB_BASE + '/admin';  // 跳转到后台管理页面
             };
 
 
@@ -646,6 +655,8 @@ function showAuthPopup() {
 
     const app = createApp(AuthPopup)
     app.mount(container)
+    // ✅ 記住當前彈窗
+    window.authPopupInstance = app;
 
     // ✅ 顯示面板 + 居中 + 自適應大小（不改 CSS）
     setTimeout(() => {
@@ -661,6 +672,12 @@ function showAuthPopup() {
             panel.style.maxHeight = '90vh'
             panel.style.alignItems = 'center'
             panel.style.justifyContent = 'center'
+            // ✅ 添加呼吸邊框動畫
+            panel.classList.add('border-breath');
+            // 🧹 動畫播放完移除 class，避免干擾下次動畫觸發
+            setTimeout(() => {
+                panel.classList.remove('border-breath');
+            }, 1600);
         }
     }, 0)
 }

@@ -4,7 +4,7 @@
 /* 按鈕 hover 效果已升級（再強化） */
 #welcomeModal button,
 #contactBtn {
-    margin-top: 15px;
+    /*margin-top: 15px;*/
     background-color: #007aff;
     color: white;
     border: none;
@@ -27,7 +27,7 @@
     background: rgba(0, 122, 255, 0.08); /* 更柔和的蓝色背景 */
     border: 1px solid rgba(0, 122, 255, 0.3); /* 更细腻的边框透明度 */
     color: #007aff;
-    padding: 5px 10px;
+    padding: 7px 1px;
     font-size: 14px;
     border-radius: 10px;
     cursor: pointer;
@@ -115,6 +115,20 @@
 .toggle-btn:active {
     transform: scale(0.95); /* 點擊時縮小 */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* 阴影效果 */
+}
+
+/* 音典分區下拉 */
+.text-btn {
+    background: transparent;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    color: #1976d2;
+    padding: 2px 4px;
+    margin-bottom: 0;
+}
+.text-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
 }
 
 .switch-container-masschange {

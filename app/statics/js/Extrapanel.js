@@ -412,6 +412,10 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById('loading-overlay').classList.add('loading-hidden');
             return;
         }
+        if (isEmptyInput(locations) && isEmptyInput(regions)) {
+            showToast("❌ 請輸入地點或分區！",'darkred');
+            return;
+        }
         if (window.userRole !== 'admin'){
             // 🔒 冷卻控制只針對分析主邏輯
             if (window.runCooldown) {
@@ -431,6 +435,7 @@ document.addEventListener("DOMContentLoaded", function () {
         chars.forEach(c => params.append("chars", c));
         locations.forEach(loc => params.append("locations", loc));
         regions.forEach(reg => params.append("regions", reg));
+        params.set("region_mode", window.regionusing);
 
         try {
             const token = localStorage.getItem("ACCESS_TOKEN")
@@ -447,6 +452,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const query = new URLSearchParams();
             locations.forEach(loc => query.append("locations", loc));
             regions.forEach(reg => query.append("regions", reg));
+            query.set("region_mode", window.regionusing);
             const res = await fetch(`${window.API_BASE}/get_locs/?${query.toString()}`, {
                 method: "GET",
                 headers: {
@@ -612,8 +618,13 @@ document.addEventListener("DOMContentLoaded",  function () {
     const tonesBtn = document.getElementById('tones-btn');
     const contentSearch = document.querySelector('.content-search');
 
-
     tonesBtn.addEventListener('click', async (e) => {
+        const locations = locationsInput.value.trim().split(/\s+/); // 获取并拆分 locations
+        const regions = regionsInput.value.trim().split(/\s+/); // 获取并拆分 regions
+        if (isEmptyInput(locations) && isEmptyInput(regions)) {
+            showToast("❌ 請輸入地點或分區！",'darkred');
+            return;
+        }
         if (window.userRole !== 'admin'){
             // 🔒 冷卻控制只針對分析主邏輯
             if (window.runCooldown) {
@@ -628,14 +639,13 @@ document.addEventListener("DOMContentLoaded",  function () {
         }
         document.getElementById('loading-overlay').classList.remove('loading-hidden');
         // 获取输入框中的汉字
-        const locations = locationsInput.value.trim().split(/\s+/); // 获取并拆分 locations
-        const regions = regionsInput.value.trim().split(/\s+/); // 获取并拆分 regions
         await ensureAuthenticated(e,false)
 
         // 構造查詢字符串
         const params = new URLSearchParams();
         locations.forEach(loc => params.append("locations", loc));
         regions.forEach(reg => params.append("regions", reg));
+        params.set("region_mode", window.regionusing);
 
         try {
             const token = localStorage.getItem("ACCESS_TOKEN")

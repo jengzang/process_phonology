@@ -1062,14 +1062,14 @@ function enableDragSnap(container) {
             document.addEventListener('dragstart', preventDefault);
             document.body.style.userSelect = 'none';
 
-            document.addEventListener('pointermove', onPointerMove);
-            document.addEventListener('pointerup', onPointerUp);
+            document.addEventListener('mousemove', onPointerMove);
+            document.addEventListener('mouseup', onPointerUp);
             document.body.style.userSelect = 'none';
         }, 300);
 
-        document.addEventListener('pointerup', function cancelEarly() {
+        document.addEventListener('mouseup', function cancelEarly() {
             clearTimeout(timeout);
-            document.removeEventListener('pointerup', cancelEarly);
+            document.removeEventListener('mouseup', cancelEarly);
         });
     };
 
@@ -1095,8 +1095,8 @@ function enableDragSnap(container) {
         container.classList.remove('dragging');
 
         hideGridOverlays();
-        document.removeEventListener('pointermove', onPointerMove);
-        document.removeEventListener('pointerup', onPointerUp);
+        document.removeEventListener('mousemove', onPointerMove);
+        document.removeEventListener('mouseup', onPointerUp);
         document.body.style.userSelect = '';
         document.removeEventListener("selectstart", preventDefault);
         document.removeEventListener("dragstart", preventDefault);
@@ -1116,7 +1116,7 @@ function enableDragSnap(container) {
         container.style.zIndex = '';
     };
 
-    container.addEventListener('pointerdown', onPointerDown);
+    container.addEventListener('mousedown', onPointerDown);
 }
 
 

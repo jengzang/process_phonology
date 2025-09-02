@@ -20,13 +20,15 @@ router = APIRouter()
 async def get_all_locs(
         request: Request,
         locations: Optional[List[str]] = Query(None, description="要查的地點，可多個"),
-        regions: Optional[List[str]] = Query(None, description="要查的音典分區，可多個（輸入某一級的音典分區）"),
+        regions: Optional[List[str]] = Query(None, description="要查的分區，可多個（輸入某一級的分區）"),
+        region_mode: str = Query("yindian", description="分區模式，yindian 或 map"),  # ✅ 加上這行
         user: Optional[User] = Depends(get_current_user)
 ):
     """
-    - 用于 /api/get_locs 查匹配的地點（音典分區+地點），返回地點序列。
+    - 用于 /api/get_locs 查匹配的地點（分區+地點），返回地點序列。
     - locations-要查的地點，可多個
-    - regions-要查的音典分區，可多個（輸入某一級的音典分區）
+    - regions-要查的分區，可多個（輸入某一級的分區）
+    - region_mode-使用的分區
     """
     update_count(request.url.path)
     log_all_fields(request.url.path, {"locations": locations, "regions": regions})
@@ -35,15 +37,24 @@ async def get_all_locs(
         locations_processed = []
         query_db = QUERY_DB_ADMIN if user and user.role == "admin" else QUERY_DB_USER
         for location in locations or []:
-            matched = match_locations_batch(location,query_db=query_db)
+            matched = match_locations_batch(location, query_db=query_db)
             extracted = [res[0][0] for res in matched if res[0]]
             locations_processed.extend(extracted)
-        result = query_dialect_abbreviations(region_input=regions,
-                                             location_sequence=locations_processed, db_path=query_db)
+
+        # ✅ 加入 region_mode 傳入查詢函數
+        result = query_dialect_abbreviations(
+            region_input=regions,
+            location_sequence=locations_processed,
+            db_path=query_db,
+            region_mode=region_mode
+        )
         return {"locations_result": result}
     finally:
         duration = time.time() - start
-        log_detailed_api(request.url.path, duration, 200,
-                         request.client.host,
-                         request.headers.get("user-agent", ""),
-                         request.headers.get("referer", ""))
+        log_detailed_api(
+            request.url.path, duration, 200,
+            request.client.host,
+            request.headers.get("user-agent", ""),
+            request.headers.get("referer", "")
+        )
+

@@ -102,7 +102,10 @@ def read_partition_hierarchy(parent_regions=None, db_path=QUERY_DB_ADMIN):
         # print(f"最終結果: {region} -> {result[region]}")
 
         # 保留原來的結構，並加上 level
-        result[region] = {"partitions": result[region], "level": level}
+        result[region] = {"partitions": result[region],
+                          "level": level,
+                          "hasChildren": bool(result[region])  # ✅ 判斷是否有子分區
+        }
 
     return result
 
@@ -326,7 +329,7 @@ def match_locations_batch(input_string: str, filter_valid_abbrs_only=True, exact
             # print(f"\n🔹 處理第 {idx + 1} 個地名：{part}")
             try:
                 res = match_locations(part, filter_valid_abbrs_only, exact_only, query_db=query_db)
-                if not filter_valid_abbrs_only and not exact_only:
+                if user and not filter_valid_abbrs_only and not exact_only:
                     def calculate_similarity(str1, str2):
                         # 计算两个字符串的最小长度，避免越界
                         min_len = min(len(str1), len(str2))

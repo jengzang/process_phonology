@@ -6,7 +6,7 @@
     <!--    <meta http-equiv="X-UA-Compatible" content="IE=edge">-->
 <!--    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">-->
     <title>方言比較-地理語言學</title>
-
+    <script src="config.js"></script>
     <!-- CSS 引入 -->
     <link rel="stylesheet" href="css/global.css" />
     <link rel="stylesheet" href="css/inputpanel.css" />
@@ -17,7 +17,6 @@
     <link rel="stylesheet" href="css/button_switchs.css">
     <link rel="stylesheet" href="css/input_style.css">
     <link rel="stylesheet" href="css/popups.css">
-<!--    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">-->
 
     <!-- 加載 Vue 3 的 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.js"></script>
@@ -28,16 +27,21 @@
 </head>
 
 <body>
-<!-- 使用 iframe 嵌入 Vue 应用 -->
-<iframe src="./admin/index.html" width="100%" height="600px" frameborder="0"></iframe>
 
 <div id="welcomeOverlay" class="welcome-overlay hidden">
     <div id="welcomeModal" class="welcome-modal">
         <div class="modal-content">
             <h2>👏 歡迎</h2>
             <h3>🗣️ 方言比較 - 地理語言學🌏</h3>
-            <p>開發者：不羈</p>
-            <button id="contactBtn">聯繫作者</button>
+            <div class="author-row">
+                <p>開發者：不羈</p>
+                <button id="contactBtn" style="padding: 4px 6px;background-color: #1c8dba">聯繫作者</button>
+            </div>
+            <div class="button-group">
+                <button id="likeAuthorBtn" style="background-color: darkred">👍喜歡作者</button>
+                <button id="suggestionBtn">💡我有建議</button>
+            </div>
+
             <span id="currentDateTime"></span>
             <span class="close-hint">點擊空白處關閉</span>
         </div>
@@ -102,7 +106,7 @@
             <span class="example-desc">可點擊</span>的。<br>單擊後可在浮窗中選擇特徵，即可再次生成新窗口，進行<span class="example-desc">細分查詢</span>
             。<br>這樣的窗口可以<span class="example-desc">無限生成</span>(瀏覽器帶得動的話)，可以同時對比多個地點/特徵。</p>
         <p>✔ 注1：<span class="example-desc">移動端</span>界面可能顯示不全，請多滑動/拖動。</p>
-        <p>✔ 注2：點擊 <span class="example-input">音典分區 ▼</span> 按鈕，會出現音典分區彈窗，用戶可<span class="example-desc">單擊</span>選擇所需分區。如要顯示下一級分區:<br>
+        <p>✔ 注2：點擊 <span class="example-input">分區 ▼</span> 按鈕，會出現音典分區彈窗，用戶可<span class="example-desc">單擊</span>選擇所需分區。如要顯示下一級分區:<br>
             ※ <span class="example-desc">電腦端</span>只需將<span class="example-desc">光標</span>移到對應分區上即可；<br>
             ※ <span class="example-desc">移動端</span>則需要<span class="example-desc">長按</span>對應分區</p>
         <p>更詳細的使用說明，可點擊屏幕上方 <span class="example-input"> ❓使用說明 </span> 按鈕，點擊後會跳轉至詳細教程文章</p>
@@ -118,7 +122,7 @@
 </div>
 
 <!-- 輸入面板 -->
-<div id="inputpanel" class="panel panel-medium">
+<div id="inputpanel" class="panel panel-medium" style="overflow-x: hidden; box-sizing: border-box;">
     <div class="panel-header" id="dragHandle">
         <span class="panel-title">🔍 設置參數</span>
         <button id="openUsageModalBtn" title="點擊後鏈接跳轉">
@@ -159,19 +163,26 @@
 
         <!-- 地點與分區 -->
         <div class="input-section">
-<!--            <h4 class="panel-subtitle">方言點</h4>-->
-            <div class="location-row">
+            <div class="group-row2">
+                <!-- 地點 -->
                 <div class="location-input">
-                    <label for="locations">地點</label>
+                    <label for="locations" style="margin-bottom: 10px;">地點</label>
                     <textarea id="locations" placeholder="請輸入地點(可匹配)"></textarea>
                 </div>
-
+                <!-- 分區 -->
                 <div class="region-input">
-                    <button id="partitionBtn" class="text-btn">音典分區 ▼</button>
+                    <div class="region-header" style="display: flex; align-items: center; margin-bottom: 0; white-space: nowrap;">
+                        <div class="login-tabs" id="regionTabs" style="margin:0 0 0 -10px;">
+                            <button class="tab-btn active" data-tab="map" style="padding: 3px 3px;">地圖集</button>
+                            <button class="tab-btn" data-tab="yindian" style="padding: 3px 3px;">音典</button>
+                        </div>
+                        <button id="partitionBtn" class="text-btn" style="white-space: nowrap; margin-left: 0;">分區 ▼</button>
+                    </div>
                     <textarea id="regions" placeholder="請輸入或選擇分區"></textarea>
                 </div>
             </div>
         </div>
+
 
         <!-- 中古音輸入 -->
         <div class="input-section">
@@ -244,6 +255,7 @@
                 </div>
              </div>
         </div>
+        <span id="bugBtn" class="bug-btn">發現了bug⁉️ 點我👈</span>
     </div>
 </div>
 
@@ -485,12 +497,6 @@
 
 
 <!-- JS 檔案引入 -->
-<script>
-    // window.WEB_BASE = location.origin
-    window.WEB_BASE = "http://10.250.101.238:5000"
-    window.API_BASE = window.WEB_BASE + "/api";
-    window.LOG_BASE = window.WEB_BASE + "/auth"
-</script>
 <script src="js/main.js"></script>
 <script src="js/inputpanel.js"></script>
 <script src="js/html_table.js"></script>

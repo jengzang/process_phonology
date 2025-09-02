@@ -8,9 +8,9 @@ from common.getloc_by_name_region import query_dialect_abbreviations
 from common.config import QUERY_DB_ADMIN
 
 
-def search_tones(locations=None, regions=None, get_raw: bool = False, db_path=QUERY_DB_ADMIN):
+def search_tones(locations=None, regions=None, get_raw: bool = False, db_path=QUERY_DB_ADMIN, region_mode='yindian'):
     # 假设 query_dialect_abbreviations 函数返回一个地点简称的列表
-    all_locations = query_dialect_abbreviations(regions, locations, db_path=db_path)
+    all_locations = query_dialect_abbreviations(regions, locations, db_path=db_path,region_mode=region_mode)
     if not all_locations:
         raise HTTPException(status_code=404, detail="🛑 請輸入正確的地點！\n建議點擊地點輸入框下方的提示地點！")
 

@@ -64,48 +64,328 @@ document.querySelectorAll('input[name="mode"]').forEach(r => {
 });
 updateVisibility();
 
-// 🧪 後端測試按鈕
-// document.getElementById("testBackendBtn").addEventListener("click", async () => {
-//     const log = document.getElementById("debug-log");
-//     log.textContent = "⌛ 後端連線測試中...";
-//     try {
-//         const res = await fetch(`${window.API_BASE}/phonology`, {
-//             method: "POST",
-//             headers: { "Content-Type": "application/json" },
-//             body: JSON.stringify({
-//                 mode: "s2p",
-//                 locations: [],
-//                 regions: [],
-//                 features: [],
-//                 status_inputs: "",
-//                 group_inputs: "",
-//                 pho_values: ""
-//             })
-//         });
-//
-//         log.style.color = res.ok ? "green" : "orange";
-//         log.textContent = res.ok ? "✅ OK" : `❌ ${res.status}`;
-//     } catch (e) {
-//         log.style.color = "red";
-//         log.textContent = `❌ 錯誤：${e.message}`;
-//     }
-// });
+/*
+分區的選擇
+ */
+document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("partitionBtn");
+    const textarea = document.getElementById("regions");
+    window.partitionPopupOpen = false;
+    window.regionusing = 'map';
+
+    document.querySelectorAll('.tab-btn').forEach(tabBtn => {
+        tabBtn.addEventListener('click', () => {
+            const selectedType = tabBtn.getAttribute('data-tab');
+            const isSame = window.regionusing === selectedType;
+
+            // ✅ 如果是點選音典或地圖，且已選中 → toggle popup
+            if ((selectedType === 'yindian' || selectedType === 'map') && isSame) {
+                const existing = document.querySelector('#popupLayer .partition-container');
+                if (existing) {
+                    existing.remove();
+                } else {
+                    showRegionSelector?.(textarea, selectedType);
+                }
+                return;
+            }
+
+            // 切換 tab 狀態
+            window.regionusing = selectedType;
+            document.getElementById('regions').value = '';
+            window.partitionPopupOpen = false; // 👈 这里设才对！
+
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            tabBtn.classList.add('active');
+
+            textarea.placeholder = selectedType === 'map'
+                ? '請輸入或選擇「地圖集」分區'
+                : '請輸入或選擇「音典」分區';
+
+            // ⛔ 切到非音典或地圖時，保險起見自動關 popup
+            if (selectedType !== 'yindian' && selectedType !== 'map') {
+                const existing = document.querySelector('#popupLayer .partition-container');
+                existing?.remove();
+            }
+        });
+    });
+
+    // ▼ 點擊 → 當前是音典或地圖時才 toggle
+    btn?.addEventListener("click", () => {
+        if (window.regionusing === 'yindian' || window.regionusing === 'map') {
+            const existing = document.querySelector('#popupLayer .partition-container');
+            if (existing) {
+                existing.remove();
+            } else {
+                showRegionSelector?.(textarea, window.regionusing);
+            }
+        }
+    });
+})
+
+
+const STATIC_REGION_TREE = {
+    "東北官話": {
+        "黑松片": ["嫩克小片","佳富小片","站話小片"],
+        "吉瀋片": ["蛟甯小片","延吉小片","通溪小片"],
+        "哈阜片": ["肇撫小片","長錦小片"]
+    },
+    "北京官話": {
+        "朝峯片": [],
+        "京承片": ["懷承小片","京師小片"]
+    },
+    "冀魯官話": {
+        "保唐片": ["撫龍小片","灤昌小片","薊遵小片","天津小片","定霸小片","淶阜小片"],
+        "石濟片": ["趙深小片","邢衡小片","聊泰小片"],
+        "滄惠片": ["黃樂小片","陽壽小片","章桓小片","莒照小片"]
+    },
+    "蘭銀官話": {
+        "北疆片": [],
+        "金城片": [],
+        "河西片": [],
+        "銀吳片": []
+    },
+    "膠遼官話": {
+        "登連片": ["煙威小片","蓬龍小片","大岫小片"],
+        "蓋桓片": [],
+        "靑萊片": ["萊昌小片","靑臨小片","膠蓮小片"]
+    },
+    "中原官話": {
+        "徐淮片": [],
+        "兗菏片": [],
+        "商阜片": [],
+        "信蚌片": [],
+        "洛嵩片": [],
+        "鄭開片": [],
+        "南魯片": [],
+        "漯項片": [],
+        "關中片": [],
+        "秦隴片": [],
+        "隴中片": [],
+        "南疆片": [],
+        "河州片": [],
+        "汾河片": ["平陽小片","絳州小片","解州小片"]
+    },
+    "江淮官話": {
+        "黃孝片": [],
+        "竹柞片": [],
+        "洪巢片": [],
+        "泰如片": []
+    },
+    "西南官話": {
+        "湖廣片": ["鄂北小片","懷玉小片","黔東小片","黎靖小片","鄂中小片","湘北小片","湘西小片"],
+        "桂柳片": ["湘南小片","黔南小片","桂北小片","桂南小片"],
+        "雲南片": ["滇中小片","滇西小片","滇南小片"],
+        "川黔片": ["成渝小片","黔中小片","陝南小片"],
+        "川西片": ["康藏小片","涼山小片"],
+        "西蜀片": ["岷赤小片","雅甘小片","江貢小片"]
+    },
+    "晉語": {
+        "張呼片": [],
+        "邯新片": ["磁漳小片","獲濟小片"],
+        "上黨片": ["晉城小片","長治小片"],
+        "呂梁片": ["隰縣小片","汾州小片"],
+        "志延片": [],
+        "幷州片": [],
+        "五臺片": [],
+        "大包片": []
+    },
+    "贛語": {
+        "懷岳片": [],
+        "鷹弋片": [],
+        "大通片": [],
+        "昌都片": [],
+        "宜瀏片": [],
+        "撫廣片": [],
+        "未分片": [],
+        "吉茶片": [],
+        "耒資片": [],
+        "洞綏片": []
+    },
+    "客家話": {
+        "雩信片": [],
+        "粵北片·客": [],
+        "銅桂片": [],
+        "粵臺片": ["梅惠小片","龍華小片"],
+        "寧龍片": [],
+        "汀州片": [],
+        "海陸片": [],
+        "畲話": [],
+        "粵西片": []
+    },
+    "吳語": {
+        "太湖片": ["杭州小片","毗陵小片","蘇嘉湖小片","上海小片","臨紹小片","甬江小片"],
+        "宣州片": ["" +
+        "太髙小片","銅涇小片","石陵小片"],
+        "台州片": [],
+        "金衢片": [],
+        "上麗片": ["上山小片","麗水小片"],
+        "甌江片": []
+    },
+    "徽語": {
+        "旌占片": [],
+        "績歙片": [],
+        "休黟片": [],
+        "嚴州片": [],
+        "祁婺片": []
+    },
+    "粵語": {
+        "廣府片": [],
+        "四邑片": [],
+        "勾漏片": [],
+        "邕潯片": [],
+        "欽廉片": [],
+        "吳化片": [],
+        "高陽片": [],
+        "不分類": []
+    },
+    "閩語": {
+        "閩南片": ["泉漳小片","大田小片","潮汕小片"],
+        "雷州片": [],
+        "瓊文片": ["府城小片","文昌小片","萬甯小片","崖縣小片","昌感小片"],
+        "莆仙片": [],
+        "閩東片": ["侯官小片","福寧小片"],
+        "閩北片": ["建陽小片","建甌小片"],
+        "閩中片": [],
+        "邵將片": ["將樂小片","邵武小片"]
+    },
+    "湘語": {
+        "長益片": ["長株潭小片","岳陽小片","益沅小片"],
+        "婁邵片": ["漣梅小片","湘雙小片","新化小片","武邵小片","綏會小片"],
+        "辰漵片": [],
+        "衡州片": ["衡山小片","衡陽小片"],
+        "永全片": ["全資小片","東祁小片","道江小片"]
+    },
+    "平話和土話": {
+        "湘南片": [],
+        "粵北片·土": [],
+        "桂北片": [],
+        "桂南片": []
+    },
+    "鄕話": {},
+    "民族語": {},
+};
 
 // 獲取匹配到的分區列表
-function getSubregions(parentLabel) {
-    return fetch(`${window.API_BASE}/partitions?parent=${encodeURIComponent(parentLabel)}`)
-        .then(res => res.json())
-        .then(data => {
-                // 根據返回的數據格式，提取出分區列表
-                const regionData = data[parentLabel];
-                return regionData ? regionData.partitions : [];  // 如果有partitions，返回它，否則返回空數組
+function getSubregions(parentLabel, mode = 'yindian') {
+    if (mode === 'map') {
+        const tree = STATIC_REGION_TREE;
+
+        function search(node) {
+            if (!node || typeof node !== 'object') return null;
+            for (const key in node) {
+                if (key === parentLabel) {
+                    return node[key];
+                }
+                const found = search(node[key]);
+                if (found) return found;
+            }
+            return null;
+        }
+
+        if (parentLabel === null) {
+            const top = Object.keys(tree);
+            return Promise.resolve(top.map(k => {
+                const v = tree[k];
+                const hasChildren = (
+                    (Array.isArray(v) && v.length > 0) ||
+                    (typeof v === 'object' && v !== null && Object.keys(v).length > 0)
+                );
+                return { label: k, hasChildren };
+            }));
+        }
+
+        const childrenNode = search(tree);
+        if (!childrenNode) return Promise.resolve([]);
+
+        let result = [];
+        if (Array.isArray(childrenNode)) {
+            result = childrenNode.map(k => ({ label: k, hasChildren: false }));
+        } else if (typeof childrenNode === 'object') {
+            result = Object.keys(childrenNode).map(k => {
+                const child = childrenNode[k];
+                const hasChildren = (
+                    (Array.isArray(child) && child.length > 0) ||
+                    (typeof child === 'object' && child !== null && Object.keys(child).length > 0)
+                );
+                return { label: k, hasChildren };
             });
-        // .then(data => data.partitions);
+        }
+        return Promise.resolve(result);
+    }
+
+    else if (mode === 'yindian') {
+        const CACHE_KEY = '__YINDIAN_TREE_CACHE__';
+
+        // 你給定的一級分區
+        const top = [
+            '華北','西北','官話','中上江','下江','兩浙','浙南','湘贛','嶺東','廣中',
+            '嶺南','嶺西','閩','湘南','道州','鄕話','白語','蔡家話','民語漢字音'
+        ];
+
+        // 初始化快取
+        if (!sessionStorage.getItem(CACHE_KEY)) {
+            return fetch(`${window.API_BASE}/partitions`)
+                .then(res => res.json())
+                .then(tree => {
+                    sessionStorage.setItem(CACHE_KEY, JSON.stringify(tree));
+                    return getSubregions(parentLabel, mode); // 再跑一次
+                });
+        }
+
+        const tree = JSON.parse(sessionStorage.getItem(CACHE_KEY));
+
+        function search(node) {
+            if (!node || typeof node !== 'object') return null;
+            for (const key in node) {
+                if (key === parentLabel) {
+                    return node[key];
+                }
+                const found = search(node[key]);
+                if (found) return found;
+            }
+            return null;
+        }
+
+        if (parentLabel === null) {
+            return Promise.resolve(top.map(k => {
+                const v = tree[k];
+                const hasChildren = (
+                    (Array.isArray(v) && v.length > 0) ||
+                    (typeof v === 'object' && v !== null && Object.keys(v).length > 0)
+                );
+                return { label: k, hasChildren };
+            }));
+        }
+
+        const childrenNode = search(tree);
+        if (!childrenNode) return Promise.resolve([]);
+
+        let result = [];
+        if (Array.isArray(childrenNode)) {
+            result = childrenNode.map(k => ({ label: k, hasChildren: false }));
+        } else if (typeof childrenNode === 'object') {
+            result = Object.keys(childrenNode).map(k => {
+                const child = childrenNode[k];
+                const hasChildren = (
+                    (Array.isArray(child) && child.length > 0) ||
+                    (typeof child === 'object' && child !== null && Object.keys(child).length > 0)
+                );
+                return { label: k, hasChildren };
+            });
+        }
+
+        return Promise.resolve(result);
+    }
+    // return Promise.resolve([]);
 }
+
 
 function registerPopupCloseHandler(container, clearCallback, extraAllowedTargets = []) {
     const escHandler = (e) => {
-        if (e.key === 'Escape') clearCallback();
+        if (e.key === 'Escape') {
+            clearCallback();
+            window.partitionPopupOpen = false; // 👈 这里设才对！
+        }
     };
 
     const outsideClickHandler = (e) => {
@@ -113,6 +393,7 @@ function registerPopupCloseHandler(container, clearCallback, extraAllowedTargets
         const isInsideExtras = extraAllowedTargets.some(target => target.contains(e.target));
         if (!isInsideContainer && !isInsideExtras) {
             clearCallback();
+            // window.partitionPopupOpen = false; // 👈 这里也要设
         }
     };
 
@@ -126,12 +407,16 @@ function registerPopupCloseHandler(container, clearCallback, extraAllowedTargets
 }
 
 
-// 音典一級分區
-window.showPartitionSelector = function (textarea) {
-    const topLevel = [
-        '華北','西北','官話','中上江','下江','兩浙','浙南','湘贛','嶺東','廣中',
-        '嶺南','嶺西','閩','湘南','道州','鄕話','白語','蔡家話','民語漢字音'
-    ];
+// 分區渲染顯示總入口
+function showRegionSelector (textarea, mode='yindian') {
+    // ✅ 若已開，則關閉並 return（toggle）
+    if (window.partitionPopupOpen) {
+        document.querySelector('#popupLayer .partition-container')?.remove();
+        window.partitionPopupOpen = false;
+        return;
+    }
+
+    window.partitionPopupOpen = true; // ⬅️ 開啟時標記
 
     const container = document.createElement('div');
     container.className = 'partition-container';
@@ -161,16 +446,18 @@ window.showPartitionSelector = function (textarea) {
         unregister();
     };
 
-    const unregister = registerPopupCloseHandler(container, clearAll);
+    const unregister = registerPopupCloseHandler(container, clearAll,[container]);
 
-    renderList(topLevel, lvl1, null, textarea, clearAll, lvl2, lvl3);
-};
+    // 🔁 改這一行：改成 async 拿一級分區
+    getSubregions(null,mode).then(topLevel => {
+        renderList(topLevel, lvl1, null, textarea, clearAll, lvl2, lvl3,mode);
+    });
+}
 
 
 // 渲染分區提示框，可點擊
-function renderList(items, container, parentLabel, textarea, onClose, lvl2 = null, lvl3 = null) {
+function renderList(items, container, parentLabel, textarea, onClose, lvl2 = null, lvl3 = null,mode='yindian') {
     container.innerHTML = "";
-    let hoverTimeout;
     let activeItem = null;
 
     if (items && typeof items === "object" && !Array.isArray(items)) {
@@ -187,38 +474,64 @@ function renderList(items, container, parentLabel, textarea, onClose, lvl2 = nul
         container.style.display = "none";
         return;
     }
-    let isLongPress = false;
-    items.forEach(label => {
-        const item = document.createElement('div');
-        item.textContent = label;
-        item.style.padding = '4px 8px';
-        item.style.cursor = 'pointer';
+    items.forEach(item => {
+        const label = typeof item === 'string' ? item : item.label;
+        const hasChildren = typeof item === 'object' && !!item.hasChildren;
 
-        const LONG_PRESS_THRESHOLD = 500;
+        const line = document.createElement('div');
+        line.className = 'partition-line';
+        line.style.display = 'flex';
+        line.style.justifyContent = 'space-between';
+        line.style.alignItems = 'center';
+
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'partition-item';
+        itemDiv.textContent = label;
+        itemDiv.style.flexGrow = '1'; // 佔滿左側空間
+
+        line.appendChild(itemDiv);
+
+        if (hasChildren) {
+            const arrow = document.createElement('div');
+            arrow.className = 'partition-arrow';
+            arrow.textContent = '⌵';
+            // ✅ 改成完全等效 hover：模拟 mouseenter 行为
+            arrow.addEventListener('click', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                itemDiv.dispatchEvent(new Event('mouseenter', { bubbles: true }));
+            });
+            line.appendChild(arrow);
+        }
+
+        // 狀態變數
+        let hoverTimeout;
+        let isLongPress = false;
         let touchTimer = null;
         let startY = 0;
         let startX = 0;
         let hasMoved = false;
 
-        item.addEventListener('mouseenter', () => {
+        // 🐭 hover 展開
+        line.addEventListener('mouseenter', () => {
             hoverTimeout = setTimeout(async () => {
                 if (!isLongPress) {
-                    await popup_box(label, item, parentLabel, textarea, onClose, lvl2, lvl3);
+                    await popup_box(label, line, parentLabel, textarea, onClose, lvl2, lvl3, mode);
                 }
-            }, 300);
+            }, 100);
 
-            if (activeItem && activeItem !== item) {
+            if (activeItem && activeItem !== line) {
                 activeItem.classList.remove('active');
             }
-            item.classList.add('active');
-            activeItem = item;
+            line.classList.add('active');
+            activeItem = line;
         });
 
-        item.addEventListener('mouseleave', () => {
+        line.addEventListener('mouseleave', () => {
             clearTimeout(hoverTimeout);
         });
-
-        item.addEventListener('touchstart', (e) => {
+        // 📱 Touch 長按
+        itemDiv.addEventListener('touchstart', (e) => {
             isLongPress = false;
             hasMoved = false;
 
@@ -229,86 +542,104 @@ function renderList(items, container, parentLabel, textarea, onClose, lvl2 = nul
             touchTimer = setTimeout(async () => {
                 if (!hasMoved) {
                     isLongPress = true;
-
-                    const result = await popup_box(label, item, parentLabel, textarea, onClose, lvl2, lvl3);
-
+                    const result = await popup_box(label, line, parentLabel, textarea, onClose, lvl2, lvl3, mode);
                     if (result !== false) {
-                        if (activeItem && activeItem !== item) {
+                        if (activeItem && activeItem !== line) {
                             activeItem.classList.remove('active');
                         }
-                        item.classList.add('active');
-                        activeItem = item;
+                        line.classList.add('active');
+                        activeItem = line;
                     }
                 }
-            }, LONG_PRESS_THRESHOLD);
-        });
+            }, 500);
+        }, { passive: false }); // ⬅️ 改 1：非被动
 
-        item.addEventListener('touchmove', (e) => {
+        itemDiv.addEventListener('touchmove', (e) => {
             const touch = e.touches[0];
             const deltaY = Math.abs(touch.clientY - startY);
             const deltaX = Math.abs(touch.clientX - startX);
-
             if (deltaY > 10 || deltaX > 10) {
                 hasMoved = true;
                 clearTimeout(touchTimer);
             }
-        });
+        }, { passive: false }); // ⬅️ 改 1：非被动
 
-        item.addEventListener('touchend', () => {
+        itemDiv.addEventListener('touchend', (e) => {
             clearTimeout(touchTimer);
-            if (!isLongPress && !hasMoved) {
-                const existing = textarea.value.trim();
-                const parts = existing ? existing.split(/\s+/) : [];
-                if (!parts.includes(label)) {
-                    parts.push(label);
-                    textarea.value = parts.join(' ');
-                }
-                onClose();
-            }
-        });
+            if (isLongPress || hasMoved) return;
 
-        item.addEventListener('touchcancel', () => {
-            clearTimeout(touchTimer);
-        });
+            // ⬅️ 改 2：阻止默认/冒泡，降低合成 click/穿透风险
+            if (e.cancelable) e.preventDefault();
+            e.stopPropagation();
 
-        item.addEventListener('click', (e) => {
-            if (isLongPress) {
-                e.stopImmediatePropagation();
-                e.preventDefault();
-                return;
-            }
+            // ✅ 白名单判断：不允许箭头
+            const touchPoint = e.changedTouches[0];
+            const realTarget = document.elementFromPoint(touchPoint.clientX, touchPoint.clientY);
+            if (realTarget?.closest('.partition-arrow')) return;
 
-
+            // ⬅️ 改 3：必须仍命中当前 itemDiv（防止手指松开时落在别处）
+            if (!realTarget || !itemDiv.contains(realTarget)) return;
+            window.partitionPopupOpen = false; // 👈 这里设才对！
             const existing = textarea.value.trim();
             const parts = existing ? existing.split(/\s+/) : [];
             if (!parts.includes(label)) {
                 parts.push(label);
                 textarea.value = parts.join(' ');
             }
+            onClose();
+        }, { passive: false }); // ⬅️ 改 1：非被动
 
+
+        itemDiv.addEventListener('touchcancel', () => {
+            clearTimeout(touchTimer);
+        });
+
+        // 🖱 Click 添加標籤
+        itemDiv.addEventListener('click', (e) => {
+            // console.log("點擊了")
+            if (isLongPress) {
+                e.stopImmediatePropagation();
+                e.preventDefault();
+                return;
+            }
+            const clickedItem = e.target.closest('.partition-item');
+            const clickedArrow = e.target.closest('.partition-arrow');
+            // console.log(clickedArrow)
+            // console.log(clickedItem)
+            if (clickedArrow || clickedItem !== itemDiv) return;
+            window.partitionPopupOpen = false; // 👈 这里设才对！
+            const existing = textarea.value.trim();
+            const parts = existing ? existing.split(/\s+/) : [];
+            if (!parts.includes(label)) {
+                parts.push(label);
+                textarea.value = parts.join(' ');
+            }
             onClose();
         });
 
-        container.appendChild(item);
+        container.appendChild(line);
     });
-
-    const clearAll = () => {
-        if (activeItem) {
-            activeItem.classList.remove('active');
-        }
-        container.remove();
-        unregister();
-    };
-
-    const unregister = registerPopupCloseHandler(container, clearAll);
 }
 
 
+// 總的渲染子級分區提示框函數
+async function popup_box(label, item, parentLabel, textarea, onClose, lvl2, lvl3,mode='yindian') {
+    // 清空 popup 位置，保證 hover/click 不殘留內容
+    if (lvl2 && parentLabel == null) {
+        lvl2.innerHTML = "";
+        lvl2.style.display = 'none'; // <-- ✅ 保證舊內容清除
+    }
+    if (lvl3 && parentLabel != null) {
+        lvl3.innerHTML = "";
+        lvl3.style.display = 'none'; // <-- ✅ 保證舊內容清除
+    }
 
+    const subs = await getSubregions(label,mode);
+    if (!subs || subs.length === 0) {
+        // ✅ 沒有子分區，不做任何展示，return false 表示沒展開
+        return false;
+    }
 
-// 總的渲染分區提示框函數
-async function popup_box(label, item, parentLabel, textarea, onClose, lvl2, lvl3) {
-    const subs = await getSubregions(label);
     const rect = item.getBoundingClientRect();
     const popupLeft = rect.right;
     const popupHeight = 200;
@@ -333,24 +664,20 @@ async function popup_box(label, item, parentLabel, textarea, onClose, lvl2, lvl3
         lvl2.style.top = `${popupTop}px`;
         lvl2.style.left = `${popupLeft}px`;
         lvl2.style.display = 'block';
-        renderList(subs, lvl2, label, textarea, onClose, null, lvl3);
+        renderList(subs, lvl2, label, textarea, onClose, null, lvl3,mode);
     } else if (lvl3 && parentLabel != null) {
         lvl3.style.position = 'fixed';
         lvl3.style.top = `${popupTop}px`;
         lvl3.style.left = `${popupLeft}px`;
         lvl3.style.display = 'block';
-        renderList(subs, lvl3, label, textarea, onClose);
+        renderList(subs, lvl3, label, textarea, onClose,mode);
     }
 }
 
-// 點擊“音典分區”按鈕展開一級分區
-document.addEventListener("DOMContentLoaded", () => {
-    const btn = document.getElementById("partitionBtn");
-    const textarea = document.getElementById("regions");
-    btn?.addEventListener("click", () => window.showPartitionSelector(textarea));
-});
 
-
+/*
+地点输入框的匹配
+ */
 const inputEl = document.getElementById("locations");
 const suggestion = document.getElementById("inlineSuggestion");
 
@@ -433,4 +760,9 @@ inputEl.addEventListener("blur", () => {
 });
 
 
+const bugBtn = document.getElementById("bugBtn");
 
+bugBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    window.open(window.WEB_BASE + "/intro#/?tab=suggestions","_blank");
+});

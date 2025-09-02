@@ -37,7 +37,7 @@ async def api_run_phonology_analysis(
     :param request: 傳token
     :param payload: - mode: p2s-查詢音位查詢的中古來源 s2p-按中古地位查詢音值
     - locations: 輸入地點（可多個）
-    - regions: 輸入音典分區（某一級分區，例如嶺南，可多個）
+    - regions: 輸入分區（某一級分區，例如嶺南，可多個）
     - features: 要查詢的特徵（聲母/韻母/聲調）必須完全匹配，用繁體字
     - status_inputs: 要查詢的中古地位，可帶類名（例如莊組），也可不帶（例如來）；
                    並且支持-全匹配（例如宕-等，會自動匹配宕一、宕三）；後端會進行簡繁轉換，可輸入簡體
@@ -99,7 +99,8 @@ def run_phonology_analysis(
         status_inputs: list = None,
         group_inputs: list = None,
         pho_values: list = None,
-        dialects_db=DIALECTS_DB_USER
+        dialects_db=DIALECTS_DB_USER,
+        region_mode='yindian'
 ):
     """
     統一介面函數：根據 mode ('s2p' 或 'p2s') 執行 sta2pho 或 pho2sta。
@@ -119,12 +120,13 @@ def run_phonology_analysis(
     if mode == 's2p':
         # if not status_inputs:
         #     raise ValueError("🔴 mode='s2p' 時，請提供 status_inputs。")
-        return sta2pho(locations, regions, features, status_inputs, db_path_dialect=dialects_db)
+        return sta2pho(locations, regions, features, status_inputs, db_path_dialect=dialects_db, region_mode=region_mode)
 
     elif mode == 'p2s':
         # if not group_inputs :
         #     raise ValueError("🔴 mode='p2s' 時，請提供 group_inputs ")
-        return pho2sta(locations, regions, features, group_inputs, pho_values, dialect_db_path=dialects_db)
+        return pho2sta(locations, regions, features, group_inputs, pho_values,
+                       dialect_db_path=dialects_db, region_mode=region_mode)
 
 
     else:

@@ -8,7 +8,7 @@ class AnalysisPayload(BaseModel):
     - 用于 /api/phonology 路由的輸入特徵，分析聲韻。
     - mode: p2s-查詢音位查詢的中古來源 s2p-按中古地位查詢音值
     - locations: 輸入地點（可多個）
-    - regions: 輸入音典分區（某一級分區，例如嶺南，可多個）
+    - regions: 輸入分區（某一級分區，例如嶺南，可多個）
     - features: 要查詢的特徵（聲母/韻母/聲調）必須完全匹配，用繁體字
     - status_inputs: 要查詢的中古地位，可帶類名（例如莊組），也可不帶（例如來）；
                    並且支持-全匹配（例如宕-等，會自動匹配宕一、宕三）；後端會進行簡繁轉換，可輸入簡體
@@ -27,3 +27,4 @@ class AnalysisPayload(BaseModel):
     status_inputs: Union[str, List[str], None] = None
     group_inputs: Union[str, List[str], None] = None
     pho_values: Union[str, List[str], None] = None
+    region_mode: str = "yindian"
