@@ -59,11 +59,15 @@ def search_characters(chars, locations=None, regions=None, db_path=DIALECTS_DB_U
             for row in position_cursor.fetchall():
                 parts = f"{row['攝']}{row['呼']}{row['等']}{row['韻']}{row['調']}"
                 meta = f"{row['組']}·{row['母']}•{row['部位']}·{row['方式']}音"
+                # if row['釋義']:
+                #     meta += f"<br>（{row['釋義']}）"
                 positions.append(f"{parts},{meta}")
         else:
             for row in characters_results:
                 parts = f"{row['攝']}{row['呼']}{row['等']}{row['韻']}{row['調']}"
                 meta = f"{row['組']}·{row['母']}•{row['部位']}·{row['方式']}音"
+                # if row['釋義']:
+                #     meta += f"<br>（{row['釋義']}）"
                 positions.append(f"{parts},{meta}")
 
         char2positions[char] = positions

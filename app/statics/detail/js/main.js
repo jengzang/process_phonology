@@ -645,7 +645,7 @@ document.getElementById('dice-button').addEventListener('click', () => {
     document.getElementById('pho_values').value = pick.pho_values;
 
     // ✅ 切換 tab 狀態
-    window.regionusing = 'audio';
+    window.regionusing = 'yindian';
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     const audioTab = document.querySelector(`.tab-btn[data-tab="yindian"]`);
     audioTab?.classList.add('active');
