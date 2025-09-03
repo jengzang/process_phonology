@@ -39,7 +39,7 @@ def search_characters(chars, locations=None, regions=None, db_path=DIALECTS_DB_U
     char2positions = {}
     for char in clean_str:
         characters_query = """
-            SELECT 攝, 呼, 等, 韻, 調, 組, 母, 多地位標記
+            SELECT 攝, 呼, 等, 韻, 調, 組, 母, 部位, 方式, 多地位標記
             FROM characters
             WHERE 漢字 = ?
         """
@@ -51,19 +51,19 @@ def search_characters(chars, locations=None, regions=None, db_path=DIALECTS_DB_U
 
         if is_multi:
             position_query = """
-                SELECT 攝, 呼, 等, 韻, 調, 組, 母
+                SELECT 攝, 呼, 等, 韻, 調, 組, 母, 部位, 方式,
                 FROM characters
                 WHERE 多地位標記 = 1 AND 漢字 = ?
             """
             position_cursor.execute(position_query, [char])
             for row in position_cursor.fetchall():
                 parts = f"{row['攝']}{row['呼']}{row['等']}{row['韻']}{row['調']}"
-                meta = f"{row['組']}「組」{row['母']}「母」"
+                meta = f"{row['組']}·{row['母']}•{row['部位']}·{row['方式']}音"
                 positions.append(f"{parts},{meta}")
         else:
             for row in characters_results:
                 parts = f"{row['攝']}{row['呼']}{row['等']}{row['韻']}{row['調']}"
-                meta = f"{row['組']}「組」{row['母']}「母」"
+                meta = f"{row['組']}·{row['母']}•{row['部位']}·{row['方式']}音"
                 positions.append(f"{parts},{meta}")
 
         char2positions[char] = positions
