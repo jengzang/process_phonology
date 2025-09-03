@@ -63,13 +63,26 @@ def query_characters_by_path(path_string, db_path=CHARACTERS_DB_PATH, table="cha
 
     # 讀取資料
     conn = sqlite3.connect(db_path)
-    # df = pd.read_sql_query(f"SELECT * FROM {table}", conn)
-    # 動態組裝 WHERE 子句（根據 matches）
-    where_clause = " AND ".join([f"{col} = ?" for _, col in matches])
-    values = [val for val, _ in matches]
-
-    query = f"SELECT * FROM {table} WHERE {where_clause}"
-    df = pd.read_sql_query(query, conn, params=values)
+    # ✅ 最小化改動：處理等=三 的情況，查四次合併
+    if any(val == "三" and col == "等" for val, col in matches):
+        dfs = []
+        for variant in ["三A", "三B", "三C", "三銳"]:
+            new_matches = [
+                (variant if (val == "三" and col == "等") else val, col)
+                for val, col in matches
+            ]
+            where_clause = " AND ".join([f"{col} = ?" for val, col in new_matches])
+            values = [val for val, col in new_matches]
+            query = f"SELECT * FROM {table} WHERE {where_clause}"
+            df_part = pd.read_sql_query(query, conn, params=values)
+            dfs.append(df_part)
+        df = pd.concat(dfs, ignore_index=True)
+    else:
+        # 動態組裝 WHERE 子句（根據 matches）
+        where_clause = " AND ".join([f"{col} = ?" for _, col in matches])
+        values = [val for val, _ in matches]
+        query = f"SELECT * FROM {table} WHERE {where_clause}"
+        df = pd.read_sql_query(query, conn, params=values)
 
     conn.close()
 
@@ -77,11 +90,15 @@ def query_characters_by_path(path_string, db_path=CHARACTERS_DB_PATH, table="cha
     filtered_df = df.copy()
     for value, column in matches:
         before = len(filtered_df)
-        filtered_df = filtered_df[filtered_df[column] == value]
+
+        if column == "等" and value == "三":
+            filtered_df = filtered_df[filtered_df[column].isin(["三A", "三B", "三C", "三銳"])]
+        else:
+            filtered_df = filtered_df[filtered_df[column] == value]
+
         after = len(filtered_df)
         print(f"🔽 篩選 {column} = {value}：剩下 {after} 筆（原本 {before} 筆）")
         if after == 0:
-            # raise HTTPException(status_code=404, detail="❌ 輸入的中古地位不存在")
             return [], []
 
     # 提取漢字
@@ -575,3 +592,4 @@ def extract_unique_values(db_path=CHARACTERS_DB_PATH, table="characters"):
 #
 #     for row in results:
 #         print(row)
+# query_characters_by_path('[三]{等}')

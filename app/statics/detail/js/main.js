@@ -645,7 +645,7 @@ document.getElementById('dice-button').addEventListener('click', () => {
     document.getElementById('pho_values').value = pick.pho_values;
 
     // ✅ 切換 tab 狀態
-    window.regionusing = 'audio';
+    window.regionusing = 'yindian';
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     const audioTab = document.querySelector(`.tab-btn[data-tab="yindian"]`);
     audioTab?.classList.add('active');
@@ -669,22 +669,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateLoginUI(false); // 默认为未登录
     }
 });
-const allow_chars_status = new Set([
-    "攝","摄","呼","等","韻","韵","入","調","调","清","濁","浊","系","組","组","母",
-    "假","咸","宕","山","效","曾","果","梗","止","江","流","深","臻","蟹","通","遇",
-    "合","開","开","一","三","二","四","之","仙","佳","侯","侵","元","先","冬","凡","刪","删",
-    "咍","唐","嚴","严","夬","宵","寒","尤","幽","庚","廢","废","微","支","文","東","东","桓","模",
-    "欣","歌","泰","添","灰","痕","登","皆","真","祭","耕","肴","脂","蒸","蕭","萧","虞","覃",
-    "談","谈","豪","銜","衔","鐘","钟","陽","阳","青","魂","魚","鱼","鹽","盐","麻","齊","齐",
-    "舒","上","去","平","全","次","幫","帮","知","端","見","见","影","日","曉","晓","泥","章",
-    "精","莊","庄","非","並","并","云","雲","以","來","来","初","匣","奉","娘","定","崇","常",
-    "從","从","徹","彻","心","敷","昌","明","書","书","溪","滂","澄","生","疑","禪","禅","群","船","透","邪",
-    "@", "-", "#", "*"," ", "\n", ";"," ,", "\t"
-]);
 
-const allow_chars_groups = new Set([
-    "攝","摄","呼","等","韻","韵","入","調","调","清","濁","浊","系","組","组","母"," ", "\n", ";"," ,", "\t"
-]);
 
 // 檢查函數
 function validateInputs() {

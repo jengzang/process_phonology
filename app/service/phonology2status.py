@@ -136,7 +136,7 @@ def analyze_characters_from_db(
     df = pd.read_sql_query(query, conn, params=char_list)
     conn.close()
 
-    for col in ["攝", "呼", "等", "韻", "調", "系", "組", "母", "多地位標記"]:
+    for col in ["攝", "韻", "等", "呼", "入", "清濁", "系", "組", "母", "調", "部位", "方式", "多地位標記"]:
         if col not in df.columns:
             df[col] = None
 
@@ -184,7 +184,7 @@ def analyze_characters_from_db(
             summary = []
             for _, row in sub.iterrows():
                 parts = f"{row['攝']}{row['呼']}{row['等']}{row['韻']}{row['調']}"
-                meta = f"{row['系']}·{row['組']}·{row['母']}"
+                meta = f"{row['部位']}·{row['方式']}·{row['母']}"
                 summary.append(f"{parts},{meta}")
             poly_details.append(f"{hz}: {' | '.join(summary)}")
         # print(f"🧩 當前分析地點：{loc}")
