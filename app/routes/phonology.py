@@ -62,7 +62,7 @@ async def api_run_phonology_analysis(
         db_path = DIALECTS_DB_ADMIN if user and user.role == "admin" else DIALECTS_DB_USER
         result = await asyncio.to_thread(run_phonology_analysis, **payload.dict(), dialects_db=db_path)
         if not result:
-            raise HTTPException(status_code=404, detail="❌ 輸入的中古地位不存在")
+            raise HTTPException(status_code=400, detail="❌ 輸入的中古地位不存在")
         status = 200
         if isinstance(result, pd.DataFrame):
             return {"success": True, "results": result.to_dict(orient="records")}

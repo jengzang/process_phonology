@@ -394,13 +394,6 @@ class TrafficLoggingMiddleware(BaseHTTPMiddleware):
             response.headers["Content-Length"] = str(len(response_body))
 
         response_size = len(response_body)
-        # if user is None:
-        #     print("未登錄")
-        # else :
-        #     if user and user.role != "admin":
-        #         print("普通")
-        #     else:
-        #         print("管理")
         # 判断用户和响应体大小是否符合限制
         if user is None and response_size > MAX_ANONYMOUS_SIZE:
             raise HTTPException(

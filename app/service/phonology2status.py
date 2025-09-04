@@ -235,7 +235,7 @@ def pho2sta(locations, regions, features, status_inputs,
     match_results = match_locations_batch(" ".join(locations_new))
     if not any(res[1] == 1 for res in match_results):
         # print("🛑 沒有任何地點完全匹配，終止分析。")
-        raise HTTPException(status_code=404, detail="🛑 沒有任何地點完全匹配，終止分析。")
+        raise HTTPException(status_code=400, detail="🛑 沒有任何地點完全匹配，終止分析。")
         # return []
 
     unique_abbrs = list({abbr for res in match_results for abbr in res[0]})

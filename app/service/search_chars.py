@@ -12,7 +12,7 @@ from common.getloc_by_name_region import query_dialect_abbreviations
 def search_characters(chars, locations=None, regions=None, db_path=DIALECTS_DB_USER, region_mode='yindian'):
     all_locations = query_dialect_abbreviations(regions, locations, region_mode=region_mode)
     if not all_locations:
-        raise HTTPException(status_code=404, detail="🛑 請輸入正確的地點！\n建議點擊地點輸入框下方的提示地點！")
+        raise HTTPException(status_code=400, detail="🛑 請輸入正確的地點！\n建議點擊地點輸入框下方的提示地點！")
 
     if isinstance(chars, str):
         chars = list(chars)

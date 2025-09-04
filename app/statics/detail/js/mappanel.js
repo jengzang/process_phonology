@@ -1,4 +1,22 @@
 // let mergedData;
+
+// 覆盖 Image 对象，重定向所有图标请求
+(function() {
+    const originalImage = Image;
+    window.Image = function() {
+        const img = new originalImage();
+        // 获取图标的 URL
+        const originalSrc = img.src;
+        // 判断是否是要加载的图标URL
+        if (originalSrc && originalSrc.includes('c-webapi.amap.com/style_icon')) {
+            // 替换成根目录下的自定义favicon.ico
+            img.src = '/favicon.ico'; // 根目录下的图标路径
+        }
+
+        return img;
+    };
+})();
+
 // 配置安全代码
 window._AMapSecurityConfig = {
     securityJsCode: "06fece76cc6ddd8f7996819c28315b58",  // 高德key

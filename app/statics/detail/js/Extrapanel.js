@@ -156,23 +156,23 @@ document.getElementById("infoForm").addEventListener("submit", async function (e
     else
     {
         // 獲取表單元素
-        const location = document.getElementById("location-input").value.trim();
-        const region = document.getElementById("region-input").value.trim();
+        const location_submit = document.getElementById("location-input").value.trim();
+        const region_submit = document.getElementById("region-input").value.trim();
         const coordinates = document.getElementById("coordinates-input").value.trim();
         const feature = document.getElementById("feature-input").value.trim();
         const value = document.getElementById("value-input").value.trim();
         const description = document.getElementById("description-input").value.trim();
 
         // 表單驗證
-        if (!location || !region || !coordinates || !feature || !value) {
+        if (!location_submit || !region_submit || !coordinates || !feature || !value) {
             showToast("❌ 所有字段（除說明）必須填寫！",'darkred');
             return;  // 如果有空的字段，則不提交
         }
 
         // 構建表單數據對象
         const formData = {
-            location: location,
-            region: region,
+            location: location_submit,
+            region: region_submit,
             coordinates: coordinates,
             feature: feature,
             value: value,
@@ -193,7 +193,42 @@ document.getElementById("infoForm").addEventListener("submit", async function (e
             .then(data => {
                 // 根據後端返回的結果處理
                 if (data.success) {
-                    showToast(data.message);
+                    const locations_input = document.getElementById('locations').value.trim().split(/\s+/);
+                    const regions_input = document.getElementById('regions').value.trim().split(/\s+/);
+                    // 检查 locations_input 和 location_submit
+                    function checkLocation() {
+                        return locations_input.includes(location_submit);
+                    }
+                    // 检查 regions_input 和 region_submit
+                    function checkRegion() {
+                        // 拆分 region_submit
+                        let regionParts = region_submit.split('-');
+                        // 检查 region_submit 中的每一部分是否能与 regions_input 中的任何元素匹配
+                        return regions_input.some(region => {
+                            // 将 regions_input 中的元素按 - 拆分成多个部分
+                            let regionPartsInRegion = region.split('-');
+                            // 检查 region_submit 的任意一部分是否能在 regions_input 中找到
+                            return regionParts.some(part => regionPartsInRegion.includes(part));
+                        });
+                    }
+                    const customOpen = window.isCustomOn;
+                    let HowToClick = "";
+                    if (customOpen){
+                        HowToClick = "<br>請雙擊自定義按鈕(關閉再打開)<br>進而刷新數據並查看<br>按鈕在地圖頁面的頂部"
+                    }
+                    else{
+                        HowToClick = "<br>請打開自定義按鈕，進而查看數據<br>按鈕在地圖頁面的頂部"
+                    }
+                    if (checkLocation() || checkRegion()) {
+                        const message = data.message + HowToClick;
+                        showToast(message,'darkgreen',50);
+                    } else {
+                        const notice = `<br>當前輸入框的分區是${regions_input.join(',')},地點是${locations_input.join(',')}<br>` +
+                            "無法與您提交的匹配，需更改後方可顯示";
+                        const message = data.message + notice + HowToClick;
+                        showToast(message,'darkgoldenrod',30)
+                    }
+
                     // 可以選擇清空表單或其他操作
                     // document.getElementById("infoForm").reset();  // 清空表單
                 } else {

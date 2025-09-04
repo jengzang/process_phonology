@@ -22,19 +22,19 @@ def get_current_user(
         if not require_admin:
             return None  # 匿名使用者
         else:
-            raise HTTPException(status_code=403, detail="未登錄用戶沒有訪問此資源的權限")
+            raise HTTPException(status_code=401, detail="未登錄用戶沒有訪問此資源的權限")
     else:
         token = auth_header.split(" ")[1]
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
             username = payload.get("sub")
             if not username:
-                raise HTTPException(status_code=401, detail="Token 無效")
+                return None  # Token 無效
         except JWTError:
-            raise HTTPException(status_code=401, detail="Token 解碼失敗")
+            return None  # Token 解碼失敗
         user = db.query(models.User).filter(models.User.username == username).first()
         if not user:
-            raise HTTPException(status_code=401, detail="用戶不存在")
+            return None  # 用戶不存在
 
         if require_admin and user.role != "admin":
             raise HTTPException(status_code=403, detail="你沒有訪問此資源的權限")
@@ -45,21 +45,26 @@ def get_current_user(
 def get_current_user_sync(request: Request, db: Session) -> User:
     # 处理用户认证（例如从请求头获取 JWT token）
     auth_header = request.headers.get("Authorization")
+    # 打印调试信息，查看 token
+    print(f"Authorization header: {auth_header}")
+
     if not auth_header or not auth_header.startswith("Bearer "):
-        return None  # 匿名用户
+        return None  # 匿名用户，返回 None
 
     token = auth_header.split(" ")[1]
     try:
+        # 解码 JWT token
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("sub")
         if not username:
-            raise HTTPException(status_code=401, detail="Token 无效")
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Token 解码失败")
-
+            return None  # Token 无效，返回 None
+    except JWTError as e:
+        print(f"JWT decode error: {e}")  # 打印错误信息，帮助调试
+        return None  # 如果解码失败，返回 None
+    # 查询用户
     user = db.query(models.User).filter(models.User.username == username).first()
     if not user:
-        raise HTTPException(status_code=401, detail="用户不存在")
+        return None  # 用户不存在，返回 None
 
     return user
 

@@ -11,20 +11,27 @@ let currentMode = 1;
 let resultMode = 1;
 // 用戶身份判斷
 async function getUserRole() {
-    if (typeof window.userRole !== 'undefined') {
-        return window.userRole; // 只有 undefined 才會重新驗證
+    try {
+        if (typeof window.userRole !== 'undefined') {
+            return window.userRole; // 只有 undefined 才會重新驗證
+        }
+        window.userRole = "anonymous";
+        const token = localStorage.getItem("ACCESS_TOKEN")
+        if (token) {
+            // console.log(token)
+            const user = await update_userdatas_bytoken(token, true);
+            window.userRole = user?.role === "admin" ? "admin" : "user";
+        }
+        return window.userRole;
+    } catch (err) {
+        console.error("❌ 获取用户角色时发生错误", err);
+        return "anonymous";  // 如果发生错误，默认返回 "anonymous"
     }
-    window.userRole = "anonymous";
-    const token = localStorage.getItem("ACCESS_TOKEN")
-    if (token) {
-        // console.log(token)
-        const user = await update_userdatas_bytoken(token, true);
-        window.userRole = user?.role === "admin" ? "admin" : "user";
-    }
-    return window.userRole;
-
 }
 
+document.getElementById('floating-button').addEventListener('click', function() {
+    window.location.href = window.WEB_BASE; // 跳轉到指定的 URL
+});
 
 /****************
 歡迎界面以及使用教程
@@ -666,6 +673,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateLoginUI(isLoggedIn, res?.username);
     } catch (err) {
         console.error('登录状态检查失败:', err);
+        clearToken();
         updateLoginUI(false); // 默认为未登录
     }
 });

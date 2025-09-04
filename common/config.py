@@ -75,7 +75,7 @@ USER_DATABASE_URL = f"sqlite:///{USER_DATABASE_PATH}"
 
 SECRET_KEY = "super-secret-key"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 10000
+ACCESS_TOKEN_EXPIRE_MINUTES = 30000
 ISSUER = "dialects_api"  # 可自定義
 AUDIENCE = "dialects_web"  # 可自定義
 

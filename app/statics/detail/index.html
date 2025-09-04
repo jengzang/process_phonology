@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <!--    <meta http-equiv="X-UA-Compatible" content="IE=edge">-->
 <!--    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">-->
-    <title>方音圖鑒 - 方言比較 地理語言學</title>
+    <title>方音圖鑑 - 方言比較 地理語言學</title>
     <script>
         if (!/\/$/.test(location.pathname)) {
             location.replace(location.pathname + '/' + location.search + location.hash)
@@ -36,7 +36,7 @@
 <div id="welcomeOverlay" class="welcome-overlay hidden">
     <div id="welcomeModal" class="welcome-modal">
         <div class="modal-content">
-            <h2>👏 歡迎</h2>
+            <h1>👏 方音圖鑑</h1>
             <h3>🗣️ 方言比較 - 地理語言學🌏</h3>
             <div class="author-row">
                 <p>開發者：不羈</p>
@@ -131,6 +131,7 @@
     </div>
 </div>
 
+<button id="floating-button">↺</button>
 <!-- 輸入面板 -->
 <div id="inputpanel" class="panel panel-medium" style="overflow-x: hidden; box-sizing: border-box;">
     <div class="panel-header" id="dragHandle">
@@ -265,7 +266,15 @@
                 </div>
              </div>
         </div>
-        <span id="bugBtn" class="bug-btn">發現了bug⁉️ 點我👈</span>
+        <!-- 父容器 -->
+        <div class="bug-button-container">
+            <span class="bug-text">發現了bug⁉️</span> <!-- 纯文字部分 -->
+            <!-- 强制刷新按钮 -->
+            <button class="btn-refresh" id="refreshBtn" style="background-color: #28a745">刷新</button>
+            <!-- 反馈BUG按钮 -->
+            <button class="btn-feedback" id="feedbackBtn">反饋</button>
+        </div>
+
     </div>
 </div>
 
@@ -467,13 +476,13 @@
             </div>
             <div class="syllables">
                 <br>****************************
-                <br>更詳細的查字功能，可移步<br>
+                <!-- <br>更詳細的查字功能，可移步<br>
                 <a href="https://mcpdict.vear.vip/" target="_blank" rel="noopener noreferrer">
                     漢字音典（唯二網頁版）
                 </a>
                 <br><a href="https://jyutdict.org/" target="_blank" rel="noopener noreferrer">
                     泛粵典(官網)
-                </a>
+                </a> -->
             </div>
             <div id="loading-overlay" class="loading-hidden">
                 <div class="bouncing-wrapper">

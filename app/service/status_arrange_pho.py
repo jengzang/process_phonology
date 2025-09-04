@@ -452,7 +452,7 @@ def sta2pho(
     locations_new = query_dialect_abbreviations(regions, locations, region_mode=region_mode)
     match_results = match_locations_batch(" ".join(locations_new))
     if not any(res[1] == 1 for res in match_results):
-        raise HTTPException(status_code=404, detail="🛑 沒有任何地點完全匹配，終止分析。")
+        raise HTTPException(status_code=400, detail="🛑 沒有任何地點完全匹配，終止分析。")
         # print("🛑 沒有任何地點完全匹配，終止分析。")
         # return []
 
