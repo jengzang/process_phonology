@@ -710,6 +710,9 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("runBtn")?.addEventListener("click", async () => {
         const locations = document.getElementById('locations').value.trim().split(/\s+/);
         const regions = document.getElementById('regions').value.trim().split(/\s+/);
+        const mode = document.querySelector('input[name="mode"]:checked').value;
+        const status_inputs = parseMultilineListInput("status_inputs");
+        const pho_values = parseMultilineListInput("pho_values");
 
         if (isEmptyInput(locations) && isEmptyInput(regions)) {
             showToast("❌ 請輸入地點或分區！",'darkred');
@@ -723,9 +726,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         else{
             if (userRole === "anonymous"){
-                const mode = document.querySelector('input[name="mode"]:checked').value;
-                const status_inputs = parseMultilineListInput("status_inputs");
-                const pho_values = parseMultilineListInput("pho_values");
                 // console.log(status_inputs);
                 // 判断是否为空或只包含空白字符（空格、回车等）
                 if (mode === "s2p" && status_inputs.length === 0) {
@@ -766,6 +766,10 @@ document.addEventListener("DOMContentLoaded", () => {
             // 🚫 判斷返回的地點數是否超過 限制
             const limit_anonymous =200
             const limit_users =600
+            const limit_phos_locs = 10
+            console.log('pho_values length:', pho_values.length);
+            console.log('mode:', mode);
+
             if (userRole === "anonymous"){
                 if (data.locations_result && data.locations_result.length > limit_anonymous) {
                     showToast(`🚫 由於服務器限制，未登錄用戶單次只能查詢 ${limit_anonymous} 個地點。\n⚠️ 本次查詢了 ${data.locations_result.length} 個地點。`);
@@ -775,6 +779,12 @@ document.addEventListener("DOMContentLoaded", () => {
             }else if (userRole === "user") {
                 if (data.locations_result && data.locations_result.length > limit_users) {
                     showToast(`🚫 由於服務器限制，用戶單次只能查詢 ${limit_users} 個地點。\n⚠️ 本次查詢了 ${data.locations_result.length} 個地點。`);
+                    return;
+                }
+            }
+            else if (mode === "p2s" && pho_values.length === 0 && userRole !== "admin") {
+                if (data.locations_result && data.locations_result.length > limit_phos_locs) {
+                    showToast(`🚫 查詢全部音節時，單次最多只能查 ${limit_phos_locs} 個地點。\n⚠️ 本次查詢了 ${data.locations_result.length} 個地點。`);
                     return;
                 }
             }

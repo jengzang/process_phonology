@@ -177,14 +177,15 @@ def log_detailed_api_to_db(
         ip: str,
         user_agent: str,
         referer: str,
-        user_id: int = None,  # optional
-        clear_old: bool = False,  # ✅ 新增參數：是否清理舊資料
-        request_size: int = 0,  # ✅ 新增：请求体大小
-        response_size: int = 0  # ✅ 新增：响应体大小
+        user_id: int = None,
+        clear_old: bool = False,
+        request_size: int = 0,
+        response_size: int = 0,
+        start_time: float = None  # start_time 参数保持可选
 ):
     # Step 1: Optional cleanup of old logs
     if clear_old:
-        one_week_ago = datetime.utcnow() - timedelta(weeks=1)  # 修改为1周
+        one_week_ago = datetime.utcnow() - timedelta(weeks=1)
         db.query(ApiUsageLog).filter(ApiUsageLog.called_at < one_week_ago).delete()
         db.commit()
 
@@ -197,8 +198,10 @@ def log_detailed_api_to_db(
         user_agent=user_agent,
         referer=referer,
         user_id=user_id,
-        request_size=request_size,  # Add request size to the log
-        response_size=response_size  # Add response size to the log
+        request_size=request_size,
+        response_size=response_size,
+        # 如果传入了 start_time，使用它；否则，使用数据库默认时间
+        called_at=datetime.utcfromtimestamp(start_time) if start_time else None  # 直接在创建时处理
     )
 
     # 将日志添加到队列
@@ -208,7 +211,6 @@ def log_detailed_api_to_db(
     if user_id:
         summary = db.query(ApiUsageSummary).filter_by(user_id=user_id, path=path).first()
         if summary:
-            # 累加计数
             summary.count += 1
             summary.total_duration += Decimal(round(log.duration, 2))
             # 累加上行流量和下行流量（将字节转换为 KB 并保留两位小数）
@@ -242,11 +244,26 @@ async def log_detailed_api_to_db_async(
         user_id: int = None,
         clear_old: bool = False,
         request_size: int = 0,
-        response_size: int = 0
+        response_size: int = 0,
+        start_time: float = None  # 添加 start_time 参数
 ):
-    # 使用 asyncio.to_thread 将同步的数据库操作异步化
-    await asyncio.to_thread(log_detailed_api_to_db, db, path, duration, status_code, ip, user_agent, referer,
-                            user_id, clear_old, request_size, response_size)
+    # 使用 asyncio.to_thread 将同步的数据库操作异步化，并传递 start_time 参数
+    await asyncio.to_thread(
+        log_detailed_api_to_db,
+        db,
+        path,
+        duration,
+        status_code,
+        ip,
+        user_agent,
+        referer,
+        user_id,
+        clear_old,
+        request_size,
+        response_size,
+        start_time  # 将 start_time 参数传递给同步函数
+    )
+
 
 
 # app/service/api_logger.py
@@ -348,7 +365,8 @@ class TrafficLoggingMiddleware(BaseHTTPMiddleware):
             user_id=user.id if user else None,
             request_size=request_size,
             response_size=response_size,
-            clear_old=CLEAR_WEEK
+            clear_old=CLEAR_WEEK,
+            start_time=start_time  # 传递 start_time
         )
 
         # 将响应体变为异步迭代器

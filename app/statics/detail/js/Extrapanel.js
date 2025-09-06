@@ -276,7 +276,8 @@ customToggle.addEventListener('click', async function (e) {
 
     if (window.isRun) {
         if (window.plotted === false) {
-            await create_map1();
+            await create_map1(true);
+            // console.log("來了")
         } else {
             await func_mergeData();
             await triggerDrawingFunction();
@@ -451,7 +452,13 @@ document.addEventListener("DOMContentLoaded", function () {
             showToast("❌ 請輸入地點或分區！",'darkred');
             return;
         }
+
         if (window.userRole !== 'admin'){
+            if (chars.length > 10) {
+                showToast("❌ 一次最多查詢 10 个汉字！", 'darkred');
+                document.getElementById('loading-overlay').classList.add('loading-hidden');
+                return;
+            }
             // 🔒 冷卻控制只針對分析主邏輯
             if (window.runCooldown) {
                 showToast("⏳ 分析已啟動，請等待 3 秒後再試！");
@@ -499,7 +506,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const loc_data = await res.json();
             // 🚫 判斷返回的地點數是否超過 限制
             const limit_anonymous =300
-            const limit_users =1000
+            const limit_users =800
             if (userRole === "anonymous"){
                 if (loc_data.locations_result && loc_data.locations_result.length > limit_anonymous) {
                     showToast(`🚫 由於服務器限制，未登錄用戶查字只能選擇 ${limit_anonymous} 個地點。\n⚠️ 本次查詢了 ${loc_data.locations_result.length} 個地點。`);
@@ -509,7 +516,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             }else if (userRole === "user") {
                 if (loc_data.locations_result && loc_data.locations_result.length > limit_users) {
-                    const userConfirmed = confirm(`⚠️ 本次選擇了超過1000個地點（${loc_data.locations_result.length}個）\n⚠️ 可能會很卡。\n\n是否繼續？`);
+                    const userConfirmed = confirm(`⚠️ 本次選擇了超過800個地點（${loc_data.locations_result.length}個）\n⚠️ 可能會很卡。\n\n是否繼續？`);
                     if (!userConfirmed) {
                         document.getElementById('loading-overlay').classList.add('loading-hidden');
                         return;  // 如果用户点击“取消”，停止后续操作
@@ -627,8 +634,14 @@ document.addEventListener("DOMContentLoaded", function () {
                         // 将整个容器添加到 DOM 中
                         contentSearch.appendChild(infoContainer);
                     });
-                    await create_map1();
                     document.getElementById('loading-overlay').classList.add('loading-hidden');
+                    // 提取 char 字段作为特征
+                    const uniqueChars = [...new Set(resultData.map(item => item.char))];
+                    const featureData = uniqueChars.map(char => ({ 特徵值: char }));
+                    mapFeatureSelection(featureData);  // 这里传入的是 featureData 数组
+                    await create_map1();
+                    window.mergedData = []
+                    generateCharsMergedData(resultData, window.locations_data);
                     lastCharDiv = [];
                     lastPositionsDiv = [];
                 } else {
@@ -836,7 +849,65 @@ document.addEventListener("DOMContentLoaded",  function () {
 
                     tbody.appendChild(row);
                 });
+                const toneMapping = {
+                    "T1": "陰平",
+                    "T2": "陽平",
+                    "T3": "陰上",
+                    "T4": "陽上",
+                    "T5": "陰去",
+                    "T6": "陽去",
+                    "T7": "陰入",
+                    "T8": "陽入",
+                    "T9": "其他調",
+                    "T10": "輕聲"
+                };
+                const processedData = [];
+                resultData.forEach(locationData => {
+                    const { 簡稱, tones } = locationData;
+
+                    // 遍历每个音调（T1 到 T10）
+                    tones.forEach(toneData => {
+                        // 提取音调的键（T1, T2, ...）
+                        const toneName = Object.keys(toneData)[0];
+                        let toneValue = toneData[toneName];
+                        let notes = "";
+                        // 将 "無" 转为空字符串
+                        if (toneValue === "無") {
+                            toneValue = "無";
+                        } else {
+                            toneValue = toneValue.replace(/`/g, "");
+                        }
+                        // 使用 toneMapping 对应表将 T1, T2, ... 转换为中文音调
+                        const chineseToneName = toneMapping[toneName] || toneName; // 如果找不到映射则保留原名称
+                        // 如果是 T 开头的音调，查找对应的值并替换
+                        if (toneValue.startsWith("T")) {
+                            const chineseToneName2 = toneMapping[toneValue] || toneValue; // 如果找不到映射则保留原名称
+                            notes = toneValue.startsWith("T") ? `與${chineseToneName2}合併` : "";
+                            // const correspondingTone = toneMapping[toneValue];  // 获取对应的中文音调名称
+                            const toneObj = locationData.tones.find(item => item[toneValue]);
+                            if (toneObj) {
+                                toneValue = toneObj[toneValue];  // 取得 T1 对应的数值
+                            } else {
+                                toneValue = "";  // 如果找不到，设置为空字符串
+                            }
+                        }
+                        // 推入结果数据
+                        processedData.push({
+                            location: 簡稱,  // 使用 "簡稱" 作为地点名称
+                            tone: chineseToneName,  // 使用对应的中文音调名称
+                            value: toneValue,  // 音调的数值或为空字符串
+                            notes: notes  // 默认备注为空
+                        });
+                    });
+                });
+                // console.log(processedData);
+                const toneNames = ["陰平", "陽平", "陰上", "陽上","陰去","陽去", "陰入","陽入","其他調", "輕聲"];
+                const featureData = toneNames.map(char => ({ 特徵值: char }));
+                mapFeatureSelection(featureData);
                 await create_map1();
+                window.mergedData = []
+                generateTonesMergedData(processedData, window.locations_data);
+                // console.log(window.mergedData)
                 table.appendChild(tbody);
 
                 // 将表格添加到页面中的 .content-search 元素
@@ -851,7 +922,7 @@ document.addEventListener("DOMContentLoaded",  function () {
             }
         } catch (error) {
             document.getElementById('loading-overlay').classList.add('loading-hidden');
-            console.log("报错报错")
+            console.log("报错报错",error)
         }
     })
 })

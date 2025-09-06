@@ -54,13 +54,13 @@ async def get_current_user(
         # 如果缓存中有数据，反序列化为 User 对象
         cached_data = json.loads(cached_user)  # 获取缓存的 JSON 字符串
         user = models.User(**cached_data)  # 使用 User 的字段初始化 User 对象
-        print("用缓存")
+        print(f"用缓存，{cached_user}")
         return user
 
     # 2. 如果缓存中没有，查询数据库
     # print("啥都没存,我还是查库")
     user = db.query(models.User).filter(models.User.username == username).first()
-    print(user)
+    # print(user)
     if not user:
         return None  # 用户不存在
 
