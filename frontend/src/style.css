@@ -83,7 +83,7 @@ button:active {
   }
 
   button {
-    padding: 6px 5px;  /* 更小的按钮 */
+    padding: 6px 5px!important;  /* 更小的按钮 */
     font-size: 12px;
     max-width: 90px;
     white-space: nowrap;

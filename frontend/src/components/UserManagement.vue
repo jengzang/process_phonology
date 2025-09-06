@@ -8,6 +8,7 @@
         <button @click="goToCreateUser">創建新用戶</button>
         <button @click="apidetail">近期api調用</button>
         <button @click="viewAllCustom">所有數據</button>
+        <button @click="checkServerStatus">服務器</button>
       </div>
       <!-- 搜索框 -->
       <div class="search-container">
@@ -194,7 +195,10 @@ export default {
     goToCreateUser() {
       this.$router.push({ name: 'CreateUser' });  // 跳轉到創建用戶頁面
     },
-
+    checkServerStatus() {
+      // 新分頁打開阿里雲服務器控制台
+      window.open('https://ecs.console.aliyun.com/server/region/cn-shenzhen#/', '_blank');
+    },
     // 查看用戶統計
     async viewUserStats(user) {
       this.$router.push({name: 'UserStats', query: {username: user.username}});
@@ -202,7 +206,6 @@ export default {
     async viewAllCustom() {
       this.$router.push({name: 'Custom'});
     },
-
     // 編輯用戶
     async editUser(user) {
       this.$router.push({name: 'EditUser', query: {username: user.username, email: user.email}});
@@ -354,7 +357,6 @@ tr:hover {
 
 .button-container0 button {
   padding: 10px 20px;
-  min-width: 100px;  /* 按钮最小宽度，防止按钮过小 */
 }
 
 /* 按钮容器，确保按钮水平居中 */
@@ -362,7 +364,7 @@ tr:hover {
   display: flex;
   justify-content: center;  /* 水平居中按钮 */
   gap: 10px;                /* 按钮之间的间距 */
-  flex-wrap: wrap;          /* 如果空间不足，允许换行 */
+  flex-wrap: nowrap;          /* 如果空间不足，允许换行 */
   max-width: 500px;         /* 最大宽度控制 */
   width: 100%;              /* 确保按钮容器宽度为100% */
 }

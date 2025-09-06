@@ -18,7 +18,7 @@ from app.auth.models import User
 from app.schemas import AnalysisPayload
 from app.service.phonology2status import pho2sta
 from app.service.status_arrange_pho import sta2pho
-from app.service.api_logger import update_count, log_all_fields, log_detailed_api, log_detailed_api_to_db
+from app.service.api_logger import update_count, log_all_fields, log_detailed_api_to_db
 from common.config import CLEAR_WEEK, REQUIRE_LOGIN, DIALECTS_DB_USER
 from common.config import DIALECTS_DB_USER, DIALECTS_DB_ADMIN
 
@@ -53,10 +53,10 @@ async def api_run_phonology_analysis(
     """
     ip_address = request.client.host  # 默认是请求的客户端 IP 地址
     check_api_usage_limit(db, user, REQUIRE_LOGIN, ip_address=ip_address)  # 限制訪問
-    update_count(request.url.path)
+    # update_count(request.url.path)
     log_all_fields(request.url.path, payload.dict())
 
-    start = time.time()
+    # start = time.time()
     try:
         # 根據用戶身分決定資料庫
         db_path = DIALECTS_DB_ADMIN if user and user.role == "admin" else DIALECTS_DB_USER
@@ -77,15 +77,16 @@ async def api_run_phonology_analysis(
         status = 500
         return {"success": False, "error": str(e)}
     finally:
-        duration = time.time() - start
-        path = request.url.path
-        ip = request.client.host
-        agent = request.headers.get("user-agent", "")
-        referer = request.headers.get("referer", "")
+        print("api_run_phonology_analysis")
+        # duration = time.time() - start
+        # path = request.url.path
+        # ip = request.client.host
+        # agent = request.headers.get("user-agent", "")
+        # referer = request.headers.get("referer", "")
         # user_id = user.id if user else None
 
         # 原有寫入 JSON 日誌
-        log_detailed_api(path, duration, status, ip, agent, referer)
+        # log_detailed_api(path, duration, status, ip, agent, referer)
 
         # 新增寫入資料庫
         # log_detailed_api_to_db(db, path, duration, status, ip, agent, referer, user_id, CLEAR_2HOUR)

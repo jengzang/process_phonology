@@ -37,9 +37,9 @@ async def search_chars(
     """
     ip_address = request.client.host
     check_api_usage_limit(db, user, REQUIRE_LOGIN, ip_address=ip_address)
-    update_count(request.url.path)
+    # update_count(request.url.path)
     log_all_fields(request.url.path, {"chars": chars, "locations": locations, "regions": regions})
-    start = time.time()
+    # start = time.time()
     try:
         locations_processed = []
         for location in locations or []:
@@ -58,11 +58,12 @@ async def search_chars(
         )
         return {"result": result}
     finally:
-        duration = time.time() - start
-        log_detailed_api(request.url.path, duration, 200,
-                         request.client.host,
-                         request.headers.get("user-agent", ""),
-                         request.headers.get("referer", ""))
+        print("search_chars")
+        # duration = time.time() - start
+        # log_detailed_api(request.url.path, duration, 200,
+        #                  request.client.host,
+        #                  request.headers.get("user-agent", ""),
+        #                  request.headers.get("referer", ""))
 
         # path = request.url.path
         # ip = request.client.host
@@ -89,9 +90,9 @@ async def search_tones_o(
     """
     ip_address = request.client.host
     check_api_usage_limit(db, user, REQUIRE_LOGIN, ip_address=ip_address)
-    update_count(request.url.path)
+    # update_count(request.url.path)
     log_all_fields(request.url.path, {"locations": locations, "regions": regions})
-    start = time.time()
+    # start = time.time()
     try:
         query_db = QUERY_DB_ADMIN if user and user.role == "admin" else QUERY_DB_USER
         locations_processed = []
@@ -108,11 +109,12 @@ async def search_tones_o(
         )
         return {"tones_result": result}
     finally:
-        duration = time.time() - start
-        log_detailed_api(request.url.path, duration, 200,
-                         request.client.host,
-                         request.headers.get("user-agent", ""),
-                         request.headers.get("referer", ""))
+        print("search_tones")
+        # duration = time.time() - start
+        # log_detailed_api(request.url.path, duration, 200,
+        #                  request.client.host,
+        #                  request.headers.get("user-agent", ""),
+        #                  request.headers.get("referer", ""))
         # 记录到数据库
         # log_detailed_api_to_db(
         #     db,

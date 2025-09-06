@@ -3,7 +3,7 @@ from common.config import SUPPLE_DB_PATH, DIALECTS_DB_ADMIN, DIALECTS_DB_PATH, D
     QUERY_DB_ADMIN, QUERY_DB_PATH, CHARACTERS_DB_PATH
 
 # 指定資料庫路徑
-db_path = CHARACTERS_DB_PATH  # 替換成實際路徑
+db_path = r"C:\Users\joengzaang\PycharmProjects\chars\data\characters.db"  # 替換成實際路徑
 
 # # 建立資料庫連線
 conn = sqlite3.connect(db_path)
@@ -25,7 +25,6 @@ cursor = conn.cursor()
 cursor.execute("SELECT name, sql FROM sqlite_master WHERE type='index' AND sql IS NOT NULL;")
 indexes = cursor.fetchall()
 
-
 if indexes:
     print("已存在索引：")
     for name, sql in indexes:
@@ -33,6 +32,11 @@ if indexes:
         print(f"  建立語法: {sql}")
 else:
     print("⚠️ 沒有找到任何索引。")
+
+# ✅ 查詢 characters 表的總行數
+cursor.execute("SELECT COUNT(*) FROM characters;")
+row_count = cursor.fetchone()[0]
+print(f"\n📊 characters 表行數：{row_count} 行")
 
 # 提交變更並關閉連線
 conn.commit()

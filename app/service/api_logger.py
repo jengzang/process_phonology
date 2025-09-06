@@ -1,3 +1,4 @@
+import asyncio
 import gzip
 import io
 import json
@@ -20,11 +21,12 @@ from app.auth.database import get_db
 from app.auth.dependencies import get_current_user, get_current_user_sync
 from app.auth.models import ApiUsageLog, ApiUsageSummary, User
 from common.config import KEYWORD_LOG_FILE, SUMMARY_FILE, API_USAGE_FILE, API_DETAILED_JSON, API_DETAILED_FILE, \
-    CLEAR_WEEK, RECORD_API, MAX_ANONYMOUS_SIZE, MAX_USER_SIZE
+    CLEAR_WEEK, RECORD_API, MAX_ANONYMOUS_SIZE, MAX_USER_SIZE, BATCH_SIZE, SIZE_THRESHOLD
 
 # === 队列 ===
 keyword_queue = queue.Queue()
-detailed_queue = queue.Queue()
+# detailed_queue = queue.Queue()
+log_queue = queue.Queue()
 
 
 # === 关键词日志 ===
@@ -147,12 +149,26 @@ def update_count(path: str):
                     f.write(f"{k}\t{v}\n")
 
 
-# === 详细响应记录入队 ===
-def log_detailed_api(path, duration, status_code, ip, user_agent, referer):
-    today = datetime.now().strftime("%Y-%m-%d")
-    detailed_queue.put((path, duration, status_code, ip, user_agent, referer, today))
+def log_writer_thread(db: Session):
+    while True:
+        # 获取一条日志并立即写入数据库
+        if not log_queue.empty():
+            log = log_queue.get()  # 获取日志
+            try:
+                # 写入数据库
+                with db.begin():  # 使用事务确保写入操作的原子性
+                    db.add(log)
+                db.commit()  # 提交事务
+                # print("已提交一条日志到数据库")
+            except Exception as e:
+                print(f"错误：写入数据库时出错：{e}")
+                db.rollback()  # 错误时回滚事务
+
+        # 等待一段时间，避免过度消耗资源
+        time.sleep(1)
 
 
+# 异步写入日志的函数
 def log_detailed_api_to_db(
         db: Session,
         path: str,
@@ -184,7 +200,9 @@ def log_detailed_api_to_db(
         request_size=request_size,  # Add request size to the log
         response_size=response_size  # Add response size to the log
     )
-    db.add(log)
+
+    # 将日志添加到队列
+    log_queue.put(log)
 
     # Step 3: Update summary table (long-term accumulated data)
     if user_id:
@@ -212,120 +230,23 @@ def log_detailed_api_to_db(
 
         db.commit()
 
-    db.commit()
 
-
-# === 后台线程写入详细响应 ===
-def detailed_writer():
-    # 初始化数据结构
-    def init_stats():
-        return {
-            "count": 0, "total_time": 0.0, "status_codes": defaultdict(int),
-            "ips": set(), "agents": set(), "referers": set()
-        }
-
-    # 从 JSON 加载旧数据
-    if os.path.exists(API_DETAILED_JSON):
-        with open(API_DETAILED_JSON, "r", encoding="utf-8") as f:
-            raw = json.load(f)
-            detailed_stats = defaultdict(init_stats, {
-                k: {
-                    "count": v["count"],
-                    "total_time": v["total_time"],
-                    "status_codes": defaultdict(int, v["status_codes"]),
-                    "ips": set(v["ips"]),
-                    "agents": set(v["agents"]),
-                    "referers": set(v["referers"]),
-                } for k, v in raw["detailed_stats"].items()
-            })
-            daily_stats = defaultdict(lambda: defaultdict(init_stats))
-            for date, paths in raw["daily_stats"].items():
-                for path, v in paths.items():
-                    daily_stats[date][path] = {
-                        "count": v["count"],
-                        "total_time": v["total_time"],
-                        "status_codes": defaultdict(int, v["status_codes"]),
-                        "ips": set(v["ips"]),
-                        "agents": set(v["agents"]),
-                        "referers": set(v["referers"]),
-                    }
-    else:
-        detailed_stats = defaultdict(init_stats)
-        daily_stats = defaultdict(lambda: defaultdict(init_stats))
-
-    while True:
-        item = detailed_queue.get()
-        if item is None:
-            break
-        path, duration, status, ip, agent, referer, date = item
-
-        d = detailed_stats[path]
-        d["count"] += 1
-        d["total_time"] += duration
-        d["status_codes"][status] += 1
-        d["ips"].add(ip)
-        d["agents"].add(agent)
-        if referer:
-            d["referers"].add(referer)
-
-        d_day = daily_stats[date][path]
-        d_day["count"] += 1
-        d_day["total_time"] += duration
-        d_day["status_codes"][status] += 1
-        d_day["ips"].add(ip)
-        d_day["agents"].add(agent)
-        if referer:
-            d_day["referers"].add(referer)
-
-        # 写入结构化 JSON 文件（持久化）
-        with open(API_DETAILED_JSON, "w", encoding="utf-8") as f:
-            json.dump({
-                "detailed_stats": {
-                    k: {
-                        "count": v["count"],
-                        "total_time": v["total_time"],
-                        "status_codes": dict(v["status_codes"]),
-                        "ips": list(v["ips"]),
-                        "agents": list(v["agents"]),
-                        "referers": list(v["referers"]),
-                    } for k, v in detailed_stats.items()
-                },
-                "daily_stats": {
-                    date: {
-                        path: {
-                            "count": v["count"],
-                            "total_time": v["total_time"],
-                            "status_codes": dict(v["status_codes"]),
-                            "ips": list(v["ips"]),
-                            "agents": list(v["agents"]),
-                            "referers": list(v["referers"]),
-                        } for path, v in paths.items()
-                    } for date, paths in daily_stats.items()
-                }
-            }, f, ensure_ascii=False, indent=2)
-
-        # 写入可读汇总（和原来一样）
-        with open(API_DETAILED_FILE, "w", encoding="utf-8") as f:
-            f.write("=== Total Summary ===\n")
-            for path, d in detailed_stats.items():
-                avg = d["total_time"] / d["count"] if d["count"] else 0
-                f.write(f"{path}\n  Count: {d['count']}\n  Avg Response Time: {avg:.3f}s\n")
-                f.write(f"  Status Codes: {', '.join(f'{k}:{v}' for k, v in d['status_codes'].items())}\n")
-                f.write("  IPs:\n" + ''.join(f"    - {ip}\n" for ip in sorted(d['ips'])))
-                f.write("  User-Agents:\n" + ''.join(f"    - {ua}\n" for ua in sorted(d['agents'])))
-                f.write("  Referers:\n" + ''.join(f"    - {r}\n" for r in sorted(d['referers'])))
-                f.write("\n")
-            f.write("=== Daily Summary ===\n")
-            for date in sorted(daily_stats):
-                f.write(f"{date}\n")
-                for path, d in daily_stats[date].items():
-                    avg = d["total_time"] / d["count"] if d["count"] else 0
-                    f.write(f"{path}\n  Count: {d['count']}\n  Avg Response Time: {avg:.3f}s\n")
-                    f.write(f"  Status Codes: {', '.join(f'{k}:{v}' for k, v in d['status_codes'].items())}\n")
-                    f.write("  IPs:\n" + ''.join(f"    - {ip}\n" for ip in sorted(d['ips'])))
-                    f.write("  User-Agents:\n" + ''.join(f"    - {ua}\n" for ua in sorted(d['agents'])))
-                    f.write("  Referers:\n" + ''.join(f"    - {r}\n" for r in sorted(d['referers'])))
-                f.write("\n")
+async def log_detailed_api_to_db_async(
+        db: Session,
+        path: str,
+        duration: float,
+        status_code: int,
+        ip: str,
+        user_agent: str,
+        referer: str,
+        user_id: int = None,
+        clear_old: bool = False,
+        request_size: int = 0,
+        response_size: int = 0
+):
+    # 使用 asyncio.to_thread 将同步的数据库操作异步化
+    await asyncio.to_thread(log_detailed_api_to_db, db, path, duration, status_code, ip, user_agent, referer,
+                            user_id, clear_old, request_size, response_size)
 
 
 # app/service/api_logger.py
@@ -333,13 +254,15 @@ _workers_started = False
 _start_lock = threading.Lock()
 
 
-def start_api_logger_workers():
+def start_api_logger_workers(db: Session):
     global _workers_started
     with _start_lock:
         if _workers_started:
             return
         threading.Thread(target=keyword_writer, daemon=True).start()
-        threading.Thread(target=detailed_writer, daemon=True).start()
+        # 启动日志写入线程
+        threading.Thread(target=log_writer_thread, args=(db,), daemon=True).start()  # 启动 log_writer_thread 处理 log_queue
+        # threading.Thread(target=detailed_writer, daemon=True).start()
         threading.Thread(target=aggregate_keyword_log, daemon=True).start()
         _workers_started = True
 
@@ -350,10 +273,15 @@ def stop_api_logger_workers():
         keyword_queue.put_nowait(None)
     except:
         pass
+    # 发送停止信号给日志线程
     try:
-        detailed_queue.put_nowait(None)
+        log_queue.put_nowait(None)  # 停止 log_writer_thread
     except:
         pass
+    # try:
+    #     detailed_queue.put_nowait(None)
+    # except:
+    #     pass
 
 
 # 这里是中间件，负责记录请求和响应的流量大小
@@ -381,35 +309,35 @@ class TrafficLoggingMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
 
         # 记录响应体大小
-        response_body = b""
+        response_body = bytearray()  # 使用 bytearray 来高效拼接
         async for chunk in response.body_iterator:
-            response_body += chunk
-        # 如果响应是 JSON 格式，进行压缩
+            response_body.extend(chunk)  # 使用 extend 更高效
+
+        # 压缩 JSON 响应体
         if "application/json" in response.headers.get("Content-Type", ""):
-            # 压缩 JSON 响应体
-            # print("壓縮")
-            response_body = compress_json(response_body)
-            response.headers["Content-Encoding"] = "gzip"  # 设置响应的编码类型
-            # 更新 Content-Length 为压缩后的大小
-            response.headers["Content-Length"] = str(len(response_body))
+            if len(response_body) > 10 * 1024:  # 仅对大于 10KB 的响应体进行压缩
+                response_body = await compress_json(response_body)
+                response.headers["Content-Encoding"] = "gzip"  # 设置响应的编码类型
+                response.headers["Content-Length"] = str(len(response_body))
 
         response_size = len(response_body)
+
         # 判断用户和响应体大小是否符合限制
         if user is None and response_size > MAX_ANONYMOUS_SIZE:
             raise HTTPException(
                 status_code=413,  # Payload Too Large
                 detail="🚫 由於服務器限制，未登錄用戶暫不允許請求過多的數據 🙅‍♂️🙅‍♀️"
             )
-        else:
-            if user and user.role != "admin" and response_size > MAX_USER_SIZE:
-                raise HTTPException(
-                    status_code=413,  # Payload Too Large
-                    detail="🚫 由於服務器限制，您的返回數據超過限制，請減少請求範圍 🛑💾"
-                )
+        elif user and user.role != "admin" and response_size > MAX_USER_SIZE:
+            raise HTTPException(
+                status_code=413,  # Payload Too Large
+                detail="🚫 由於服務器限制，您的返回數據超過限制，請減少請求範圍 🛑💾"
+            )
 
         # 计算处理时间
         duration = time.time() - start_time
-        log_detailed_api_to_db(
+
+        await log_detailed_api_to_db_async(
             db=db,
             path=request.url.path,
             duration=duration,
@@ -431,9 +359,131 @@ class TrafficLoggingMiddleware(BaseHTTPMiddleware):
 async def iter_response_body(response_body: bytes) -> AsyncIterable[bytes]:
     yield response_body
 
-def compress_json(response_body: bytes) -> bytes:
-    # 使用 gzip 压缩 JSON 数据
+
+async def compress_json(response_body: bytes) -> bytes:
+    # 如果响应体小于10KB，直接返回原始响应体
+    if len(response_body) <= SIZE_THRESHOLD:
+        return response_body
+    # 否则，执行压缩
     buf = io.BytesIO()
     with gzip.GzipFile(fileobj=buf, mode='wb') as f:
         f.write(response_body)
     return buf.getvalue()
+
+# 以下代码已废弃
+# === 详细响应记录入队 ===
+# def log_detailed_api(path, duration, status_code, ip, user_agent, referer):
+#     today = datetime.now().strftime("%Y-%m-%d")
+#     detailed_queue.put((path, duration, status_code, ip, user_agent, referer, today))
+#
+# # === 后台线程写入详细响应 ===
+# def detailed_writer():
+#     # 初始化数据结构
+#     def init_stats():
+#         return {
+#             "count": 0, "total_time": 0.0, "status_codes": defaultdict(int),
+#             "ips": set(), "agents": set(), "referers": set()
+#         }
+#
+#     # 从 JSON 加载旧数据
+#     if os.path.exists(API_DETAILED_JSON):
+#         with open(API_DETAILED_JSON, "r", encoding="utf-8") as f:
+#             raw = json.load(f)
+#             detailed_stats = defaultdict(init_stats, {
+#                 k: {
+#                     "count": v["count"],
+#                     "total_time": v["total_time"],
+#                     "status_codes": defaultdict(int, v["status_codes"]),
+#                     "ips": set(v["ips"]),
+#                     "agents": set(v["agents"]),
+#                     "referers": set(v["referers"]),
+#                 } for k, v in raw["detailed_stats"].items()
+#             })
+#             daily_stats = defaultdict(lambda: defaultdict(init_stats))
+#             for date, paths in raw["daily_stats"].items():
+#                 for path, v in paths.items():
+#                     daily_stats[date][path] = {
+#                         "count": v["count"],
+#                         "total_time": v["total_time"],
+#                         "status_codes": defaultdict(int, v["status_codes"]),
+#                         "ips": set(v["ips"]),
+#                         "agents": set(v["agents"]),
+#                         "referers": set(v["referers"]),
+#                     }
+#     else:
+#         detailed_stats = defaultdict(init_stats)
+#         daily_stats = defaultdict(lambda: defaultdict(init_stats))
+#
+#     while True:
+#         item = detailed_queue.get()
+#         if item is None:
+#             break
+#         path, duration, status, ip, agent, referer, date = item
+#
+#         d = detailed_stats[path]
+#         d["count"] += 1
+#         d["total_time"] += duration
+#         d["status_codes"][status] += 1
+#         d["ips"].add(ip)
+#         d["agents"].add(agent)
+#         if referer:
+#             d["referers"].add(referer)
+#
+#         d_day = daily_stats[date][path]
+#         d_day["count"] += 1
+#         d_day["total_time"] += duration
+#         d_day["status_codes"][status] += 1
+#         d_day["ips"].add(ip)
+#         d_day["agents"].add(agent)
+#         if referer:
+#             d_day["referers"].add(referer)
+#
+#         # 写入结构化 JSON 文件（持久化）
+#         with open(API_DETAILED_JSON, "w", encoding="utf-8") as f:
+#             json.dump({
+#                 "detailed_stats": {
+#                     k: {
+#                         "count": v["count"],
+#                         "total_time": v["total_time"],
+#                         "status_codes": dict(v["status_codes"]),
+#                         "ips": list(v["ips"]),
+#                         "agents": list(v["agents"]),
+#                         "referers": list(v["referers"]),
+#                     } for k, v in detailed_stats.items()
+#                 },
+#                 "daily_stats": {
+#                     date: {
+#                         path: {
+#                             "count": v["count"],
+#                             "total_time": v["total_time"],
+#                             "status_codes": dict(v["status_codes"]),
+#                             "ips": list(v["ips"]),
+#                             "agents": list(v["agents"]),
+#                             "referers": list(v["referers"]),
+#                         } for path, v in paths.items()
+#                     } for date, paths in daily_stats.items()
+#                 }
+#             }, f, ensure_ascii=False, indent=2)
+#
+#         # 写入可读汇总（和原来一样）
+#         with open(API_DETAILED_FILE, "w", encoding="utf-8") as f:
+#             f.write("=== Total Summary ===\n")
+#             for path, d in detailed_stats.items():
+#                 avg = d["total_time"] / d["count"] if d["count"] else 0
+#                 f.write(f"{path}\n  Count: {d['count']}\n  Avg Response Time: {avg:.3f}s\n")
+#                 f.write(f"  Status Codes: {', '.join(f'{k}:{v}' for k, v in d['status_codes'].items())}\n")
+#                 f.write("  IPs:\n" + ''.join(f"    - {ip}\n" for ip in sorted(d['ips'])))
+#                 f.write("  User-Agents:\n" + ''.join(f"    - {ua}\n" for ua in sorted(d['agents'])))
+#                 f.write("  Referers:\n" + ''.join(f"    - {r}\n" for r in sorted(d['referers'])))
+#                 f.write("\n")
+#             f.write("=== Daily Summary ===\n")
+#             for date in sorted(daily_stats):
+#                 f.write(f"{date}\n")
+#                 for path, d in daily_stats[date].items():
+#                     avg = d["total_time"] / d["count"] if d["count"] else 0
+#                     f.write(f"{path}\n  Count: {d['count']}\n  Avg Response Time: {avg:.3f}s\n")
+#                     f.write(f"  Status Codes: {', '.join(f'{k}:{v}' for k, v in d['status_codes'].items())}\n")
+#                     f.write("  IPs:\n" + ''.join(f"    - {ip}\n" for ip in sorted(d['ips'])))
+#                     f.write("  User-Agents:\n" + ''.join(f"    - {ua}\n" for ua in sorted(d['agents'])))
+#                     f.write("  Referers:\n" + ''.join(f"    - {r}\n" for r in sorted(d['referers'])))
+#                 f.write("\n")

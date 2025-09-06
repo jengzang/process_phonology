@@ -4,7 +4,7 @@ window.ADMIN_BASE = window.WEB_BASE + "/admin";
 const api = axios.create({
     // baseURL: 'http://10.250.101.238:5000/admin',  // 後端服務地址
     baseURL: window.ADMIN_BASE,  // 後端服務地址
-    timeout: 1000,  // 設置請求超時時間
+    timeout: 20000,  // 設置請求超時時間
 });
 
 // 讀取 Cookie 中的 Token

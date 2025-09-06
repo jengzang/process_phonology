@@ -502,14 +502,16 @@ document.addEventListener("DOMContentLoaded", function () {
             const limit_users =1000
             if (userRole === "anonymous"){
                 if (loc_data.locations_result && loc_data.locations_result.length > limit_anonymous) {
-                    showToast(`🚫 由於服務器限制，未登錄用戶查字只能選擇 ${limit_anonymous} 個地點。\n⚠️ 本次查詢了 ${data.locations_result.length} 個地點。`);
+                    showToast(`🚫 由於服務器限制，未登錄用戶查字只能選擇 ${limit_anonymous} 個地點。\n⚠️ 本次查詢了 ${loc_data.locations_result.length} 個地點。`);
                     showAuthPopup();
+                    document.getElementById('loading-overlay').classList.add('loading-hidden');
                     return;
                 }
             }else if (userRole === "user") {
                 if (loc_data.locations_result && loc_data.locations_result.length > limit_users) {
                     const userConfirmed = confirm(`⚠️ 本次選擇了超過1000個地點（${loc_data.locations_result.length}個）\n⚠️ 可能會很卡。\n\n是否繼續？`);
                     if (!userConfirmed) {
+                        document.getElementById('loading-overlay').classList.add('loading-hidden');
                         return;  // 如果用户点击“取消”，停止后续操作
                     }
                 }
@@ -567,7 +569,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     resultData.forEach((item) => {
                         // 如果音节或 location 为空，则跳过当前元素
                         if (!item.音节.length|| !item.location) {
-                            document.getElementById('loading-overlay').classList.add('loading-hidden');
                             return; // 跳过当前元素
                         }
                         // 创建 charDiv，如果和上一个不一样

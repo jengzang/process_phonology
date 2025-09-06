@@ -263,9 +263,6 @@ async function create_map1(){
     }
     // ✅ 加上 token
     const token = localStorage.getItem("ACCESS_TOKEN")
-    if (token) {
-        url.searchParams.append('token', token);
-    }
 
     // 显示加载提示
     // const debugLog = document.getElementById("debug-log");
@@ -773,9 +770,6 @@ async function create_dot_all() {
     url.searchParams.append('iscustom', 'true');
     url.searchParams.append('flag', 'False');
     const token = localStorage.getItem("ACCESS_TOKEN")
-    if (token) {
-        url.searchParams.append('token', token);
-    }
     try {
         // 使用 Authorization 標頭來發送 token
         const headers = {

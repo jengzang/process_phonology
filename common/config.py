@@ -75,7 +75,7 @@ USER_DATABASE_URL = f"sqlite:///{USER_DATABASE_PATH}"
 
 SECRET_KEY = "super-secret-key"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30000
+ACCESS_TOKEN_EXPIRE_MINUTES = 100000
 ISSUER = "dialects_api"  # 可自定義
 AUDIENCE = "dialects_web"  # 可自定義
 
@@ -91,12 +91,18 @@ MAX_LOGIN_PER_MINUTE = 10
 REQUIRE_LOGIN = False
 
 # 一小時內用戶使用api時長
-MAX_USER_USAGE_PER_HOUR = 1000  # 1000秒
-MAX_IP_USAGE_PER_HOUR = 500
+MAX_USER_USAGE_PER_HOUR = 2000  # 1000秒
+MAX_IP_USAGE_PER_HOUR = 600
 
 # 用戶能接收的最大json包
 MAX_ANONYMOUS_SIZE = 1024 * 1024  # 1MB for anonymous users
 MAX_USER_SIZE = 6 * 1024 * 1024   # 6MB for authenticated users
+# 压缩阈值
+SIZE_THRESHOLD = 10 * 1024  # 10KB
+# 每20条日志写入一次
+BATCH_SIZE = 20
+# 缓存过期时间（例如：1小时）
+CACHE_EXPIRATION_TIME = 3600  # 秒
 
 # =============== 配置 =======================
 # banner配置
