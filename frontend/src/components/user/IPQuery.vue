@@ -20,15 +20,16 @@
 
     <!-- 按钮切换 API -->
     <div class="api-selector">
-      <button @click="selectApi('http://ip-api.com/json/')">使用ip-api</button>
-      <button @click="selectApi('https://ipinfo.io/')">使用ipinfo</button>
-      <button @click="selectApi('https://web-api.nordvpn.com/v1/ips/lookup/')">使用NordVPN API</button>
+      <button @click="selectApi('ip-api')">ip-api</button>
+      <button @click="selectApi('ip-sb')">ip.sb API</button>
+      <button @click="selectApi('nordvpn')">NordVPN API</button>
     </div>
   </div>
 </template>
 
 <script>
-import L from 'leaflet'; // 引入 Leaflet 库
+import L from 'leaflet';
+import api from "@/axios"; // 引入 Leaflet 库
 
 export default {
   data() {
@@ -36,7 +37,7 @@ export default {
       ip: this.$route.params.ip || "",
       ipInfo: null,
       map: null, // 存储地图实例
-      selectedApi: 'http://ip-api.com/json/', // 默认使用ip-api
+      selectedApi: 'ip-api', // 默认使用 ip-api
     };
   },
   async mounted() {
@@ -54,49 +55,23 @@ export default {
     async fetchIPInfo() {
       if (!this.ip) return;
       try {
-        const response = await fetch(`${this.selectedApi}${this.ip}`);
-        const data = await response.json();
+        const response = await api.get(`/ip/${this.selectedApi}/${this.ip}`);
+        const data = await response.data;
 
         // 统一格式化返回数据
-        if (this.selectedApi === 'https://web-api.nordvpn.com/v1/ips/lookup/') {
-          this.ipInfo = {
-            query: data.ip,
-            country: data.country,
-            region: data.region,
-            city: data.city,
-            isp: data.isp,
-            org: data.isp, // NordVPN API doesn't have 'org', using 'isp' as fallback
-            as: data.isp_asn,
-            lat: data.latitude,
-            lon: data.longitude
-          };
-        } else if (this.selectedApi === 'http://ip-api.com/json/') {
-          this.ipInfo = {
-            query: data.query,
-            country: data.country,
-            region: data.regionName,
-            city: data.city,
-            isp: data.isp,
-            org: data.org,
-            as: data.as,
-            lat: data.lat,
-            lon: data.lon
-          };
-        } else if (this.selectedApi === 'https://ipinfo.io/') {
-          this.ipInfo = {
-            query: data.ip,
-            country: data.country,
-            region: data.region,
-            city: data.city,
-            isp: data.org,
-            org: data.org,
-            as: data.asn,
-            lat: parseFloat(data.loc.split(',')[0]),
-            lon: parseFloat(data.loc.split(',')[1])
-          };
-        }
+        this.ipInfo = {
+          query: data.query,
+          country: data.country,
+          region: data.region,
+          city: data.city,
+          isp: data.isp,
+          org: data.org,
+          as: data.as,
+          lat: data.lat,
+          lon: data.lon
+        };
 
-        // 初始化地图
+        // 更新地图
         if (this.ipInfo.lat && this.ipInfo.lon) {
           this.$nextTick(() => {
             this.initMap(this.ipInfo.lat, this.ipInfo.lon);
@@ -110,22 +85,22 @@ export default {
     // 初始化地图
     initMap(lat, lon) {
       if (this.map) {
-        // 如果地图已经初始化，直接更新位置
-        this.map.setView([lat, lon], 13);
-      } else {
-        // 创建地图实例
-        this.map = L.map('map').setView([lat, lon], 13);
-
-        // 添加 OpenStreetMap 瓦片图层
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        }).addTo(this.map);
-
-        // 添加标记并显示经纬度
-        L.marker([lat, lon]).addTo(this.map)
-            .bindPopup(`<b>緯度:</b> ${lat}<br><b>經度:</b> ${lon}`)
-            .openPopup();
+        // 销毁现有地图实例，避免旧地图影响
+        this.map.remove();
       }
+
+      // 创建一个新的地图实例
+      this.map = L.map('map').setView([lat, lon], 13);
+
+      // 添加 OpenStreetMap 瓦片图层
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }).addTo(this.map);
+
+      // 添加新的标记
+      L.marker([lat, lon]).addTo(this.map)
+          .bindPopup(`<b>緯度:</b> ${lat}<br><b>經度:</b> ${lon}`)
+          .openPopup();
     },
     // 选择API
     selectApi(apiUrl) {
@@ -215,6 +190,12 @@ h1 {
 
 .api-selector {
   margin-top: 20px;
+  text-align: center; /* 确保按钮居中 */
+  justify-items: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* 创建响应式的网格布局 */
+  gap: 10px; /* 按钮之间的间隔 */
 }
+
 
 </style>

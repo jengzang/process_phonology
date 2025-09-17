@@ -8,6 +8,7 @@ from .login_logs import router as login_logs_router
 from .custom import router as custom_router
 from .custom_edit import router as custom_edit_router
 from ...auth.dependencies import get_current_admin_user
+from ..admin.get_ip import router as get_ip
 
 # 创建一个总的 admin 路由集合
 router = APIRouter()
@@ -23,4 +24,6 @@ router.include_router(login_logs_router, prefix="/login-logs", tags=["admin stat
 router.include_router(custom_router, prefix="/custom", tags=["admin custom"],
                       dependencies=[Depends(get_current_admin_user)])
 router.include_router(custom_edit_router, prefix="/custom", tags=["admin custom"],
+                      dependencies=[Depends(get_current_admin_user)])
+router.include_router(get_ip, prefix="/ip", tags=["admin ip"],
                       dependencies=[Depends(get_current_admin_user)])
