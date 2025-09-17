@@ -353,6 +353,7 @@ button[v-if="false"] {
   border: 1px solid #ccc;
   background-color: #f1f1f1;
   transition: all 0.3s ease-in-out;
+  margin-top: 10px;
 }
 
 .search-container input:focus {
@@ -370,6 +371,7 @@ button[v-if="false"] {
 
 .pagination-controls button {
   padding: 12px 24px;
+  display: inline;
   margin: 0 10px;
   background-color: #4CAF50; /* 按钮的绿色 */
   color: white;

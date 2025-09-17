@@ -713,6 +713,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const mode = document.querySelector('input[name="mode"]:checked').value;
         const status_inputs = parseMultilineListInput("status_inputs");
         const pho_values = parseMultilineListInput("pho_values");
+        const runBtn = document.getElementById("runBtn");
 
         if (isEmptyInput(locations) && isEmptyInput(regions)) {
             showToast("❌ 請輸入地點或分區！",'darkred');
@@ -767,9 +768,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const limit_anonymous =200
             const limit_users =600
             const limit_phos_locs = 10
-            console.log('pho_values length:', pho_values.length);
-            console.log('mode:', mode);
-
             if (userRole === "anonymous"){
                 if (data.locations_result && data.locations_result.length > limit_anonymous) {
                     showToast(`🚫 由於服務器限制，未登錄用戶單次只能查詢 ${limit_anonymous} 個地點。\n⚠️ 本次查詢了 ${data.locations_result.length} 個地點。`);
@@ -782,7 +780,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
             }
-            else if (mode === "p2s" && pho_values.length === 0 && userRole !== "admin") {
+            if (mode === "p2s" && pho_values.length === 0 && userRole !== "admin") {
                 if (data.locations_result && data.locations_result.length > limit_phos_locs) {
                     showToast(`🚫 查詢全部音節時，單次最多只能查 ${limit_phos_locs} 個地點。\n⚠️ 本次查詢了 ${data.locations_result.length} 個地點。`);
                     return;
@@ -803,6 +801,11 @@ document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => {
                 window.runCooldown = false;
             }, 10000);
+        }
+        if (runBtn) {
+            // 禁用按钮并更改文本为 "运行中"
+            runBtn.disabled = true;
+            runBtn.textContent = "⏳ 運行中...";
         }
 
         // Clear the resultPanelContent div before proceeding with any other logic
@@ -842,6 +845,10 @@ document.addEventListener("DOMContentLoaded", () => {
         await loadData();
         // 数据加载完成后执行 mergeData 函数
         await func_mergeData();
+        if (runBtn) {
+            runBtn.disabled = false;
+            runBtn.textContent = "🚀 單擊運行";
+        }
     });
 });
 

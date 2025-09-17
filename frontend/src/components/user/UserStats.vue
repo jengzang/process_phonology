@@ -78,7 +78,7 @@
         <td>{{ log.path }}</td>
         <td>{{ log.duration.toFixed(3) }}s</td>  <!-- 保留三位小数 -->
         <td>
-          <div class="browser-cell" @mouseover="showUserAgent(log)" @mouseleave="hideUserAgent(log)">
+          <div class="browser-cell" @mouseover="showUserAgent($event,log)" @mouseleave="hideUserAgent(log)">
             <span>{{ log.os }}</span>
             <div v-show="log.showUserAgent" class="user-agent-tooltip">
               {{ log.user_agent }}
@@ -245,10 +245,23 @@ export default {
 
       return { os, browser };
     },
-    // 显示原始 User Agent
-    showUserAgent(log) {
+
+// 显示原始 User Agent并根据鼠标位置调整 top 和 left
+    showUserAgent(event, log) {
       log.showUserAgent = true;
+
+      // 获取鼠标位置
+      const rect = event.currentTarget.getBoundingClientRect(); // 获取单元格位置
+
+      // 动态设置工具提示的 top 和 left 位置
+      this.tooltipStyle = {
+        position: 'fixed',
+        top: `${event.clientY + 10}px`,  // 鼠标 Y 坐标加上偏移量 10px
+        left: `${rect.left + window.scrollX}px`,  // 获取单元格的 left 位置
+        zIndex: 1000
+      };
     },
+
     // 隐藏原始 User Agent
     hideUserAgent(log) {
       log.showUserAgent = false;
@@ -337,10 +350,16 @@ th {
   max-height: 150px;
   overflow-y: auto;
   display: none;
+  z-index: 1000;
 }
 
+/* 当鼠标悬停时，显示工具提示并使其脱离表格的限制 */
 .browser-cell:hover .user-agent-tooltip {
   display: block;
+  position: fixed;  /* 使工具提示固定在视口 */
+  top: 10px;        /* 你可以调整这里的位置 */
+  left: 10px;       /* 你可以调整这里的位置 */
+  z-index: 1000;    /* 让工具提示层级更高，避免被其他内容覆盖 */
 }
 
 .table-wrapper {

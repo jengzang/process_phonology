@@ -11,6 +11,7 @@ import CustomPerUser from "../components/custom/CustomPerUser.vue";  // 引入�
 import CreateCustom from "../components/custom/CreateCustom.vue";
 import DeleteCustom from "../components/custom/DeleteCustom.vue";
 import EditCustom from "../components/custom/EditCustom.vue";  // 引入新頁面
+import IP from "../components/user/IPQuery.vue"
 
 // 根路徑配置
 const routes = [
@@ -38,6 +39,11 @@ const routes = [
         path: '/apiUsage',
         name: 'ApiDetail',
         component: ApiDetail
+    },
+    {
+        path: '/ip/:ip',
+        name: 'IP',
+        component: IP
     },
     {
         path: '/users/stats',

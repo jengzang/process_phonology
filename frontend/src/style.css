@@ -16,7 +16,7 @@ button {
   white-space: nowrap; /* 确保按钮文本不换行 */
   overflow: hidden;   /* 超出部分隐藏 */
   justify-content: center;
-  /*display: flex;*/
+  display: flex;
   align-items: center;        /* 垂直居中 */
 }
 
@@ -83,7 +83,7 @@ button:active {
   }
 
   button {
-    padding: 6px 5px!important;  /* 更小的按钮 */
+    padding: 8px 8px!important;  /* 更小的按钮 */
     font-size: 12px;
     max-width: 90px;
     white-space: nowrap;

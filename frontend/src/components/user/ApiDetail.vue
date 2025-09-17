@@ -1,6 +1,9 @@
 <template>
   <div>
-    <h2>近期 API 使用詳情</h2>
+    <div class="header-container">
+      <h2>近期 API 使用詳情</h2>
+      <input v-model="searchQuery" type="text" placeholder="搜索..." class="search-box" />
+    </div>
 
 <!--    <button @click="goToApiStatsPage" style="max-width: 100px;padding:3px;display: flex;justify-self: center">API統計表</button>-->
 
@@ -29,7 +32,7 @@
           </thead>
           <tbody>
           <tr
-              v-for="userStat in userStats"
+              v-for="userStat in filteredUserStats"
               :key="userStat.user"
               :class="{ 'clickable': userStat.user !== '匿名用戶' }"
               @click="userStat.user !== '匿名用戶' && viewUserStats(userStat.user)"
@@ -61,8 +64,8 @@
           </tr>
           </thead>
           <tbody>
-          <tr v-for="ipStat in ipStats" :key="ipStat.ip">
-            <td>{{ ipStat.ip }}</td>
+          <tr v-for="ipStat in filteredIPStats" :key="ipStat.ip">
+            <td @click="handleIPClick(ipStat.ip)" style="cursor: pointer;">{{ ipStat.ip }}</td>
             <td>{{ ipStat.totalDuration.toFixed(3) }}s</td> <!-- 总使用时长 -->
             <td>{{ ipStat.occurrenceCount }}</td> <!-- 出现次数 -->
             <td>{{ ipStat.totalUploadTraffic }}KB</td>  <!-- 上行流量 -->
@@ -89,7 +92,7 @@
           </tr>
           </thead>
           <tbody>
-          <tr v-for="(data, path) in apiCalls" :key="path">
+          <tr v-for="(data, path) in filteredAPICalls" :key="path">
             <td>{{ path }}</td>
             <td>{{ data.totalDuration.toFixed(3) }}s</td>  <!-- 显示总持续时间 -->
             <td>{{ data.count }}</td>
@@ -176,6 +179,7 @@ export default {
         called_at: 'desc',
       },
       sortField: '',  // 当前排序字段
+      searchQuery: '',  // 新增搜索查询字段
     };
   },
   async mounted() {
@@ -267,12 +271,49 @@ export default {
   },
 
   computed: {
-// 当前页面的数据
+    // 当前页面的数据
     currentPageData() {
       const startIndex = (this.currentPage - 1) * this.pageSize;
-      return this.apiLogs.slice(startIndex, startIndex + this.pageSize);  // 根据当前页码和每页显示的数据数量筛选
+      return this.filteredLogs.slice(startIndex, startIndex + this.pageSize);  // 根据当前页码和每页显示的数据数量筛选
+    },
+
+    // 实时筛选日志数据
+    filteredLogs() {
+      return this.apiLogs.filter(log => {
+        return (
+            (log.user || '').includes(this.searchQuery) ||
+            (log.ip || '').includes(this.searchQuery) ||
+            (log.path || '').includes(this.searchQuery) ||
+            (log.os || '').includes(this.searchQuery) ||
+            (log.browser || '').includes(this.searchQuery)
+        );
+      });
+    },
+
+    // 实时筛选用户统计（基于所有apiLogs数据筛选）
+    filteredUserStats() {
+      const displayedUsers = this.filteredLogs.map(log => log.user);
+      return this.userStats.filter(userStat => displayedUsers.includes(userStat.user));
+    },
+
+    // 实时筛选IP统计（基于所有apiLogs数据筛选）
+    filteredIPStats() {
+      const displayedIPs = this.filteredLogs.map(log => log.ip);
+      return this.ipStats.filter(ipStat => displayedIPs.includes(ipStat.ip));
+    },
+
+    // 实时筛选API调用统计（基于所有apiLogs数据筛选）
+    filteredAPICalls() {
+      const displayedPaths = this.filteredLogs.map(log => log.path);
+      return Object.keys(this.apiCalls)
+          .filter(path => displayedPaths.includes(path))
+          .reduce((obj, path) => {
+            obj[path] = this.apiCalls[path];
+            return obj;
+          }, {});
     },
   },
+
   methods: {
     formatTime,
     // 跳转到图表页面
@@ -368,6 +409,18 @@ export default {
     },
     async viewUserStats(username) {
       this.$router.push({name: 'UserStats', query: {username: username}});
+    },
+    async handleIPClick(ip) {
+      this.$router.push({ path: `/ip/${ip}` });
+      console.log('Clicked IP:', ip);  // 打印被点击的 IP
+      //
+      // try {
+      //   const response = await fetch(`http://ip-api.com/json/${ip}`);
+      //   const data = await response.json();  // 解析返回的 JSON 数据
+      //   console.log('IP 归属地:', data);  // 打印 IP 归属地信息
+      // } catch (error) {
+      //   console.error('无法获取 IP 归属地:', error);
+      // }
     },
     goToHome(){
       this.$router.push({name: 'Home'});
@@ -597,5 +650,46 @@ td {
   table {
     font-size: 12px; /* 更小的字体 */
   }
+  .search-box{
+    max-width: 50px!important;
+  }
+}
+
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;  /* 确保两者之间有间距 */
+  margin-bottom: 20px;
+  flex-wrap: nowrap;
+  overflow: hidden; /* 防止溢出 */
+}
+/* 确保 h2 占据其内容宽度 */
+.header-container h2 {
+  white-space: nowrap; /* 防止 h2 换行 */
+  margin: 0;  /* 去掉默认外边距 */
+}
+/* 搜索框样式 */
+.search-box {
+  padding: 6px 12px;
+  font-size: 16px;
+  margin-left: 20px;
+  border: 1px solid #4CAF50;
+  background-color: #f1f8e9;
+  color: #2c6e49;
+  border-radius: 25px;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+  max-width: 100px;  /* 给搜索框一个默认宽度 */
+  flex-grow: 1;   /* 搜索框可以在有空间时扩展 */
+  flex-shrink: 1; /* 搜索框可以在空间不足时缩小 */
+  min-width: 50px;  /* 设置搜索框的最小宽度 */
+  width: 100%;
+}
+
+.search-box:focus {
+  outline: none;
+  border-color: #81c784;
+  background-color: #e8f5e9;
+  box-shadow: 0 0 10px rgba(129, 199, 132, 0.5);
 }
 </style>

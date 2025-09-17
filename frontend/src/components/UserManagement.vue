@@ -348,7 +348,7 @@ tr:hover {
 
 .top-controls {
   display: flex;
-  justify-content: center;  /* 居中按钮和搜索框 */
+  justify-content: center!important;  /* 居中按钮和搜索框 */
   align-items: center;      /* 垂直居中 */
   gap: 10px;                /* 按钮和搜索框之间的间距 */
   flex-wrap: wrap;          /* 如果空间不足，允许换行 */
@@ -390,7 +390,6 @@ tr:hover {
   background: linear-gradient(145deg, #f0f0f0, #e0e0e0);  /* 渐变背景色 */
   box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1), -4px -4px 10px rgba(255, 255, 255, 0.1);  /* 立体阴影 */
   transition: all 0.3s ease-in-out;  /* 添加平滑过渡 */
-  margin-left: 20px;
 }
 
 .search-container input:focus {

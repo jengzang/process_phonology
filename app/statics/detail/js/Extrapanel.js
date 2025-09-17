@@ -212,22 +212,37 @@ document.getElementById("infoForm").addEventListener("submit", async function (e
                         });
                     }
                     const customOpen = window.isCustomOn;
-                    let HowToClick = "";
-                    if (customOpen){
-                        HowToClick = "<br>請雙擊自定義按鈕(關閉再打開)<br>進而刷新數據並查看<br>按鈕在地圖頁面的頂部"
+                    let HowToClick = "🎉👌";
+                    let clickTimes = 0; // 默认点击次数为0
+
+                    if (customOpen) {
+                        // HowToClick = "<br>請雙擊自定義按鈕(關閉再打開)<br>進而刷新數據並查看<br>按鈕在地圖頁面的頂部";
+                        clickTimes = 2; // 如果 customOpen 为 true，点击两次
+                    } else {
+                        // HowToClick = "<br>請打開自定義按鈕，進而查看數據<br>按鈕在地圖頁面的頂部";
+                        clickTimes = 1; // 如果 customOpen 为 false，点击一次
                     }
-                    else{
-                        HowToClick = "<br>請打開自定義按鈕，進而查看數據<br>按鈕在地圖頁面的頂部"
-                    }
+
                     if (checkLocation() || checkRegion()) {
                         const message = data.message + HowToClick;
-                        showToast(message,'darkgreen',50);
+                        showToast(message, 'darkgreen', 50);
+
+                        // 根据 clickTimes 决定点击按钮的次数
+                        for (let i = 0; i < clickTimes; i++) {
+                            document.getElementById('custom-toggle').click();  // 自动点击按钮
+                        }
                     } else {
                         const notice = `<br>當前輸入框的分區是${regions_input.join(',')},地點是${locations_input.join(',')}<br>` +
-                            "無法與您提交的匹配，需更改後方可顯示";
+                            "無法與您提交的匹配，需更改地點/分區輸入，並重新打開地圖頁面頂部的自定義按鈕，方可顯示";
                         const message = data.message + notice + HowToClick;
-                        showToast(message,'darkgoldenrod',30)
+                        showToast(message, 'darkgoldenrod', 30);
+
+                        // 根据 clickTimes 决定点击按钮的次数
+                        for (let i = 0; i < clickTimes; i++) {
+                            document.getElementById('custom-toggle').click();  // 自动点击按钮
+                        }
                     }
+
 
                     // 可以選擇清空表單或其他操作
                     // document.getElementById("infoForm").reset();  // 清空表單

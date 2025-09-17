@@ -1,8 +1,8 @@
 <template>
   <div>
-    <h1>所有用戶數據</h1>
+    <h1>所有用戶數據 - 共 {{ data.length }} 條</h1>
     <div class="top-controls">
-      <p>當前共有 {{ data.length }} 條數據</p>
+<!--      <p>當前共有 {{ data.length }} 條數據</p>-->
       <div class="logout-button-container" style="margin-top: 0">
         <button @click="goToHome" style="background:#9e9d24">返回首頁</button>
       </div>
@@ -262,6 +262,7 @@ td {
   border: 1px solid #ccc;
   background-color: #f1f1f1;
   transition: all 0.3s ease-in-out;
+  margin-top: 10px;
 }
 
 .search-container input:focus {
@@ -331,7 +332,6 @@ th:hover {
   th, td {
     padding: 8px; /* 減少表格單元格的內邊距 */
   }
-
   .stat-btn {
     font-size: 14px; /* 調整按鈕文字大小 */
     padding: 12px; /* 增加按鈕的內邊距 */
@@ -342,6 +342,7 @@ th:hover {
   }
 
   .pagination-controls button {
+    display: inline;
     font-size: 14px; /* 分頁按鈕文字大小調整 */
     min-width: 100px; /* 調整分頁按鈕最小寬度 */
   }
@@ -383,6 +384,43 @@ th:hover {
   table {
     font-size: 12px; /* 更小的字体 */
   }
+  /* 设置表格行的最大高度并隐藏超出部分 */
+  td, th {
+    max-height: 50px; /* 限制最大行高 */
+    overflow: hidden;  /* 超出部分隐藏 */
+    text-overflow: ellipsis; /* 如果内容超出显示省略号 */
+    white-space: nowrap; /* 禁止文本换行 */
+  }
+  /* 针对第1、4、6、7列设置不同的最大宽度 */
+  td:nth-child(1) {
+    max-width: 90px;  /* 第1列设置最大宽度 */
+  }
+
+  td:nth-child(4) {
+    max-width: 100px;  /* 第4列设置最大宽度 */
+  }
+
+  td:nth-child(6) {
+    max-width: 50px;  /* 第6列设置最大宽度 */
+  }
+
+  td:nth-child(7) {
+    max-width: 100px;  /* 第7列设置最大宽度 */
+  }
+
+  /* 针对其他列，设置最大宽度为100px */
+  td:not(:nth-child(1)):not(:nth-child(4)):not(:nth-child(6)):not(:nth-child(7)) {
+    max-width: 120px;  /* 默认最大宽度为100px */
+  }
+
+  /* 通用的文字溢出处理 */
+  td {
+    overflow: hidden;        /* 超出部分隐藏 */
+    text-overflow: ellipsis; /* 超出部分显示省略号 */
+    white-space: nowrap;     /* 强制文本不换行 */
+  }
+
+
 }
 
 </style>

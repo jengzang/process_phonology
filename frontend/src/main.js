@@ -5,6 +5,8 @@ import api from './axios';  // 引入 axios 配置
 import './style.css'; // 引入全局CSS
 import ElementPlus from 'element-plus';  // 引入 Element Plus
 import 'element-plus/dist/index.css';  // 引入 Element Plus 样式
+import 'leaflet/dist/leaflet.css';
+
 
 const app = createApp(App);
 // 设置 API 基础路径

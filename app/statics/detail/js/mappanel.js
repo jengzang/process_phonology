@@ -565,6 +565,10 @@ async function triggerDrawingFunction() {
                 const feature = dataItem.feature;
 
                 // console.log("处理:", locationName);
+                if (!value || value.trim() === '') {
+                    // 如果 value 为空或只包含空白字符，跳过当前项的绘制
+                    continue;
+                }
 
                 try {
                     // 检查坐标是否有效
