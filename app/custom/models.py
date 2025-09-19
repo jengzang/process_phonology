@@ -23,7 +23,7 @@ class Information(Base):
     # 手動記錄用戶資訊（不關聯）
     user_id = Column(Integer, nullable=False, index=True)
     username = Column(String(100), nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
 
     # user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     # username = Column(String, nullable=False)
